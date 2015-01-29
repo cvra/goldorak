@@ -33,12 +33,12 @@
 \end{abstract}
 
 \section{Conventions}
-%\begin{figure}[h]
-%    \begin{center}
-%        \includegraphics[width=0.5\textwidth]{}
-%        \caption{Naming conventions}
-%    \end{center}
-%\end{figure}
+\begin{figure}[h]
+    \begin{center}
+        \includegraphics[width=0.8\textwidth]{table}
+        \caption{Coordinate system of the robot on the Eurobot table}
+    \end{center}
+\end{figure}
 
 The robot has a global coordinate system on the game table.
 The coordinate system is in a direct base.
@@ -94,7 +94,7 @@ And finally we got the radius of the center of the trajectory :
 
 Plugging reasonable parameters for Eurobot ($\lambda=1+0.1\%$, $T = \SI{0.2}{\meter}$), we obtain a radius $R = \SI{300}{\meter}$. 
 Such a big radius might seem indistinguishable from a straight line, but this is not the case.
-To show this, let's compute the lateral deviation on a full table crossin (\SI{2.5}{\meter}):
+To show this, let's compute the lateral deviation on a full table crossing (\SI{2.5}{\meter}):
 \begin{equation}
     \Delta_x = \left( 1 - \cos \frac{2.5}{300} \right) \cdot \SI{300}{\meter} \approx \SI{1}{\centi\meter}
 \end{equation}
