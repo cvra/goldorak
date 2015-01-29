@@ -20,7 +20,7 @@
 \usepackage{mhchem}
 \usepackage[acronym,smallcaps]{glossaries}
 
-\author{Antoine Albertelli\\{antoinea101@gmail.com}}
+\author{Antoine Albertelli\\{a.albertelli@cvra.ch}}
 \title{Asynchronous Dead Reckoning Algorithm}
 
 \begin{document}
@@ -37,11 +37,13 @@
     \begin{center}
         \includegraphics[width=0.8\textwidth]{table}
         \caption{Coordinate system of the robot on the Eurobot table}
+        \label{fig:coordinates}
     \end{center}
 \end{figure}
 
-The robot has a global coordinate system on the game table.
+The robot has a global coordinate system on the game table (fig. \ref{fig:coordinates}).
 The coordinate system is in a direct base.
+It is expressed in standard units (\si{\meter} and \si{\radian}).
 It doesn't change when changing team color.
 
 The input of the algorithm are the following:
@@ -56,11 +58,69 @@ The input of the algorithm are the following:
 The base idea of the algorithm is to apply standard dead reckoning formulas but asynchronously, but using the assumption that only the wheel we are updating moved.
 That means if we just received $\Delta_L$, we assume that $\Delta_R$ is zero.
 
+\begin{figure}[h]
+    \begin{center}
+        \includegraphics[width=0.4\textwidth]{algorithm.png}
+        \caption{Visual explanation of the algorithm}
+    \end{center}
+\end{figure}
+
 We start by computing the difference in heading $\Delta_\theta$:
 
 \begin{equation}
     \Delta_\theta = \frac{\Delta_R - \Delta_L}{T}
 \end{equation}
+
+Then we can compute the robot movement :
+
+\begin{equation}
+    \begin{pmatrix}
+        u\\v
+    \end{pmatrix}  
+    =
+    \frac{T}{2}
+    \begin{pmatrix}
+        \sin \Delta_\theta\\1 - \cos \Delta_\theta
+    \end{pmatrix}
+    \approx
+    \frac{T}{2}
+    \begin{pmatrix}
+        \Delta_\theta\\ 0
+    \end{pmatrix}
+\end{equation}
+
+We will then transpose those displacement vector in the global space:
+
+\begin{equation}
+    \begin{pmatrix}
+        \Delta_x\\\Delta_y
+    \end{pmatrix}
+    =
+    \begin{pmatrix}
+        \cos\theta \\-\sin\theta
+    \end{pmatrix}
+    u 
+\end{equation}
+
+Finally, integrate the change into the robot position:
+\begin{equation}
+    \begin{pmatrix}
+        x_{k+1}\\
+        y_{k+1}\\
+        \theta_{k+1}
+    \end{pmatrix}
+    =
+    \begin{pmatrix}
+        x_{k}\\
+        y_{k}\\
+        \theta_{k}
+    \end{pmatrix}
+    +
+    \begin{pmatrix}
+        \Delta_x\\\Delta_y\\\Delta_\theta
+    \end{pmatrix}
+\end{equation}
+
 
 \section{Accounting for mechanical tolerances}
 In the previous sections we supposed that the two measuring wheels were perfectly identical, with the same tick to meter ratio.
@@ -87,7 +147,7 @@ Therefore:
     (T + R_2) \alpha = \lambda R_2 \alpha
 \end{equation}
 
-And finally we got the radius of the center of the trajectory :
+And finally we got the radius of the trajectory :
 \begin{equation}
     R = T \left(\frac{1}{\lambda - 1}  + \frac{1}{2}\right)
 \end{equation}
@@ -100,6 +160,7 @@ To show this, let's compute the lateral deviation on a full table crossing (\SI{
 \end{equation}
 
 This shows that compensating for manufacturing tolerances is critical for a good odometry.
+
 
 
 
