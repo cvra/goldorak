@@ -153,8 +153,12 @@ To show this, let's compute the lateral deviation on a full table crossing (\SI{
     \Delta_x = \left( 1 - \cos \frac{2.5}{300} \right) \cdot \SI{300}{\meter} \approx \SI{1}{\centi\meter}
 \end{equation*}
 
-This shows that compensating for manufacturing tolerances is critical for a good odometry.
 
+Compensating this effect is trivial.
+Simply apply the correction factor $\lambda$ to the right wheel input before computing odomery:
+\begin{equation}
+    \Delta_R' = \lambda \Delta_R
+\end{equation}
 
 
 
