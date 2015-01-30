@@ -215,4 +215,21 @@ One iteration should be enough for this calibration if done correctly.
 
 
 
+\subsection{Wheel track}
+The calibration of the wheel track is pretty straightforward.
+\begin{itemize}
+    \item the robot takes a reference against a plate and sets $\theta = 0$.
+    \item The robot goes a bit away from the reference plate to allow free rotation.
+    \item The robot makes $k$ full turns.
+        Start with a low turn count and increase until necessary precision is reached.
+    \item The robot aligns itself against the reference plate again.
+    \item The angle measured by the robot is now the rotation error ($\Delta_\theta$).
+\end{itemize}
+Now the corrected track value can be set using equation \ref{eqn:track-correction}.
+Repeat as many times as needed for the desired precision value.
+\begin{equation}
+    T' = T \left(1 + \frac{\Delta_\theta}{k \cdot 2\pi}\right)
+    \label{eqn:track-correction}
+\end{equation}
+
 \end{document}
