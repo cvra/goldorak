@@ -197,4 +197,22 @@ The correction factor can now be computed as :
     \lambda = \frac{(R_i - L_i) - (R_f - L_f)}{(R_i + L_i) - (R_f + L_f)}
 \end{equation}
 
+\subsection{Encoder ticks per meter}
+This one is the least precise part of the calibration procedure.
+Fortunately it is the part that has the least influence on the end result.
+When using wheels without O-Rings, this part can be skipped.
+
+Start with the theoretical value for $N$.
+Then ask the robot to go forward by a distance $d$.
+The longest is better, but be sure to do it on a clean, flat surface.
+Measure $d'$ the distance the robot travelled.
+The compensated value is :
+\begin{equation}
+    N' = N \frac{d}{d'}
+\end{equation}
+
+One iteration should be enough for this calibration if done correctly.
+
+
+
 \end{document}
