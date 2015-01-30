@@ -119,7 +119,7 @@ Finally, integrate the change into the robot position:
 \section{Accounting for mechanical tolerances}
 In the previous sections we supposed that the two measuring wheels were perfectly identical, with the same tick to meter ratio.
 However, in the real world, manufacturing tolerances are not perfect and wheel diameters can vary quite a lot.
-Using the ISO 2768-f specification on a \SI{40}{\milli\meter} yields a maximum tolerance of $\pm \SI{0.2}{\milli\meter}$.
+Using the ISO 2768-f specification on a \SI{40}{\milli\meter} wheel yields a maximum tolerance of $\pm \SI{0.2}{\milli\meter}$.
 This means that between both wheels the maximum relative error is $\frac{\Delta_R}{R} = \frac{2 \cdot 0.2}{40} = 1\% $.
 
 How does this error translate into robot trajectory ?
@@ -217,8 +217,9 @@ One iteration should be enough for this calibration if done correctly.
 
 \subsection{Wheel track}
 The calibration of the wheel track is pretty straightforward.
+Start with the nominal value.
 \begin{itemize}
-    \item the robot takes a reference against a plate and sets $\theta = 0$.
+    \item The robot takes a reference against a plate and sets $\theta = 0$.
     \item The robot goes a bit away from the reference plate to allow free rotation.
     \item The robot makes $k$ full turns.
         Start with a low turn count and increase until necessary precision is reached.
