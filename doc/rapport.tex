@@ -160,8 +160,41 @@ Simply apply the correction factor $\lambda$ to the right wheel input before com
     \Delta_R' = \lambda \Delta_R
 \end{equation}
 
+\section{Calibration procedure}
+Since we already shown that mechanical construction is not to be relied on, we have to calibrate the parameters experimentally.
+The order of parameter determination matters, since they are inter dependent.
+The parameters are:
+\begin{itemize}
+    \item $\lambda$ (wheel correction factor)
+    \item $N$ (Encoder ticks per millimeter)
+    \item $T$ (Distance between both wheels)
+\end{itemize}
 
+\subsection{Wheel correction factor}
+Start with $\lambda=1$.
+The wheel correction factor measurement is as follows:
 
+\begin{enumerate}
+    \item The robot takes its reference by pushing against a reference plate.
+        Wheel positions are stored ($R_i$ and $L_i$ for right and left respectively).
+    \item Go away from the reference plate, just enough to allow rotation of the robot.
+    \item The robot repeats the following sequence.
+        The recommended way is to start with few iterations then increase until enough precision is achieved.
+        \begin{enumerate}
+            \item Go forward by at least \SI{1.5}{\meter} (more is better).
+            \item Rotate by \SI{180}{\degree}.
+            \item Go forward by the same distance as before
+            \item Rotate by \SI{-180}{\degree}.
+                The sign of the rotation matters:
+                Since the track of the robot is not calibrated yet, turning in opposite directions effectively cancels the rotation error.
+        \end{enumerate}
+    \item The robot takes it reference, by pressing against the reference plate again.
+        Wheel position is stored again and noted $R_f$ and $L_f$.
+\end{enumerate}
 
+The correction factor can now be computed as :
+\begin{equation}
+    \lambda = \frac{(R_i - L_i) - (R_f - L_f)}{(R_i + L_i) - (R_f + L_f)}
+\end{equation}
 
 \end{document}
