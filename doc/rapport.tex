@@ -127,31 +127,31 @@ Well when the robot thinks it is doing a straight line, it will actually be turn
 
 Each will will run on a cirlcle of radius $R$.
 The distance between the wheels is fixed so :
-\begin{equation}
+\begin{equation*}
     R_1 - R_2 = T
-\end{equation}
+\end{equation*}
 
 The robot turned of a given angle $\alpha$ so :
-\begin{equation}
+\begin{equation*}
     R_1 \alpha = \lambda R_2 \alpha
-\end{equation}
+\end{equation*}
 
 Therefore:
-\begin{equation}
+\begin{equation*}
     (T + R_2) \alpha = \lambda R_2 \alpha
-\end{equation}
+\end{equation*}
 
 And finally we got the radius of the trajectory :
-\begin{equation}
+\begin{equation*}
     R = T \left(\frac{1}{\lambda - 1}  + \frac{1}{2}\right)
-\end{equation}
+\end{equation*}
 
 Plugging reasonable parameters for Eurobot ($\lambda=1+0.1\%$, $T = \SI{0.2}{\meter}$), we obtain a radius $R = \SI{300}{\meter}$. 
 Such a big radius might seem indistinguishable from a straight line, but this is not the case.
 To show this, let's compute the lateral deviation on a full table crossing (\SI{2.5}{\meter}):
-\begin{equation}
+\begin{equation*}
     \Delta_x = \left( 1 - \cos \frac{2.5}{300} \right) \cdot \SI{300}{\meter} \approx \SI{1}{\centi\meter}
-\end{equation}
+\end{equation*}
 
 This shows that compensating for manufacturing tolerances is critical for a good odometry.
 
