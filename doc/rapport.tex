@@ -50,7 +50,7 @@ The input of the algorithm are the following:
 \end{itemize}
 
 \section{Update algorithm}
-The base idea of the algorithm is to apply standard dead reckoning formulas but asynchronously, but using the assumption that only the wheel we are updating moved.
+The base idea of the algorithm is to apply standard dead reckoning formulas but asynchronously, using the assumption that only the wheel we are updating moved.
 That means if we just received $\Delta_L$, we assume that $\Delta_R$ is zero.
 
 \begin{figure}[h]
@@ -84,7 +84,7 @@ Then we can compute the robot movement :
     \end{pmatrix}
 \end{equation}
 
-We will then transpose those displacement vector in the global space:
+We will then transpose those displacement vector in the global space ($\theta$ is the heading of the robot):
 
 \begin{equation}
     \begin{pmatrix}
@@ -156,7 +156,7 @@ To show this, let's compute the lateral deviation on a full table crossing (\SI{
 
 
 Compensating this effect is trivial.
-Simply apply the correction factor $\lambda$ to the right wheel input before computing odomery:
+Simply apply the correction factor $\lambda$ to the right wheel input before computing odometry:
 \begin{equation}
     \Delta_R' = \lambda \Delta_R
 \end{equation}
