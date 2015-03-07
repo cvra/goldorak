@@ -33,3 +33,4 @@ Makefile
 
 # custom packager dependency folder
 dependencies/
+packager/

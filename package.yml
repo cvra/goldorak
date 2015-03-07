@@ -1,8 +1,10 @@
 depends:
-	- test-runner
+    - test-runner
+    - timestamp:
+        fork: Stapelzeiger
 
 source:
-	- odometry.c
+    - src/odometry.c
 
 tests:
-	- odometry_test.cpp
+    - tests/odometry_test.cpp
