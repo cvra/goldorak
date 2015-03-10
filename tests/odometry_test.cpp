@@ -176,13 +176,13 @@ TEST_GROUP(Base)
 		x0[0] = 0.0f;
 		x0[1] = 0.0f;
 		x0[2] = 0.0f;
-		t0 = 1000;
+		t0 = 30000;
 		init_state.timestamp = 20;
-		init_state.value = 42;
+		init_state.value = 10;
 
 		base_init(&robot, 1.0f, 1.0f, 1.0f, x0, t0);
-		wheel_init(&(robot.right_wheel), init_state, 100, 0.5f);
-		wheel_init(&(robot.left_wheel), init_state, 100, 0.5f);
+		wheel_init(&(robot.right_wheel), init_state, 1e7, 0.5f);
+		wheel_init(&(robot.left_wheel), init_state, 1e7, 0.5f);
 	}
 };
 
@@ -196,23 +196,139 @@ TEST(Base, BaseInit)
 	DOUBLES_EQUAL(x0[2], robot.pose[2], 1e-7);
 	DOUBLES_EQUAL(0.0f, robot.vel[0], 1e-7);
 	DOUBLES_EQUAL(0.0f, robot.vel[1], 1e-7);
-	DOUBLES_EQUAL(0.0f, robot.acc[0], 1e-7);
-	DOUBLES_EQUAL(0.0f, robot.acc[1], 1e-7);
 	CHECK_EQUAL(t0, robot.time_last_estim);
 }
 
 TEST(Base, BaseEstimateVelZero)
 {
-	wheel_update(&(robot.left_wheel), 25000, 10);
-	wheel_update(&(robot.left_wheel), 30000, 10);
-	wheel_update(&(robot.left_wheel), 35000, 10);
-
 	wheel_update(&(robot.right_wheel), 25000, 10);
 	wheel_update(&(robot.right_wheel), 30000, 10);
 	wheel_update(&(robot.right_wheel), 35000, 10);
+
+	wheel_update(&(robot.left_wheel), 25000, 10);
+	wheel_update(&(robot.left_wheel), 30000, 10);
+	wheel_update(&(robot.left_wheel), 35000, 10);
 
 	base_estim_vel(&robot, 35000);
 
 	DOUBLES_EQUAL(0.0f, robot.vel[0], 1e-7);
 	DOUBLES_EQUAL(0.0f, robot.vel[1], 1e-7);
+
+	base_estim_vel(&robot, 40000);
+
+	DOUBLES_EQUAL(0.0f, robot.vel[0], 1e-7);
+	DOUBLES_EQUAL(0.0f, robot.vel[1], 1e-7);
 }
+
+TEST(Base, BaseEstimateVelPositiveConstant)
+{
+	wheel_update(&(robot.right_wheel), 25000, 10);
+	wheel_update(&(robot.right_wheel), 30000, 20);
+	wheel_update(&(robot.right_wheel), 35000, 30);
+
+	wheel_update(&(robot.left_wheel), 25000, 10);
+	wheel_update(&(robot.left_wheel), 30000, 20);
+	wheel_update(&(robot.left_wheel), 35000, 30);
+
+	base_estim_vel(&robot, 35000);
+
+	DOUBLES_EQUAL(0.0006283185f, robot.vel[0], 1e-10);
+	DOUBLES_EQUAL(0.0f, robot.vel[1], 1e-7);
+
+	base_estim_vel(&robot, 40000);
+
+	DOUBLES_EQUAL(0.0006283185f, robot.vel[0], 1e-10);
+	DOUBLES_EQUAL(0.0f, robot.vel[1], 1e-7);
+}
+
+TEST(Base, BaseEstimateVelPositiveIncreasing)
+{
+	wheel_update(&(robot.right_wheel), 25000, 20);
+	wheel_update(&(robot.right_wheel), 30000, 20);
+	wheel_update(&(robot.right_wheel), 35000, 40);
+
+	wheel_update(&(robot.left_wheel), 25000, 20);
+	wheel_update(&(robot.left_wheel), 30000, 20);
+	wheel_update(&(robot.left_wheel), 35000, 40);
+
+	base_estim_vel(&robot, 35000);
+
+	DOUBLES_EQUAL(0.001256637f, robot.vel[0], 1e-9);
+	DOUBLES_EQUAL(0.0f, robot.vel[1], 1e-7);
+
+	base_estim_vel(&robot, 40000);
+
+	DOUBLES_EQUAL(0.002513274f, robot.vel[0], 1e-9);
+	DOUBLES_EQUAL(0.0f, robot.vel[1], 1e-7);
+}
+
+TEST(Base, BaseEstimateVelPositiveDecreasing)
+{
+	wheel_update(&(robot.right_wheel), 25000, 10);
+	wheel_update(&(robot.right_wheel), 30000, 50);
+	wheel_update(&(robot.right_wheel), 35000, 70);
+
+	wheel_update(&(robot.left_wheel), 25000, 10);
+	wheel_update(&(robot.left_wheel), 30000, 50);
+	wheel_update(&(robot.left_wheel), 35000, 70);
+
+	base_estim_vel(&robot, 35000);
+
+	DOUBLES_EQUAL(0.001256637f, robot.vel[0], 1e-9);
+	DOUBLES_EQUAL(0.0f, robot.vel[1], 1e-7);
+
+	base_estim_vel(&robot, 40000);
+
+	DOUBLES_EQUAL(0.0f, robot.vel[0], 1e-7);
+	DOUBLES_EQUAL(0.0f, robot.vel[1], 1e-7);
+
+	base_estim_vel(&robot, 45000);
+
+	DOUBLES_EQUAL(-0.001256637f, robot.vel[0], 1e-9);
+	DOUBLES_EQUAL(0.0f, robot.vel[1], 1e-7);
+}
+
+TEST(Base, BaseEstimateAngularVelPositiveConstant)
+{
+	wheel_update(&(robot.right_wheel), 25000, 10);
+	wheel_update(&(robot.right_wheel), 30000, 20);
+	wheel_update(&(robot.right_wheel), 35000, 30);
+
+	wheel_update(&(robot.left_wheel), 25000, 30);
+	wheel_update(&(robot.left_wheel), 30000, 20);
+	wheel_update(&(robot.left_wheel), 35000, 10);
+
+	base_estim_vel(&robot, 35000);
+
+	DOUBLES_EQUAL(0.0f, robot.vel[0], 1e-7);
+	DOUBLES_EQUAL(0.001256637f, robot.vel[1], 1e-9);
+
+	base_estim_vel(&robot, 40000);
+
+	DOUBLES_EQUAL(0.0f, robot.vel[0], 1e-7);
+	DOUBLES_EQUAL(0.001256637f, robot.vel[1], 1e-9);
+}
+
+TEST(Base, BaseEstimatePoseZero)
+{
+	wheel_update(&(robot.right_wheel), 25000, 10);
+	wheel_update(&(robot.right_wheel), 30000, 10);
+	wheel_update(&(robot.right_wheel), 35000, 10);
+
+	wheel_update(&(robot.left_wheel), 25000, 10);
+	wheel_update(&(robot.left_wheel), 30000, 10);
+	wheel_update(&(robot.left_wheel), 35000, 10);
+
+	base_estim_pose(&robot, 35000);
+
+	DOUBLES_EQUAL(0.0f, robot.pose[0], 1e-7);
+	DOUBLES_EQUAL(0.0f, robot.pose[1], 1e-7);
+	DOUBLES_EQUAL(0.0f, robot.pose[2], 1e-7);
+
+	base_estim_vel(&robot, 40000);
+
+	DOUBLES_EQUAL(0.0f, robot.pose[0], 1e-7);
+	DOUBLES_EQUAL(0.0f, robot.pose[1], 1e-7);
+	DOUBLES_EQUAL(0.0f, robot.pose[2], 1e-7);
+}
+

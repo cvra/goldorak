@@ -25,9 +25,6 @@ void base_init(
 	robot->vel[0] = 0.0f;
 	robot->vel[1] = 0.0f;
 
-	robot->acc[0] = 0.0f;
-	robot->acc[1] = 0.0f;
-
 	robot->time_last_estim = time_now;
 }
 
@@ -54,15 +51,8 @@ void base_estim_vel(
 	float right_wheel_vel = wheel_get_vel(&(robot->right_wheel), time_now);
 	float left_wheel_vel = wheel_get_vel(&(robot->left_wheel), time_now);
 
-	// Linear interpolation: Constant acceleration
-	base_estim_acc(robot);
 	robot->vel[0] = 0.5f * (right_wheel_vel + left_wheel_vel);
 	robot->vel[1] = (right_wheel_vel - left_wheel_vel) / robot->wheelbase;
-
-	robot->vel[0] += robot->acc[0] \
-					 * timestamp_duration_s(robot->time_last_estim,time_now);
-	robot->vel[1] += robot->acc[1] \
-			   		 * timestamp_duration_s(robot->time_last_estim, time_now);
 
 	// Check velocity is within boundaries
 	if(robot->vel[0] > robot->vel_max) {
@@ -71,25 +61,6 @@ void base_estim_vel(
 
 	if(robot->vel[1] > (robot->vel_max / robot->wheelbase)) {
 		robot->vel[1] = robot->vel_max / robot->wheelbase;
-	}
-}
-
-void base_estim_acc(
-		base_odom_t *robot)
-{
-	float right_wheel_acc = wheel_get_acc(&(robot->right_wheel));
-	float left_wheel_acc = wheel_get_acc(&(robot->left_wheel));
-
-	robot->acc[0] = 0.5f * (right_wheel_acc + left_wheel_acc);
-	robot->acc[1] = 0.5f * (right_wheel_acc - left_wheel_acc) / robot->wheelbase;
-
-	// Check acceleration is within boundaries
-	if(robot->acc[0] > robot->acc_max) {
-		robot->acc[0] = robot->acc_max;
-	}
-
-	if(robot->acc[1] > (robot->acc_max / robot->wheelbase)) {
-		robot->acc[1] = robot->acc_max / robot->wheelbase;
 	}
 }
 
