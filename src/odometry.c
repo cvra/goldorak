@@ -10,7 +10,6 @@ void wheel_init(
 		wheel_odom_t *wheel,
 		const encoder_sample_t init_state,
 		const uint32_t encoder_max,
-		const float transmission_ratio,
 		const float wheel_radius)
 {
 	encoder_record_sample(
@@ -26,8 +25,8 @@ void wheel_init(
 		init_state.timestamp,
 		init_state.value);
 	wheel->encoder_max = encoder_max;
-	wheel->transmission_ratio = transmission_ratio;
 	wheel->radius = wheel_radius;
+	wheel->tick_to_meter = (2 * M_PI * wheel_radius / encoder_max);
 }
 
 void wheel_get_sample(
@@ -55,21 +54,35 @@ void wheel_update(
 	wheel->samples[2].value = new_value;
 }
 
+float wheel_get_vel(
+		wheel_odom_t *wheel,
+		const timestamp_t time_now)
+{
+	float acc = wheel_get_acc(wheel);
+	float vel_prev = get_time_derivative(wheel->samples[1].timestamp,
+							        	 wheel->samples[1].value,
+							  	    	 wheel->samples[2].timestamp,
+							  	    	 wheel->samples[2].value);
+	float dt = timestamp_duration_s(wheel->samples[2].timestamp, time_now);
+
+	return vel_prev * wheel->tick_to_meter + acc * dt;
+}
+
 float wheel_get_acc(
 		wheel_odom_t *wheel)
 {
-	float vel1 = get_time_derivative(wheel->samples[0].timestamp, \
-						        	 wheel->samples[0].value, \
-						  	    	 wheel->samples[1].timestamp, \
+	float vel1 = get_time_derivative(wheel->samples[0].timestamp,
+						        	 wheel->samples[0].value,
+						  	    	 wheel->samples[1].timestamp,
 						  	    	 wheel->samples[1].value);
-
-	float vel2 = get_time_derivative(wheel->samples[1].timestamp, \
-						        	 wheel->samples[1].value, \
-						  	    	 wheel->samples[2].timestamp, \
+	float vel2 = get_time_derivative(wheel->samples[1].timestamp,
+						        	 wheel->samples[1].value,
+						  	    	 wheel->samples[2].timestamp,
 						  	    	 wheel->samples[2].value);
-
-	return get_time_derivative(wheel->samples[1].timestamp, vel1, \
-						  	   wheel->samples[2].timestamp, vel2);
+	float acc = get_time_derivative(wheel->samples[1].timestamp, vel1,
+						  	   		wheel->samples[2].timestamp, vel2);
+	// Convert acc to meters
+	return acc * wheel->tick_to_meter;
 }
 
 float get_time_derivative(
@@ -78,9 +91,9 @@ float get_time_derivative(
 		const float t2,
 		const float x2)
 {
-	float dt = (float) timestamp_duration_us(t1, t2);
+	float dt = (float) timestamp_duration_s(t1, t2);
 
-	if(dt >= 1e-6) {
+	if(dt >= 1e-7) {
 		return (x2 - x1) / dt;
 	} else {
 		return 0.0f;

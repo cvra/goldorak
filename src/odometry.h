@@ -11,7 +11,7 @@ typedef struct{
 	uint32_t value;
 } encoder_sample_t;
 
-/** Instance of a wheel
+/** Instance of an encoder wheel
  *
  * @note Contains wheel info needed for odometry, ie. previous
  * encoder samples and the wheel radius.
@@ -19,8 +19,8 @@ typedef struct{
 typedef struct{
 	encoder_sample_t samples[3];
 	uint32_t encoder_max;
-	float transmission_ratio; // ticks_per_rev = encoder_max / transmission_ratio
 	float radius;
+	float tick_to_meter;
 } wheel_odom_t;
 
 
@@ -28,7 +28,6 @@ void wheel_init(
 		wheel_odom_t *wheel,
 		const encoder_sample_t encoder_init_state,
 		const uint32_t encoder_max,
-		const float transmission_ratio,
 		const float wheel_radius);
 
 void wheel_get_sample(
@@ -40,6 +39,10 @@ void wheel_update(
 		wheel_odom_t *wheel,
 		const timestamp_t new_timestamp,
 		const uint32_t new_value);
+
+float wheel_get_vel(
+		wheel_odom_t *wheel,
+		const timestamp_t time_now);
 
 float wheel_get_acc(
 		wheel_odom_t *wheel);
