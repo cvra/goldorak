@@ -56,24 +56,20 @@ void base_estim_vel(
 
 	// Linear interpolation: Constant acceleration
 	base_estim_acc(robot);
-	float lin_vel = (right_wheel_vel + left_wheel_vel) / 2.0f;
-	float ang_vel = 0.5f * (right_wheel_vel - left_wheel_vel) / robot->wheelbase;
+	robot->vel[0] = 0.5f * (right_wheel_vel + left_wheel_vel);
+	robot->vel[1] = (right_wheel_vel - left_wheel_vel) / robot->wheelbase;
 
-	lin_vel += robot->acc[0] * timestamp_duration_s(robot->time_last_estim, \
-													time_now);
-	ang_vel += robot->acc[1] * timestamp_duration_s(robot->time_last_estim, \
-													time_now);
+	robot->vel[0] += robot->acc[0] \
+					 * timestamp_duration_s(robot->time_last_estim,time_now);
+	robot->vel[1] += robot->acc[1] \
+			   		 * timestamp_duration_s(robot->time_last_estim, time_now);
 
 	// Check velocity is within boundaries
-	if(lin_vel < robot->vel_max) {
-		robot->vel[0] = lin_vel;
-	} else {
+	if(robot->vel[0] > robot->vel_max) {
 		robot->vel[0] = robot->vel_max;
 	}
 
-	if(ang_vel < (robot->vel_max / robot->wheelbase)) {
-		robot->vel[1] = ang_vel;
-	} else {
+	if(robot->vel[1] > (robot->vel_max / robot->wheelbase)) {
 		robot->vel[1] = robot->vel_max / robot->wheelbase;
 	}
 }
@@ -84,20 +80,16 @@ void base_estim_acc(
 	float right_wheel_acc = wheel_get_acc(&(robot->right_wheel));
 	float left_wheel_acc = wheel_get_acc(&(robot->left_wheel));
 
-	float lin_acc = (right_wheel_acc + left_wheel_acc) / 2.0f;
-	float ang_acc = (right_wheel_acc - left_wheel_acc) / robot->wheelbase;
+	robot->acc[0] = 0.5f * (right_wheel_acc + left_wheel_acc);
+	robot->acc[1] = 0.5f * (right_wheel_acc - left_wheel_acc) / robot->wheelbase;
 
 	// Check acceleration is within boundaries
-	if(lin_acc < robot->acc_max) {
-		robot->acc[0] = lin_acc;
-	} else {
+	if(robot->acc[0] > robot->acc_max) {
 		robot->acc[0] = robot->acc_max;
 	}
 
-	if(ang_acc < (2.0f * robot->acc_max / robot->wheelbase)) {
-		robot->acc[1] = ang_acc;
-	} else {
-		robot->acc[1] = 2.0f * robot->acc_max / robot->wheelbase;
+	if(robot->acc[1] > (robot->acc_max / robot->wheelbase)) {
+		robot->acc[1] = robot->acc_max / robot->wheelbase;
 	}
 }
 

@@ -48,6 +48,10 @@ void base_init(
 		const float init_pose[3],
 		const timestamp_t time_now);
 
+void base_estim_pose(
+		base_odom_t *robot,
+		timestamp_t time_now);
+
 void base_estim_vel(
 		base_odom_t *robot,
 		timestamp_t time_now);
