@@ -50,11 +50,6 @@ float get_time_derivative(
 		const float t2,
 		const float x2);
 
-// uint32_t get_positive_delta(
-// 		const uint32_t a,
-// 		const uint32_t b,
-// 		const uint32_t max);
-
 void encoder_record_sample(
 		encoder_sample_t *encoder_sample,
 		const timestamp_t timestamp,

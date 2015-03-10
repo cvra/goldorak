@@ -106,27 +106,6 @@ TEST(Wheel, GetDerivativeNegative)
 	DOUBLES_EQUAL(-1.0f, df, 1e-5);
 }
 
-// TEST(Wheel, GetDeltaPositive)
-// {
-// 	uint32_t delta = get_positive_delta(10, 20, 30);
-
-// 	CHECK_EQUAL(10, delta);
-// }
-
-// TEST(Wheel, GetDeltaOverflow)
-// {
-// 	uint32_t delta = get_positive_delta(10, 5, 30);
-
-// 	CHECK_EQUAL(25, delta);
-// }
-
-// TEST(Wheel, GetDeltaOutOfRange)
-// {
-// 	uint32_t delta = get_positive_delta(10, 35, 30);
-
-// 	CHECK_EQUAL(25, delta);
-// }
-
 TEST(Wheel, EncoderRecord)
 {
 	encoder_sample_t sample;
