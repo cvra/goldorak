@@ -23,6 +23,37 @@ typedef struct{
 	float tick_to_meter;
 } wheel_odom_t;
 
+/** Instance of a differential drive base
+ *
+ * @note Has two encoder wheels associated & geometrical parameters
+ */
+typedef struct{
+	wheel_odom_t right_wheel;
+	wheel_odom_t left_wheel;
+	float wheelbase;
+	float vel_max;
+	float acc_max;
+	float pose[3]; // x, y, theta
+	float vel[2]; // linear_vel, angular_vel
+	float acc[2]; // linear_acc, angular_acc
+	timestamp_t time_last_estim;
+} base_odom_t;
+
+
+void base_init(
+		base_odom_t *robot,
+		const float wheelbase,
+		const float vel_max,
+		const float acc_max,
+		const float init_pose[3],
+		const timestamp_t time_now);
+
+void base_estim_vel(
+		base_odom_t *robot,
+		timestamp_t time_now);
+
+void base_estim_acc(
+		base_odom_t *robot);
 
 void wheel_init(
 		wheel_odom_t *wheel,
