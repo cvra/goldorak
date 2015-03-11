@@ -1,46 +1,48 @@
 #include "CppUTest/TestHarness.h"
 
 extern "C" {
-#include "../src/odometry.h"
+#include "../odometry.h"
 }
 
 TEST_GROUP(Encoder)
 {
+	odometry_encoder_sample_t sample1;
+	odometry_encoder_sample_t sample2;
 
+	void setup(void)
+	{
+		encoder_record_sample(&sample1, 20000, 42);
+		encoder_record_sample(&sample2, 25000, 42);
+	}
 };
 
 TEST(Encoder, EncoderRecord)
 {
-	encoder_sample_t sample;
-	encoder_record_sample(&sample, 20, 42);
-
-	CHECK_EQUAL(20, sample.timestamp);
-	CHECK_EQUAL(42, sample.value);
+	CHECK_EQUAL(20000, sample1.timestamp);
+	CHECK_EQUAL(42, sample1.value);
 }
 
-
-TEST_GROUP(Derivative)
+TEST(Encoder, GetDerivativeZero)
 {
-
-};
-
-TEST(Derivative, GetDerivativeZero)
-{
-	float df = get_time_derivative(0, 10, 1000, 10);
+	float df = encoder_time_derivative(sample1, sample2);
 
 	DOUBLES_EQUAL(0.0f, df, 1e-5);
 }
 
-TEST(Derivative, GetDerivativePositive)
+TEST(Encoder, GetDerivativePositive)
 {
-	float df = get_time_derivative(0, 10, 1000, 11);
+	encoder_record_sample(&sample1, 0, 10);
+	encoder_record_sample(&sample2, 1000, 11);
+	float df = encoder_time_derivative(sample1, sample2);
 
 	DOUBLES_EQUAL(1e3, df, 1e-4);
 }
 
-TEST(Derivative, GetDerivativeNegative)
+TEST(Encoder, GetDerivativeNegative)
 {
-	float df = get_time_derivative(0, 10, 1000, 9);
+	encoder_record_sample(&sample1, 0, 10);
+	encoder_record_sample(&sample2, 1000, 9);
+	float df = encoder_time_derivative(sample1, sample2);
 
 	DOUBLES_EQUAL(-1e3, df, 1e-4);
 }
@@ -180,7 +182,7 @@ TEST_GROUP(Base)
 		init_state.timestamp = 20;
 		init_state.value = 10;
 
-		base_init(&robot, 1.0f, 1.0f, 1.0f, x0, t0);
+		base_init(&robot, 1.0f, x0, t0);
 		wheel_init(&(robot.right_wheel), init_state, 1e7, 0.5f);
 		wheel_init(&(robot.left_wheel), init_state, 1e7, 0.5f);
 	}
@@ -189,8 +191,6 @@ TEST_GROUP(Base)
 TEST(Base, BaseInit)
 {
 	DOUBLES_EQUAL(1.0f, robot.wheelbase, 1e-7);
-	DOUBLES_EQUAL(1.0f, robot.vel_max, 1e-7);
-	DOUBLES_EQUAL(1.0f, robot.acc_max, 1e-7);
 	DOUBLES_EQUAL(x0[0], robot.pose[0], 1e-7);
 	DOUBLES_EQUAL(x0[1], robot.pose[1], 1e-7);
 	DOUBLES_EQUAL(x0[2], robot.pose[2], 1e-7);

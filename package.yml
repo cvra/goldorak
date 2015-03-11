@@ -4,7 +4,7 @@ depends:
         fork: Stapelzeiger
 
 source:
-    - src/odometry.c
+    - odometry.c
 
 tests:
     - tests/odometry_test.cpp
