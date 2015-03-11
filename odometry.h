@@ -39,15 +39,16 @@ typedef struct {
 
 void base_init(
 		odometry_differential_base_t *robot,
-		const float wheelbase,
 		const struct robot_base_pose_2d_s init_pose,
+		const float right_wheel_radius,
+		const float left_wheel_radius,
+		const float wheelbase,
 		const timestamp_t time_now);
 
 void base_update(
 		odometry_differential_base_t *robot,
 		const odometry_encoder_sample_t right_wheel_sample,
-		const odometry_encoder_sample_t left_wheel_sample,
-		const timestamp_t time_now);
+		const odometry_encoder_sample_t left_wheel_sample);
 
 void wheel_init(
 		odometry_wheel_t *wheel,
@@ -55,10 +56,9 @@ void wheel_init(
 
 void wheel_update(
 		odometry_wheel_t *wheel,
-		const timestamp_t new_timestamp,
-		const uint32_t new_value);
+		const odometry_encoder_sample_t new_sample);
 
-void wheel_predict(
+int16_t wheel_predict(
 		odometry_wheel_t *wheel,
 		const timestamp_t time_now);
 

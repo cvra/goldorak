@@ -331,4 +331,3 @@ TEST(Base, BaseEstimatePoseZero)
 	DOUBLES_EQUAL(0.0f, robot.pose[1], 1e-7);
 	DOUBLES_EQUAL(0.0f, robot.pose[2], 1e-7);
 }
-
