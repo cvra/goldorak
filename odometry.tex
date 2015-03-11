@@ -1,0 +1,66 @@
+\documentclass[a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+\usepackage{amsthm}
+\usepackage{amsmath}
+
+\usepackage{graphicx}
+\usepackage{microtype}
+
+
+\setlength\parindent{0pt} % Removes all indentation from paragraphs
+
+\begin{document}
+
+\section{Encoder Interpolation}
+
+inputs:
+\begin{itemize}
+\item $\phi_t^l$ : left encoder position at time $t$
+\item $\phi_t^r$ : right encoder position at time $t$
+\end{itemize}
+
+
+wheel position interpolation: $t \in [t_0 t_2], t_0 > t_1 > t_2$
+\begin{equation}
+    \phi_t = todo( \phi_{t_0} , \phi_{t_1} , \phi_{t_2} )
+\end{equation}
+
+wheel veloctiy calculation:
+\begin{equation}
+    \dot\phi_{t,t+\Delta t} = (\phi_{t+\Delta t} - \phi_{t}) / \Delta t
+\end{equation}
+
+rotational velocity:
+\begin{equation}
+    \omega = (\dot\phi^r - \dot\phi^l) / l
+\end{equation}
+
+forward velocity:
+\begin{equation}
+    v = (\dot\phi^l + \dot\phi^r) / 2
+\end{equation}
+
+\section{Differential Wheel Base}
+
+kinematics:
+\begin{equation}
+\begin{array}{lcl}
+    \dot x &=& v \cdot cos(\theta) \\
+    \dot y &=& v \cdot sin(\theta) \\
+    \dot \theta &=& \omega
+\end{array}
+\end{equation}
+
+integration
+\begin{equation}
+    \Delta x_{t,t+\Delta t} = \int_t^{t+\Delta t} v(\tau) \cdot cos(\theta(\tau)) \cdot d\tau
+\end{equation}
+
+using constant v,$\omega$
+\begin{equation}
+    \Delta x_{t,t+\Delta t} = v \cdot cos(\theta + \omega \cdot \Delta t / 2) \cdot \Delta t
+\end{equation}
+
+\end{document}
