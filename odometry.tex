@@ -15,52 +15,124 @@
 
 \section{Encoder Interpolation}
 
-inputs:
+Inputs:
 \begin{itemize}
-\item $\phi_t^l$ : left encoder position at time $t$
-\item $\phi_t^r$ : right encoder position at time $t$
+\item $\phi_t^r$ : right encoder angular position at time $t$
+\item $\phi_t^l$ : left encoder angular position at time $t$
 \end{itemize}
 
-
-wheel position interpolation: $t \in [t_0 t_2], t_0 > t_1 > t_2$
+Wheel position prediction: for any arbitrary $t$, $t_0 < t_1 < t_2$
 \begin{equation}
-    \phi_t = todo( \phi_{t_0} , \phi_{t_1} , \phi_{t_2} )
+%    \phi_t = \phi_{t_2} + \frac{\phi_{t_2} - \phi_{t_1}}{t_2 - t_1} \cdot (t - t_2) + \frac{\phi_{t_2} - 2 \phi_{t_1} + \phi_{t_0}}{t_2 - t_0} \cdot \frac{(t - t_2)^2}{2}
+	\phi_t = \phi_{t_2} + \frac{\phi_{t_2} - \phi_{t_1}}{t_2 - t_1} \cdot (t - t_2) + \frac{(\phi_{t_2} - \phi_{t_1})(t_1 - t_0) - (\phi_{t_1} - \phi_{t_0})(t_2 - t_1)}{(t_1 - t_0)(t_2 - t_1)^2} \cdot \frac{(t - t_2)^2}{2}
 \end{equation}
 
-wheel veloctiy calculation:
+Wheel veloctiy calculation:
 \begin{equation}
-    \dot\phi_{t,t+\Delta t} = (\phi_{t+\Delta t} - \phi_{t}) / \Delta t
+    \dot\phi_{t,t+\Delta t} = \frac{\Delta \phi_{t,t+\Delta t}}{\Delta t}
 \end{equation}
 
-rotational velocity:
+Notation:
 \begin{equation}
-    \omega = (\dot\phi^r - \dot\phi^l) / l
+    \Delta f_{a,b} = f_a - f_b
 \end{equation}
 
-forward velocity:
+
+\section{Differential Drive Base}
+
+Inputs:
+\begin{itemize}
+\item $r^r$ : right encoder wheel radius
+\item $r^l$ : left encoder wheel radius
+\item $b$ : wheelbase
+\end{itemize}
+
+Forward velocity:
 \begin{equation}
-    v = (\dot\phi^l + \dot\phi^r) / 2
+    \Delta s_{t,t+\Delta t} = \frac{1}{2} (r^r \cdot \Delta \phi_{t,t+\Delta t}^r + r^l \cdot \Delta \phi_{t,t+\Delta t}^l)
 \end{equation}
 
-\section{Differential Wheel Base}
-
-kinematics:
+Rotational velocity:
 \begin{equation}
+    \Delta \theta_{t,t+\Delta t}  = \frac{1}{b} (r^r \cdot \Delta \phi_{t,t+\Delta t}^r - r^l \cdot \Delta \phi_{t,t+\Delta t}^l)
+\end{equation}
+
+
+\section{Differential Drive Pose Estimation}
+
+Kinematics:
+
+The kinematics of the robot can be modeled using the forward velocity $v(\tau)$ and the rotational velocity $\omega(\tau)$.
+The integration time being small, we can assume that $v(\tau)$ and $\omega(\tau)$ remain constant for $\tau \in [t, t+\Delta t]$ and are given by:
+\begin{equation}
+\left\{
+\begin{array}{lcl}
+    \Delta s_{t,t+\Delta t} &=& v \cdot \Delta t \\
+    \Delta \theta_{t,t+\Delta t} &=& \omega \cdot \Delta t
+\end{array}
+\right.
+\iff
+\left\{
+\begin{array}{lcl}
+    v &=&  \frac{\Delta s_{t,t+\Delta t}}{\Delta t} \\
+    \omega &=& \frac{\Delta \theta_{t,t+\Delta t}}{\Delta t}
+\end{array}
+\right.
+\label{eqn:discrete_speeds}
+\end{equation}
+
+Therefore the kinematics of the robot in a cartesian frame are given by:
+\begin{equation}
+\left\{
 \begin{array}{lcl}
     \dot x &=& v \cdot cos(\theta) \\
     \dot y &=& v \cdot sin(\theta) \\
     \dot \theta &=& \omega
 \end{array}
+\right.
 \end{equation}
 
-integration
+From this, the robot's pose can be computed through integration:
 \begin{equation}
-    \Delta x_{t,t+\Delta t} = \int_t^{t+\Delta t} v(\tau) \cdot cos(\theta(\tau)) \cdot d\tau
+\left\{
+\begin{array}{lcl}
+    \Delta x_{t,t+\Delta t} = \int_t^{t+\Delta t} v(\tau) \cdot cos(\theta(\tau)) \cdot d\tau \\
+    \Delta y_{t,t+\Delta t} = \int_t^{t+\Delta t} v(\tau) \cdot sin(\theta(\tau)) \cdot d\tau \\
+    \Delta \theta_{t,t+\Delta t} = \int_t^{t+\Delta t} \theta(\tau) \cdot d\tau \\
+\end{array}
+\right.
 \end{equation}
 
-using constant v,$\omega$
+We can derive the exact velocity model through continuous time-domain integration:
 \begin{equation}
-    \Delta x_{t,t+\Delta t} = v \cdot cos(\theta + \omega \cdot \Delta t / 2) \cdot \Delta t
+\left\{
+\begin{array}{lcl}
+    \Delta x_{t,t+\Delta t} = \frac{v}{\omega} \cdot (sin(\theta_{t}) - sin(\theta_{t+\Delta t})) \\
+    \Delta y_{t,t+\Delta t} = - \frac{v}{\omega} \cdot (cos(\theta_{t}) - cos(\theta_{t+\Delta t})) \\
+    \Delta \theta_{t,t+\Delta t} = \omega \\
+\end{array}
+\right.
+\end{equation}
+
+However, we are constrained to work in discrete time-domain, so we use second order Runge-Kutta to integrate:
+\begin{equation}
+\left\{
+\begin{array}{lcl}
+    \Delta x_{t,t+\Delta t} = v \cdot cos(\theta + \omega \cdot \frac{\Delta t}{2}) \cdot \Delta t \\
+    \Delta y_{t,t+\Delta t} = v \cdot sin(\theta + \omega \cdot \frac{\Delta t}{2}) \cdot \Delta t \\
+    \Delta \theta_{t,t+\Delta t} = \omega \cdot \Delta t \\
+\end{array}
+\right.
+\end{equation}
+
+And using (\ref{eqn:discrete_speeds}), we get:
+\begin{equation}
+\left\{
+\begin{array}{lcl}
+    \Delta x_{t,t+\Delta t} = \Delta s_{t,t+\Delta t} \cdot cos(\theta + \frac{\Delta \theta_{t,t+\Delta t}}{2}) \\
+    \Delta y_{t,t+\Delta t} = \Delta s_{t,t+\Delta t} \cdot sin(\theta + \frac{\Delta \theta_{t,t+\Delta t}}{2}) \\
+\end{array}
+\right.
 \end{equation}
 
 \end{document}
