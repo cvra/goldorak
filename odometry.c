@@ -1,6 +1,8 @@
+#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <stdbool.h>
 #include <math.h>
 
 #include "timestamp/timestamp.h"
@@ -50,8 +52,8 @@ void base_update(
 	}
 
 	// Wheel prediction
-	int16_t delta_right_wheel = wheel_predict(robot->right_wheel, time_now);
-	int16_t delta_left_wheel = wheel_predict(robot->left_wheel, time_now);
+	float delta_right_wheel = wheel_get_delta_meter(robot->right_wheel, time_now);
+	float delta_left_wheel = wheel_get_delta_meter(robot->left_wheel, time_now);
 
 	// Base prediction
 	float dt = timestamp_duration_s(robot->time_last_estim, time_now);
@@ -76,8 +78,8 @@ void wheel_init(
 		const float wheel_radius)
 {
 	wheel->tick_to_meter = (2 * M_PI * wheel_radius / 65536);
-
-	wheel->delta_pos_accumulator = NAN;
+	wheel->delta_pos_accumulator = 0;
+	wheel->is_initialised = false;
 }
 
 void wheel_update(
@@ -85,7 +87,7 @@ void wheel_update(
 		const odometry_encoder_sample_t new_sample)
 {
 	// If not initialised, Initialise!
-	if (wheel->delta_pos_accumulator == NAN) {
+	if (!(wheel->is_initialised)) {
 		wheel->samples[0].timestamp = new_sample.timestamp;
 		wheel->samples[0].value = new_sample.value;
 		wheel->samples[1].timestamp = new_sample.timestamp;
@@ -93,7 +95,8 @@ void wheel_update(
 		wheel->samples[2].timestamp = new_sample.timestamp;
 		wheel->samples[2].value = new_sample.value;
 
-		wheel->delta_pos_accumulator = 0.0f;
+		wheel->delta_pos_accumulator = 0;
+		wheel->is_initialised = true;
 	} else {
 		wheel->samples[0].timestamp = wheel->samples[1].timestamp;
 		wheel->samples[0].value = wheel->samples[1].value;
@@ -102,42 +105,61 @@ void wheel_update(
 		wheel->samples[2].timestamp = new_sample.timestamp;
 		wheel->samples[2].value = new_sample.value;
 
-		int16_t dvalue = (int16_t) (wheel->samples[2].value \
-								    - wheel->samples[1].value);
-		wheel->delta_pos_accumulator += dvalue * wheel->tick_to_meter;
+		wheel->delta_pos_accumulator += (int16_t) (wheel->samples[2].value
+								    			  - wheel->samples[1].value);
 	}
 }
 
-int16_t wheel_predict(
+void wheel_predict(
 		odometry_wheel_t *wheel,
 		const timestamp_t time_now)
 {
-	int16_t delta_pos = wheel->delta_pos_accumulator;
+	if (wheel->samples[2].timestamp != time_now) {
+		float acc, vel, pos, tau1, tau2, dt1, dt2, dt;
+		int16_t dy1, dy2;
+		odometry_encoder_sample_t prediction;
 
-	if (wheel->samples[2].timestamp == time_now) {
-		wheel->delta_pos_accumulator = 0.0f;
-	} else {
-		float acc, vel, dt;
-		int16_t dvalue_predicted;
+		// Fit a parabola to the wheel's motion
+		dt1 = timestamp_duration_s(wheel->samples[0].timestamp,
+								   wheel->samples[1].timestamp);
+		dt2 = timestamp_duration_s(wheel->samples[0].timestamp,
+								   wheel->samples[2].timestamp);
+		dy1 = (int16_t) (wheel->samples[1].value - wheel->samples[0].value);
+		dy2 = (int16_t) (wheel->samples[2].value - wheel->samples[0].value);
+		tau1 = dy1 / (- dt1 * dt1 + dt1 * dt2);
+		tau2 = dy2 / (- dt2 * dt2 + dt1 * dt2);
 
-		// Compute previous acceleration
-		acc = encoder_time_derivative(wheel->samples[1], wheel->samples[2])
-			  - encoder_time_derivative(wheel->samples[0], wheel->samples[1]);
-		acc /= timestamp_duration_s(wheel->samples[1].timestamp,
-								    wheel->samples[2].timestamp);
+		acc = - tau1 - tau2;
+		vel = tau1 * dt2 + tau2 * dt1;
+		pos = wheel->samples[0].value;
 
-		// Compute previous velocity
-		vel = encoder_time_derivative(wheel->samples[1], wheel->samples[2]);
+		// Predict change from last encoder value recorded
+		dt = timestamp_duration_s(wheel->samples[0].timestamp, time_now);
+		prediction.value = pos + (int16_t) (vel * dt + acc * dt * dt);
+		prediction.timestamp = time_now;
 
-		// Predict current encoder value
-		dt = timestamp_duration_s(wheel->samples[2].timestamp, time_now);
-		dvalue_predicted = (int16_t) (vel * dt + 0.5f * acc * dt * dt);
-
-		wheel->delta_pos_accumulator = dvalue_predicted;
-		delta_pos += dvalue_predicted;
+		wheel_update(wheel, prediction);
 	}
+}
 
-	return delta_pos;
+int16_t wheel_get_delta_tick(
+		odometry_wheel_t *wheel,
+		const timestamp_t time_now)
+{
+	int16_t delta;
+	wheel_predict(wheel, time_now);
+	delta = wheel->delta_pos_accumulator;
+	wheel->delta_pos_accumulator = 0;
+	return delta;
+}
+
+float wheel_get_delta_meter(
+		odometry_wheel_t *wheel,
+		const timestamp_t time_now)
+{
+	int16_t delta;
+	delta = wheel_get_delta_tick(wheel, time_now);
+	return delta * wheel->tick_to_meter;
 }
 
 float encoder_time_derivative(

@@ -18,8 +18,9 @@ typedef struct {
  */
 typedef struct {
 	odometry_encoder_sample_t samples[3];
-	float delta_pos_accumulator;
+	int16_t delta_pos_accumulator;
 	float tick_to_meter;
+	bool is_initialised;
 } odometry_wheel_t;
 
 /** Differential drive base
@@ -58,7 +59,15 @@ void wheel_update(
 		odometry_wheel_t *wheel,
 		const odometry_encoder_sample_t new_sample);
 
-int16_t wheel_predict(
+void wheel_predict(
+		odometry_wheel_t *wheel,
+		const timestamp_t time_now);
+
+int16_t wheel_get_delta_tick(
+		odometry_wheel_t *wheel,
+		const timestamp_t time_now);
+
+float wheel_get_delta_meter(
 		odometry_wheel_t *wheel,
 		const timestamp_t time_now);
 
