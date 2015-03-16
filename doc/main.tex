@@ -1,5 +1,5 @@
 % Déclaration du type de document (report, book, paper, etc...)
-\documentclass[a4paper]{paper}
+\documentclass[a4paper, 10pt]{article}
 
 % Package pour avoir Latex en français
 \usepackage[utf8]{inputenc}
@@ -15,18 +15,29 @@
 \usepackage{booktabs} % Allows the use of \toprule, \midrule and \bottomrule in tables for horizontal lines
 \usepackage{siunitx}
 \usepackage{floatrow}
-\usepackage{caption}
+\usepackage[justification=centering]{caption}
 \usepackage{subcaption}
+\usepackage{fullpage}
+\usepackage{lipsum}
+\usepackage{cite}
 \usepackage{mhchem}
 \usepackage[acronym,smallcaps]{glossaries}
 \graphicspath{{media/}}
+\setlength\parindent{0pt} % Removes all indentation from paragraphs
 
-\author{Antoine Albertelli \texttt{a.albertelli@cvra.ch}}
-\title{Implementation and calibration of a dead reckoning system for Eurobot}
+\author{Antoine Albertelli \texttt{} \and
+        Salah-Eddine Missri \texttt{} \and
+        Patrick Spieler \texttt{}}
+\title{Asynchronous odometry based dead reckoning localisation system for Eurobot}
 
 \begin{document}
 \maketitle
+\hrulefill
 \tableofcontents
+\hrulefill
+
+\section*{Abstract}
+\lipsum[1]
 
 \section{Conventions}
 \begin{figure}[h]
@@ -37,22 +48,29 @@
     \end{center}
 \end{figure}
 
-The robot has a global coordinate system on the game table (fig. \ref{fig:coordinates}).
+The global coordinate system is defined according to the game table referential frame (fig. \ref{fig:coordinates}).
 The coordinate system is in a direct base.
 It is expressed in standard units (\si{\meter} and \si{\radian}).
 It doesn't change when changing team color.
 
 The input of the algorithm are the following:
 \begin{itemize}
-    \item $\Delta_L$ and $\Delta_R$ are the left and right position difference in encoder ticks.
-    \item $T$ is the track (distance between the wheels) of the robot in \si{\meter}.
-    \item $N$ is the number of encoder ticks per meter.
-    \item $\lambda = \frac{R_L}{R_R}$ is the correction factor to account for manufacturing differences between both wheels.
+    \item $\Delta R$ and $\Delta L$ are the right and left change in position difference in encoder ticks.
+    \item $\phi_t^R$ and $\phi_t^L$ are the right and left encoder angular position at time $t$
+    \item $r_R$ and $r_L$ are the right and left wheel radius in \si{\meter}.
+    \item $\lambda = \frac{r_L}{r_R}$ is defined as the wheel correction factor and is used in the calibration process.
+    \item $b$ is the wheelbase of the robot (distance between the wheels) in \si{\meter}.
+    \item $N$ is the number of encoder ticks per revolution of the wheel and is defined as $2^{16}$.
 \end{itemize}
 
+
 \section{Update algorithm}
-The base idea of the algorithm is to apply standard dead reckoning formulas but asynchronously, using the assumption that only the wheel we are updating moved.
-That means if we just received $\Delta_L$, we assume that $\Delta_R$ is zero.
+Since we have a distributed architecture on our robots, each wheel of the base is handled by a separate node that communicates with a master node.
+The master node runs the pose estimation using the odometry data from the two wheels, but since the encoders are not sampled and at the same time and the samples are not received at the same time, we can't apply the standard dead reckoning formulas.
+
+\subsection{Dealing with asynchronicity by decoupling the wheels}
+A simple but naive approach is to only update one wheel at a time, so we assume that only the wheel we are updating moved while the other one stayed still.
+That means if we just received $\Delta L$, we assume that $\Delta R$ is zero.
 
 \begin{figure}[h]
     \begin{center}
@@ -61,35 +79,32 @@ That means if we just received $\Delta_L$, we assume that $\Delta_R$ is zero.
     \end{center}
 \end{figure}
 
-We start by computing the difference in heading $\Delta_\theta$:
-
+We start by computing the difference in heading $\Delta \theta$:
 \begin{equation}
-    \Delta_\theta = \frac{\Delta_R - \Delta_L}{T}
+    \Delta \theta = \frac{\Delta R - \Delta L}{b}
 \end{equation}
 
 Then we can compute the robot movement :
-
 \begin{equation}
     \begin{pmatrix}
         u\\v
     \end{pmatrix}
     =
-    \frac{T}{2}
+    \frac{b}{2}
     \begin{pmatrix}
-        \sin \Delta_\theta\\1 - \cos \Delta_\theta
+        \sin \Delta \theta\\1 - \cos \Delta \theta
     \end{pmatrix}
     \approx
-    \frac{T}{2}
+    \frac{b}{2}
     \begin{pmatrix}
-        \Delta_\theta\\ 0
+        \Delta \theta\\ 0
     \end{pmatrix}
 \end{equation}
 
 We will then transpose those displacement vector in the global space ($\theta$ is the heading of the robot):
-
 \begin{equation}
     \begin{pmatrix}
-        \Delta_x\\\Delta_y
+        \Delta x\\\Delta y
     \end{pmatrix}
     =
     \begin{pmatrix}
@@ -113,8 +128,193 @@ Finally, integrate the change into the robot position:
     \end{pmatrix}
     +
     \begin{pmatrix}
-        \Delta_x\\\Delta_y\\\Delta_\theta
+        \Delta x\\\Delta y\\\Delta \theta
     \end{pmatrix}
+\end{equation}
+
+This approach yields unsatisfactory results as the error accumulates quickly.
+
+\subsection{Encoder Interpolation}
+A better way of dealing with asynchronicity is to set one of the two wheels sample as reference, then interpolate or predict the value of the other wheel at the time of measurement of the reference wheel.
+
+To achieve this we use the previous samples of an encoder wheel and fit a polynomial curve to them.
+Assuming a constant acceleration motion model of the wheel, fitting a second order polynomial to the last three samples should suffise.
+
+For any arbitrary $t$, $t_0 < t_1 < t_2$, the encoder position can be expressed as:
+\begin{equation}
+    \phi_t
+    = \gamma + \beta (t - t_2) + \alpha (t - t_2)^2
+    =
+    \begin{pmatrix}
+        (t - t_2)^2 \\
+        t - t_2 \\
+        1
+    \end{pmatrix}^T
+    \begin{pmatrix}
+        \alpha \\
+        \beta \\
+        \gamma
+    \end{pmatrix}
+    \label{eqn:encoder_parabola}
+\end{equation}
+
+Where $\gamma$, $\beta$ and $\alpha$ are the parabolic motion parameters obtained from the samples by simply solving
+\begin{equation}
+    \begin{pmatrix}
+        \phi_{t_0} \\
+        \phi_{t_1} \\
+        \phi_{t_2}
+    \end{pmatrix}
+    =
+    \begin{pmatrix}
+        t_0^2 & t_0 & 1 \\
+        t_1^2 & t_1 & 1 \\
+        t_2^2 & t_2 & 1
+    \end{pmatrix}
+    \begin{pmatrix}
+        \alpha \\
+        \beta \\
+        \gamma
+    \end{pmatrix}
+    \iff
+    \begin{pmatrix}
+        \phi_{t_0} \\
+        \phi_{t_1} - \phi_{t_0} \\
+        \phi_{t_2} - \phi_{t_0}
+    \end{pmatrix}
+    =
+    \begin{pmatrix}
+        t_0^2         & t_0       & 1 \\
+        t_1^2 - t_0^2 & t_1 - t_0 & 0 \\
+        t_2^2 - t_0^2 & t_2 - t_0 & 0
+    \end{pmatrix}
+    \begin{pmatrix}
+        \alpha \\
+        \beta \\
+        \gamma
+    \end{pmatrix}
+\end{equation}
+With $\phi_{t_0}$, $\phi_{t_1}$ and $\phi_{t_2}$ the last three samples recorded at time $t_0$, $t_1$ and $t_2$ respectively.
+
+This can be simplified by assuming WLOG that $t_0 = 0$ - we can do this because the system is shift invariant - which yields
+\begin{equation}
+    \begin{pmatrix}
+        \alpha \\
+        \beta \\
+        \gamma
+    \end{pmatrix}
+    =
+    \begin{pmatrix}
+        0 & \frac{ -1}{t_1 (t_2 - t_1)} & \frac{ -1}{t_2 (t_1 - t_2)} \\
+        0 & \frac{t_2}{t_1 (t_2 - t_1)} & \frac{t_1}{t_2 (t_1 - t_2)} \\
+        1 & 0 & 0
+    \end{pmatrix}
+    \begin{pmatrix}
+        \phi_{t_0} \\
+        \phi_{t_1} - \phi_{t_0} \\
+        \phi_{t_2} - \phi_{t_0}
+    \end{pmatrix}
+    \label{eqn:param_parabola}
+\end{equation}
+
+Computing $\phi_t$ comes down to computing the parabola parameters with (\ref{eqn:param_parabola}) then inject the result in (\ref{eqn:encoder_parabola}).
+So now, we can generate an interpolated sample at any time $t$, which means that our asynchronous system can be reduced down to a synchronous one.
+We can now apply the differential base odometry formulas.
+
+\subsection{Differential base odometry}
+NB: For abreviation, we will write $\Delta f_{a,b} = f_a - f_b$.
+
+In the case of the differential base, the odometry formulas are
+\begin{equation}
+\left\{
+\begin{array}{lr}
+    \Delta s_{t,t+\Delta t} = \frac{1}{2} (r_R \Delta \phi_{t,t+\Delta t}^R + r_L \Delta \phi_{t,t+\Delta t}^L) \\
+    \Delta \theta_{t,t+\Delta t}  = \frac{1}{b} (r_R \Delta \phi_{t,t+\Delta t}^R - r_L \Delta \phi_{t,t+\Delta t}^L)
+\end{array}
+\right.
+\end{equation}
+Where $\Delta s$ denotes forward motion and $\Delta \theta$ denotes rotational motion.
+\\
+The kinematics of the robot can be modeled using the forward velocity $v(\tau)$ and the rotational velocity $\omega(\tau)$.
+The integration time being small, we can assume that $v(\tau)$ and $\omega(\tau)$ remain constant for $\tau \in [t, t+\Delta t]$ and are given by:
+\begin{equation}
+\left\{
+\begin{array}{lcl}
+    \Delta s_{t,t+\Delta t} &=& v(\tau) \cdot \Delta t \\
+    \Delta \theta_{t,t+\Delta t} &=& \omega(\tau) \cdot \Delta t
+\end{array}
+\right.
+\iff
+\left\{
+\begin{array}{lcl}
+    v(\tau) &=&  \frac{\Delta s_{t,t+\Delta t}}{\Delta t} \\
+    \omega(\tau) &=& \frac{\Delta \theta_{t,t+\Delta t}}{\Delta t}
+\end{array}
+\right.
+\label{eqn:discrete_speeds}
+\end{equation}
+
+Therefore the kinematics of the robot in a cartesian frame are given by:
+\begin{equation}
+\left\{
+\begin{array}{lcl}
+    \dot x &=& v(\tau) \cos(\theta(\tau)) \\
+    \dot y &=& v(\tau) \sin(\theta(\tau)) \\
+    \dot \theta &=& \omega(\tau)
+\end{array}
+\right.
+\end{equation}
+
+From this, the robot's pose can be computed through integration:
+\begin{equation}
+\left\{
+\begin{array}{lcl}
+    \Delta x_{t,t+\Delta t} = \int_t^{t+\Delta t} v(\tau) \cos(\theta(\tau)) d\tau \\
+    \Delta y_{t,t+\Delta t} = \int_t^{t+\Delta t} v(\tau) \sin(\theta(\tau)) d\tau \\
+    \Delta \theta_{t,t+\Delta t} = \int_t^{t+\Delta t} \theta(\tau) d\tau \\
+\end{array}
+\right.
+\end{equation}
+
+We can derive the exact velocity model through continuous time-domain integration:
+\begin{equation}
+\left\{
+\begin{array}{lcl}
+    \Delta x_{t,t+\Delta t} = \frac{v}{\omega} (\sin(\theta_{t}) - \sin(\theta_{t+\Delta t})) \\
+    \Delta y_{t,t+\Delta t} = - \frac{v}{\omega} (\cos(\theta_{t}) - \cos(\theta_{t+\Delta t})) \\
+    \Delta \theta_{t,t+\Delta t} = \omega \Delta t \\
+\end{array}
+\right.
+\end{equation}
+
+However, we are constrained to work in discrete time-domain, so we use second order Runge-Kutta to integrate:
+\begin{equation}
+\left\{
+\begin{array}{lcl}
+    \Delta x_{t,t+\Delta t} = v \cos(\theta + \omega \frac{\Delta t}{2}) \Delta t \\
+    \Delta y_{t,t+\Delta t} = v \sin(\theta + \omega \frac{\Delta t}{2}) \Delta t \\
+    \Delta \theta_{t,t+\Delta t} = \omega \Delta t \\
+\end{array}
+\iff
+\begin{array}{lcl}
+    \Delta x_{t,t+\Delta t} = \Delta s_{t,t+\Delta t} \cos(\theta + \frac{\Delta \theta_{t,t+\Delta t}}{2}) \\
+    \Delta y_{t,t+\Delta t} = \Delta s_{t,t+\Delta t} \sin(\theta + \frac{\Delta \theta_{t,t+\Delta t}}{2}) \\
+    \Delta \theta_{t,t+\Delta t} = \Delta \theta_{t,t+\Delta t} \\
+\end{array}
+\right.
+\end{equation}
+
+Using (\ref{eqn:discrete_speeds}) and the definition of $\phi_t$: $\phi_t^R = \frac{2\pi}{N} \Delta R$, the update step comes down to computing
+\begin{equation}
+\left\{
+\begin{array}{lcl}
+    \Delta s_{t,t+\Delta t} = \frac{\pi}{N} (r_R \Delta R_{t,t+\Delta t} + r_L \Delta L_{t,t+\Delta t}) \\
+    \Delta \theta_{t,t+\Delta t}  = \frac{2\pi}{bN} (r_R \Delta R_{t,t+\Delta t} - r_L \Delta L_{t,t+\Delta t}) \\
+    x_{t+\Delta t} = x_t + \Delta s_{t,t+\Delta t} \cos(\theta + \frac{\Delta \theta_{t,t+\Delta t}}{2}) \\
+    y_{t+\Delta t} = y_t + \Delta s_{t,t+\Delta t} \sin(\theta + \frac{\Delta \theta_{t,t+\Delta t}}{2}) \\
+    \theta_{t+\Delta t}  = \theta_t + \Delta \theta_{t,t+\Delta t} \\
+\end{array}
+\right.
 \end{equation}
 
 
@@ -122,7 +322,7 @@ Finally, integrate the change into the robot position:
 In the previous sections we supposed that the two measuring wheels were perfectly identical, with the same tick to meter ratio.
 However, in the real world, manufacturing tolerances are not perfect and wheel diameters can vary quite a lot.
 Using the ISO 2768-f specification on a \SI{40}{\milli\meter} wheel yields a maximum tolerance of $\pm \SI{0.2}{\milli\meter}$.
-This means that between both wheels the maximum relative error is $\frac{\Delta_R}{R} = \frac{2 \cdot 0.2}{40} = 1\% $.
+This means that between both wheels the maximum relative error is $\frac{\Delta R}{R} = \frac{2 \cdot 0.2}{40} = 1\% $.
 
 How does this error translate into robot trajectory ?
 Well when the robot thinks it is doing a straight line, it will actually be turning in a slight circle.
@@ -152,14 +352,14 @@ Plugging reasonable parameters for Eurobot ($\lambda=1+0.1\%$, $T = \SI{0.2}{\me
 Such a big radius might seem indistinguishable from a straight line, but this is not the case.
 To show this, let's compute the lateral deviation on a full table crossing (\SI{2.5}{\meter}):
 \begin{equation*}
-    \Delta_x = \left( 1 - \cos \frac{2.5}{300} \right) \cdot \SI{300}{\meter} \approx \SI{1}{\centi\meter}
+    \Delta x = \left( 1 - \cos \frac{2.5}{300} \right) \cdot \SI{300}{\meter} \approx \SI{1}{\centi\meter}
 \end{equation*}
 
 
 Compensating this effect is trivial.
 Simply apply the correction factor $\lambda$ to the right wheel input before computing odometry:
 \begin{equation}
-    \Delta_R' = \lambda \Delta_R
+    \Delta R' = \lambda \Delta R
 \end{equation}
 
 \section{Calibration procedure}
@@ -226,12 +426,12 @@ Start with the nominal value.
     \item The robot makes $k$ full turns.
         Start with a low turn count and increase until necessary precision is reached.
     \item The robot aligns itself against the reference plate again.
-    \item The angle measured by the robot is now the rotation error ($\Delta_\theta$).
+    \item The angle measured by the robot is now the rotation error ($\Delta \theta$).
 \end{itemize}
 Now the corrected track value can be set using equation \ref{eqn:track-correction}.
 Repeat as many times as needed for the desired precision value.
 \begin{equation}
-    T' = T \left(1 + \frac{\Delta_\theta}{k \cdot 2\pi}\right)
+    T' = T \left(1 + \frac{\Delta \theta}{k \cdot 2\pi}\right)
     \label{eqn:track-correction}
 \end{equation}
 

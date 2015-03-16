@@ -4,9 +4,6 @@ pdf:
 	pdflatex main
 	pdflatex main
 	pdflatex main
-	pdflatex formulas
-	pdflatex formulas
-	pdflatex formulas
 
 clean:
 	rm -f *.aux *.log *.bbl *.blg *.toc *.lof *.lot *.out
