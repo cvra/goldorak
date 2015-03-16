@@ -29,10 +29,10 @@ typedef struct {
  * @note Encoder max is always 2^16
  */
 typedef struct {
-	struct robot_base_pose_2d_s *pose;
-	struct robot_base_vel_2d_s *velocity;
-	odometry_wheel_t *right_wheel;
-	odometry_wheel_t *left_wheel;
+	struct robot_base_pose_2d_s pose;
+	struct robot_base_vel_2d_s velocity;
+	odometry_wheel_t right_wheel;
+	odometry_wheel_t left_wheel;
 	float wheelbase;
 	timestamp_t time_last_estim;
 } odometry_differential_base_t;
@@ -59,7 +59,7 @@ void wheel_update(
 		odometry_wheel_t *wheel,
 		const odometry_encoder_sample_t new_sample);
 
-void wheel_predict(
+uint16_t wheel_predict(
 		odometry_wheel_t *wheel,
 		const timestamp_t time_now);
 

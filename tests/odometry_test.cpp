@@ -2,6 +2,7 @@
 
 extern "C" {
 #include "../odometry.h"
+#include "../robot_base.h"
 }
 
 TEST_GROUP(Encoder)
@@ -50,284 +51,432 @@ TEST(Encoder, GetDerivativeNegative)
 
 TEST_GROUP(Wheel)
 {
-	encoder_sample_t init_state;
-	wheel_odom_t wheel;
+	odometry_wheel_t wheel;
+	odometry_encoder_sample_t sample1;
 
 	void setup(void)
 	{
-		init_state.timestamp = 20;
-		init_state.value = 42;
-		wheel_init(&wheel, init_state, 100, 0.5f);
+		wheel_init(&wheel, 0.5f);
+		encoder_record_sample(&sample1, 10000, 42);
+		wheel_update(&wheel, sample1);
 	}
 };
 
 TEST(Wheel, WheelInit)
 {
-	CHECK_EQUAL(init_state.timestamp, wheel.samples[0].timestamp);
-	CHECK_EQUAL(init_state.timestamp, wheel.samples[1].timestamp);
-	CHECK_EQUAL(init_state.timestamp, wheel.samples[2].timestamp);
-	CHECK_EQUAL(init_state.value, wheel.samples[0].value);
-	CHECK_EQUAL(init_state.value, wheel.samples[1].value);
-	CHECK_EQUAL(init_state.value, wheel.samples[2].value);
-	CHECK_EQUAL(100, wheel.encoder_max);
-	DOUBLES_EQUAL(0.5f, wheel.radius, 1e-7);
-	DOUBLES_EQUAL(0.03141592f, wheel.tick_to_meter, 1e-7);
+	DOUBLES_EQUAL(4.793689962e-5, wheel.tick_to_meter, 1e-11);
+	CHECK_EQUAL(0, wheel.delta_pos_accumulator);
+
+	CHECK_EQUAL(10000, wheel.samples[0].timestamp);
+	CHECK_EQUAL(10000, wheel.samples[1].timestamp);
+	CHECK_EQUAL(10000, wheel.samples[2].timestamp);
+	CHECK_EQUAL(42, wheel.samples[0].value);
+	CHECK_EQUAL(42, wheel.samples[1].value);
+	CHECK_EQUAL(42, wheel.samples[2].value);
 }
 
-TEST(Wheel, WheelUpdate)
+TEST(Wheel, WheelUpdatePostInit)
 {
-	wheel_update(&wheel, 25, 10);
-	wheel_update(&wheel, 30, 20);
-	wheel_update(&wheel, 35, 40);
+	odometry_encoder_sample_t sample2;
+	encoder_record_sample(&sample2, 20000, 142);
+	wheel_update(&wheel, sample2);
 
-	CHECK_EQUAL(25, wheel.samples[0].timestamp);
-	CHECK_EQUAL(30, wheel.samples[1].timestamp);
-	CHECK_EQUAL(35, wheel.samples[2].timestamp);
-	CHECK_EQUAL(10, wheel.samples[0].value);
-	CHECK_EQUAL(20, wheel.samples[1].value);
-	CHECK_EQUAL(40, wheel.samples[2].value);
+	CHECK_EQUAL(10000, wheel.samples[0].timestamp);
+	CHECK_EQUAL(10000, wheel.samples[1].timestamp);
+	CHECK_EQUAL(20000, wheel.samples[2].timestamp);
+	CHECK_EQUAL(42, wheel.samples[0].value);
+	CHECK_EQUAL(42, wheel.samples[1].value);
+	CHECK_EQUAL(142, wheel.samples[2].value);
+	CHECK_EQUAL(100, wheel.delta_pos_accumulator);
+
+	odometry_encoder_sample_t sample3;
+	encoder_record_sample(&sample3, 30000, 242);
+	wheel_update(&wheel, sample3);
+
+	CHECK_EQUAL(10000, wheel.samples[0].timestamp);
+	CHECK_EQUAL(20000, wheel.samples[1].timestamp);
+	CHECK_EQUAL(30000, wheel.samples[2].timestamp);
+	CHECK_EQUAL(42, wheel.samples[0].value);
+	CHECK_EQUAL(142, wheel.samples[1].value);
+	CHECK_EQUAL(242, wheel.samples[2].value);
+	CHECK_EQUAL(200, wheel.delta_pos_accumulator);
 }
 
-TEST(Wheel, WheelGetSample)
+TEST(Wheel, WheelPredictNothing)
 {
-	encoder_sample_t sample;
-	wheel_get_sample(&sample, &wheel, 0);
+	odometry_encoder_sample_t sample2;
+	encoder_record_sample(&sample2, 20000, 142);
+	wheel_update(&wheel, sample2);
+	encoder_record_sample(&sample2, 30000, 242);
+	wheel_update(&wheel, sample2);
+	encoder_record_sample(&sample2, 40000, 342);
+	wheel_update(&wheel, sample2);
 
-	CHECK_EQUAL(sample.timestamp, wheel.samples[0].timestamp);
-	CHECK_EQUAL(sample.value, wheel.samples[0].value);
+	wheel_predict(&wheel, 40000);
+
+	CHECK_EQUAL(20000, wheel.samples[0].timestamp);
+	CHECK_EQUAL(30000, wheel.samples[1].timestamp);
+	CHECK_EQUAL(40000, wheel.samples[2].timestamp);
+	CHECK_EQUAL(142, wheel.samples[0].value);
+	CHECK_EQUAL(242, wheel.samples[1].value);
+	CHECK_EQUAL(342, wheel.samples[2].value);
 }
 
-TEST(Wheel, WheelGetVelZero)
+TEST(Wheel, WheelPredictIdlePosition)
 {
-	wheel_update(&wheel, 25000, 10);
-	wheel_update(&wheel, 30000, 10);
-	wheel_update(&wheel, 35000, 10);
-	float velp = wheel_get_vel(&wheel, 35);
-	float velt = wheel_get_vel(&wheel, 40);
+	odometry_encoder_sample_t sample2;
+	encoder_record_sample(&sample2, 20000, 42);
+	wheel_update(&wheel, sample2);
+	encoder_record_sample(&sample2, 30000, 42);
+	wheel_update(&wheel, sample2);
+	encoder_record_sample(&sample2, 40000, 42);
+	wheel_update(&wheel, sample2);
 
-	DOUBLES_EQUAL(0.0f, velp, 1e-5);
-	DOUBLES_EQUAL(0.0f, velt, 1e-5);
+	wheel_predict(&wheel, 40000);
+
+	CHECK_EQUAL(20000, wheel.samples[0].timestamp);
+	CHECK_EQUAL(30000, wheel.samples[1].timestamp);
+	CHECK_EQUAL(40000, wheel.samples[2].timestamp);
+	CHECK_EQUAL(42, wheel.samples[0].value);
+	CHECK_EQUAL(42, wheel.samples[1].value);
+	CHECK_EQUAL(42, wheel.samples[2].value);
 }
 
-TEST(Wheel, WheelGetVelPositive)
+TEST(Wheel, WheelPredictPositiveVel)
 {
-	wheel_update(&wheel, 25000, 11);
-	wheel_update(&wheel, 30000, 11);
-	wheel_update(&wheel, 35000, 12);
-	float velp = wheel_get_vel(&wheel, 35000);
-	float velt = wheel_get_vel(&wheel, 40000);
+	odometry_encoder_sample_t sample2;
+	encoder_record_sample(&sample2, 20000, 142);
+	wheel_update(&wheel, sample2);
+	encoder_record_sample(&sample2, 30000, 242);
+	wheel_update(&wheel, sample2);
+	encoder_record_sample(&sample2, 40000, 342);
+	wheel_update(&wheel, sample2);
 
-	DOUBLES_EQUAL(6.283184f, velp, 1e-5);
-	DOUBLES_EQUAL(12.566368f, velt, 1e-5);
+	uint16_t prediction = wheel_predict(&wheel, 50000);
+
+	CHECK_EQUAL(442, prediction);
 }
 
-TEST(Wheel, WheelGetVelNegative)
+TEST(Wheel, WheelPredictNegativeVel)
 {
-	wheel_update(&wheel, 25000, 11);
-	wheel_update(&wheel, 30000, 11);
-	wheel_update(&wheel, 35000, 10);
-	float velp = wheel_get_vel(&wheel, 35000);
-	float velt = wheel_get_vel(&wheel, 40000);
+	odometry_encoder_sample_t sample2;
+	encoder_record_sample(&sample2, 20000, 342);
+	wheel_update(&wheel, sample2);
+	encoder_record_sample(&sample2, 30000, 242);
+	wheel_update(&wheel, sample2);
+	encoder_record_sample(&sample2, 40000, 142);
+	wheel_update(&wheel, sample2);
 
-	DOUBLES_EQUAL(-6.283184f, velp, 1e-5);
-	DOUBLES_EQUAL(-12.566368f, velt, 1e-5);
+	uint16_t prediction = wheel_predict(&wheel, 50000);
+
+	CHECK_EQUAL(42, prediction);
 }
 
-TEST(Wheel, WheelGetAccZero)
+TEST(Wheel, WheelPredictPositiveAcc)
 {
-	wheel_update(&wheel, 25000, 10);
-	wheel_update(&wheel, 30000, 10);
-	wheel_update(&wheel, 35000, 10);
-	float acc = wheel_get_acc(&wheel);
+	odometry_encoder_sample_t sample2;
+	encoder_record_sample(&sample2, 20000, 142);
+	wheel_update(&wheel, sample2);
+	encoder_record_sample(&sample2, 30000, 242);
+	wheel_update(&wheel, sample2);
+	encoder_record_sample(&sample2, 40000, 442);
+	wheel_update(&wheel, sample2);
 
-	DOUBLES_EQUAL(0.0f, acc, 1e-5);
+	uint16_t prediction = wheel_predict(&wheel, 50000);
+
+	CHECK_EQUAL(742, prediction);
 }
 
-TEST(Wheel, WheelGetAccPositive)
+TEST(Wheel, WheelPredictNegativeAcc)
 {
-	wheel_update(&wheel, 25000, 10);
-	wheel_update(&wheel, 30000, 20);
-	wheel_update(&wheel, 35000, 40);
-	float acc = wheel_get_acc(&wheel);
+	odometry_encoder_sample_t sample2;
+	encoder_record_sample(&sample2, 20000, 142);
+	wheel_update(&wheel, sample2);
+	encoder_record_sample(&sample2, 30000, 442);
+	wheel_update(&wheel, sample2);
+	encoder_record_sample(&sample2, 40000, 642);
+	wheel_update(&wheel, sample2);
 
-	DOUBLES_EQUAL(12566.37f, acc, 1e-2);
+	uint16_t prediction = wheel_predict(&wheel, 50000);
+
+	CHECK_EQUAL(742, prediction);
 }
 
-TEST(Wheel, WheelGetAccNegative)
+TEST(Wheel, WheelGetDeltaTicksZero)
 {
-	wheel_update(&wheel, 25000, 10);
-	wheel_update(&wheel, 30000, 30);
-	wheel_update(&wheel, 35000, 40);
-	float acc = wheel_get_acc(&wheel);
+	odometry_encoder_sample_t sample2;
+	encoder_record_sample(&sample2, 20000, 42);
+	wheel_update(&wheel, sample2);
 
-	DOUBLES_EQUAL(-12566.37f, acc, 1e-2);
+	int16_t delta = wheel_get_delta_tick(&wheel, 20000);
+
+	CHECK_EQUAL(0, delta);
+}
+
+TEST(Wheel, WheelGetDeltaTicksPositive)
+{
+	odometry_encoder_sample_t sample2;
+	encoder_record_sample(&sample2, 20000, 142);
+	wheel_update(&wheel, sample2);
+
+	int16_t delta = wheel_get_delta_tick(&wheel, 20000);
+
+	CHECK_EQUAL(100, delta);
+}
+
+TEST(Wheel, WheelGetDeltaTicksNegative)
+{
+	odometry_encoder_sample_t sample2;
+	encoder_record_sample(&sample2, 20000, 0);
+	wheel_update(&wheel, sample2);
+
+	int16_t delta = wheel_get_delta_tick(&wheel, 20000);
+
+	CHECK_EQUAL(-42, delta);
+}
+
+TEST(Wheel, WheelGetDeltaTicksPredictPositive)
+{
+	odometry_encoder_sample_t sample2;
+	encoder_record_sample(&sample2, 20000, 142);
+	wheel_update(&wheel, sample2);
+	encoder_record_sample(&sample2, 30000, 242);
+	wheel_update(&wheel, sample2);
+
+	int16_t delta = wheel_get_delta_tick(&wheel, 40000);
+
+	CHECK_EQUAL(300, delta);
+}
+
+TEST(Wheel, WheelGetDeltaTicksNegativePositive)
+{
+	odometry_encoder_sample_t sample2;
+	encoder_record_sample(&sample2, 20000, 22);
+	wheel_update(&wheel, sample2);
+	encoder_record_sample(&sample2, 30000, 2);
+	wheel_update(&wheel, sample2);
+
+	int16_t delta = wheel_get_delta_tick(&wheel, 40000);
+
+	CHECK_EQUAL(-60, delta);
+}
+
+TEST(Wheel, WheelGetDeltaMetersZero)
+{
+	odometry_encoder_sample_t sample2;
+	encoder_record_sample(&sample2, 20000, 42);
+	wheel_update(&wheel, sample2);
+
+	float delta = wheel_get_delta_meter(&wheel, 20000);
+
+	DOUBLES_EQUAL(0.0f, delta, 1e-7);
+}
+
+TEST(Wheel, WheelGetDeltaMetersPositive)
+{
+	odometry_encoder_sample_t sample2;
+	encoder_record_sample(&sample2, 20000, 142);
+	wheel_update(&wheel, sample2);
+
+	float delta = wheel_get_delta_meter(&wheel, 20000);
+
+	DOUBLES_EQUAL(4.79369e-3, delta, 1e-9);
 }
 
 
 TEST_GROUP(Base)
 {
-	base_odom_t robot;
-	wheel_odom_t r_wheel;
-	wheel_odom_t l_wheel;
-	encoder_sample_t init_state;
-	float x0[3];
-	timestamp_t t0;
+	odometry_differential_base_t robot;
 
 	void setup(void)
 	{
-		x0[0] = 0.0f;
-		x0[1] = 0.0f;
-		x0[2] = 0.0f;
-		t0 = 30000;
-		init_state.timestamp = 20;
-		init_state.value = 10;
+		robot_base_pose_2d_s init_pose;
+		init_pose.x = 0.0f;
+		init_pose.y = 0.0f;
+		init_pose.theta = 0.0f;
 
-		base_init(&robot, 1.0f, x0, t0);
-		wheel_init(&(robot.right_wheel), init_state, 1e7, 0.5f);
-		wheel_init(&(robot.left_wheel), init_state, 1e7, 0.5f);
+		base_init(&robot, init_pose, 0.5f, 0.5f, 1.0f, 0);
 	}
 };
 
 TEST(Base, BaseInit)
 {
+	DOUBLES_EQUAL(0.0f, robot.pose.x, 1e-7);
+	DOUBLES_EQUAL(0.0f, robot.pose.y, 1e-7);
+	DOUBLES_EQUAL(0.0f, robot.pose.theta, 1e-7);
+
+	DOUBLES_EQUAL(0.0f, robot.velocity.x, 1e-7);
+	DOUBLES_EQUAL(0.0f, robot.velocity.y, 1e-7);
+	DOUBLES_EQUAL(0.0f, robot.velocity.omega, 1e-7);
+
 	DOUBLES_EQUAL(1.0f, robot.wheelbase, 1e-7);
-	DOUBLES_EQUAL(x0[0], robot.pose[0], 1e-7);
-	DOUBLES_EQUAL(x0[1], robot.pose[1], 1e-7);
-	DOUBLES_EQUAL(x0[2], robot.pose[2], 1e-7);
-	DOUBLES_EQUAL(0.0f, robot.vel[0], 1e-7);
-	DOUBLES_EQUAL(0.0f, robot.vel[1], 1e-7);
-	CHECK_EQUAL(t0, robot.time_last_estim);
+	CHECK_EQUAL(0, robot.time_last_estim);
 }
 
-TEST(Base, BaseEstimateVelZero)
+TEST(Base, BaseUpdateIdle)
 {
-	wheel_update(&(robot.right_wheel), 25000, 10);
-	wheel_update(&(robot.right_wheel), 30000, 10);
-	wheel_update(&(robot.right_wheel), 35000, 10);
+	odometry_encoder_sample_t sample0;
+	encoder_record_sample(&sample0, 10000, 42);
+	base_update(&robot, sample0, sample0);
 
-	wheel_update(&(robot.left_wheel), 25000, 10);
-	wheel_update(&(robot.left_wheel), 30000, 10);
-	wheel_update(&(robot.left_wheel), 35000, 10);
+	DOUBLES_EQUAL(0.0f, robot.pose.x, 1e-7);
+	DOUBLES_EQUAL(0.0f, robot.pose.y, 1e-7);
+	DOUBLES_EQUAL(0.0f, robot.pose.theta, 1e-7);
 
-	base_estim_vel(&robot, 35000);
-
-	DOUBLES_EQUAL(0.0f, robot.vel[0], 1e-7);
-	DOUBLES_EQUAL(0.0f, robot.vel[1], 1e-7);
-
-	base_estim_vel(&robot, 40000);
-
-	DOUBLES_EQUAL(0.0f, robot.vel[0], 1e-7);
-	DOUBLES_EQUAL(0.0f, robot.vel[1], 1e-7);
+	DOUBLES_EQUAL(0.0f, robot.velocity.x, 1e-7);
+	DOUBLES_EQUAL(0.0f, robot.velocity.y, 1e-7);
+	DOUBLES_EQUAL(0.0f, robot.velocity.omega, 1e-7);
 }
 
-TEST(Base, BaseEstimateVelPositiveConstant)
+TEST(Base, BaseUpdateCstPositiveFwdSpeed)
 {
-	wheel_update(&(robot.right_wheel), 25000, 10);
-	wheel_update(&(robot.right_wheel), 30000, 20);
-	wheel_update(&(robot.right_wheel), 35000, 30);
+	odometry_encoder_sample_t sample0;
+	encoder_record_sample(&sample0, 10000, 42);
+	base_update(&robot, sample0, sample0);
+	encoder_record_sample(&sample0, 20000, 142);
+	base_update(&robot, sample0, sample0);
+	encoder_record_sample(&sample0, 30000, 242);
+	base_update(&robot, sample0, sample0);
 
-	wheel_update(&(robot.left_wheel), 25000, 10);
-	wheel_update(&(robot.left_wheel), 30000, 20);
-	wheel_update(&(robot.left_wheel), 35000, 30);
+	DOUBLES_EQUAL(9.587379924e-3, robot.pose.x, 1e-9);
+	DOUBLES_EQUAL(0.0f, robot.pose.y, 1e-7);
+	DOUBLES_EQUAL(0.0f, robot.pose.theta, 1e-7);
 
-	base_estim_vel(&robot, 35000);
-
-	DOUBLES_EQUAL(0.0006283185f, robot.vel[0], 1e-10);
-	DOUBLES_EQUAL(0.0f, robot.vel[1], 1e-7);
-
-	base_estim_vel(&robot, 40000);
-
-	DOUBLES_EQUAL(0.0006283185f, robot.vel[0], 1e-10);
-	DOUBLES_EQUAL(0.0f, robot.vel[1], 1e-7);
+	DOUBLES_EQUAL(0.479368996, robot.velocity.x, 1e-7);
+	DOUBLES_EQUAL(0.0f, robot.velocity.y, 1e-7);
+	DOUBLES_EQUAL(0.0f, robot.velocity.omega, 1e-7);
 }
 
-TEST(Base, BaseEstimateVelPositiveIncreasing)
+TEST(Base, BaseUpdateCstNegativeFwdSpeed)
 {
-	wheel_update(&(robot.right_wheel), 25000, 20);
-	wheel_update(&(robot.right_wheel), 30000, 20);
-	wheel_update(&(robot.right_wheel), 35000, 40);
+	odometry_encoder_sample_t sample0;
+	encoder_record_sample(&sample0, 10000, 242);
+	base_update(&robot, sample0, sample0);
+	encoder_record_sample(&sample0, 20000, 142);
+	base_update(&robot, sample0, sample0);
+	encoder_record_sample(&sample0, 30000, 42);
+	base_update(&robot, sample0, sample0);
 
-	wheel_update(&(robot.left_wheel), 25000, 20);
-	wheel_update(&(robot.left_wheel), 30000, 20);
-	wheel_update(&(robot.left_wheel), 35000, 40);
+	DOUBLES_EQUAL(-9.587379924e-3, robot.pose.x, 1e-9);
+	DOUBLES_EQUAL(0.0f, robot.pose.y, 1e-7);
+	DOUBLES_EQUAL(0.0f, robot.pose.theta, 1e-7);
 
-	base_estim_vel(&robot, 35000);
-
-	DOUBLES_EQUAL(0.001256637f, robot.vel[0], 1e-9);
-	DOUBLES_EQUAL(0.0f, robot.vel[1], 1e-7);
-
-	base_estim_vel(&robot, 40000);
-
-	DOUBLES_EQUAL(0.002513274f, robot.vel[0], 1e-9);
-	DOUBLES_EQUAL(0.0f, robot.vel[1], 1e-7);
+	DOUBLES_EQUAL(-0.479368996, robot.velocity.x, 1e-7);
+	DOUBLES_EQUAL(0.0f, robot.velocity.y, 1e-7);
+	DOUBLES_EQUAL(0.0f, robot.velocity.omega, 1e-7);
 }
 
-TEST(Base, BaseEstimateVelPositiveDecreasing)
+TEST(Base, BaseUpdateCstPositiveRotSpeed)
 {
-	wheel_update(&(robot.right_wheel), 25000, 10);
-	wheel_update(&(robot.right_wheel), 30000, 50);
-	wheel_update(&(robot.right_wheel), 35000, 70);
+	odometry_encoder_sample_t sample_r;
+	odometry_encoder_sample_t sample_l;
+	encoder_record_sample(&sample_r, 10000, 242);
+	encoder_record_sample(&sample_l, 10000, 242);
+	base_update(&robot, sample_r, sample_l);
+	encoder_record_sample(&sample_r, 20000, 342);
+	encoder_record_sample(&sample_l, 20000, 142);
+	base_update(&robot, sample_r, sample_l);
+	encoder_record_sample(&sample_r, 30000, 442);
+	encoder_record_sample(&sample_l, 30000, 42);
+	base_update(&robot, sample_r, sample_l);
 
-	wheel_update(&(robot.left_wheel), 25000, 10);
-	wheel_update(&(robot.left_wheel), 30000, 50);
-	wheel_update(&(robot.left_wheel), 35000, 70);
+	DOUBLES_EQUAL(0.0f, robot.pose.x, 1e-9);
+	DOUBLES_EQUAL(0.0f, robot.pose.y, 1e-7);
+	DOUBLES_EQUAL(1.917475984e-2, robot.pose.theta, 1e-8);
 
-	base_estim_vel(&robot, 35000);
-
-	DOUBLES_EQUAL(0.001256637f, robot.vel[0], 1e-9);
-	DOUBLES_EQUAL(0.0f, robot.vel[1], 1e-7);
-
-	base_estim_vel(&robot, 40000);
-
-	DOUBLES_EQUAL(0.0f, robot.vel[0], 1e-7);
-	DOUBLES_EQUAL(0.0f, robot.vel[1], 1e-7);
-
-	base_estim_vel(&robot, 45000);
-
-	DOUBLES_EQUAL(-0.001256637f, robot.vel[0], 1e-9);
-	DOUBLES_EQUAL(0.0f, robot.vel[1], 1e-7);
+	DOUBLES_EQUAL(0.0f, robot.velocity.x, 1e-7);
+	DOUBLES_EQUAL(0.0f, robot.velocity.y, 1e-7);
+	DOUBLES_EQUAL(0.958737992, robot.velocity.omega, 1e-7);
 }
 
-TEST(Base, BaseEstimateAngularVelPositiveConstant)
+TEST(Base, BaseUpdateCstNegativeRotSpeed)
 {
-	wheel_update(&(robot.right_wheel), 25000, 10);
-	wheel_update(&(robot.right_wheel), 30000, 20);
-	wheel_update(&(robot.right_wheel), 35000, 30);
+	odometry_encoder_sample_t sample_r;
+	odometry_encoder_sample_t sample_l;
+	encoder_record_sample(&sample_r, 10000, 242);
+	encoder_record_sample(&sample_l, 10000, 242);
+	base_update(&robot, sample_r, sample_l);
+	encoder_record_sample(&sample_r, 20000, 142);
+	encoder_record_sample(&sample_l, 20000, 342);
+	base_update(&robot, sample_r, sample_l);
+	encoder_record_sample(&sample_r, 30000, 42);
+	encoder_record_sample(&sample_l, 30000, 442);
+	base_update(&robot, sample_r, sample_l);
 
-	wheel_update(&(robot.left_wheel), 25000, 30);
-	wheel_update(&(robot.left_wheel), 30000, 20);
-	wheel_update(&(robot.left_wheel), 35000, 10);
+	DOUBLES_EQUAL(0.0f, robot.pose.x, 1e-9);
+	DOUBLES_EQUAL(0.0f, robot.pose.y, 1e-7);
+	DOUBLES_EQUAL(-1.917475984e-2, robot.pose.theta, 1e-8);
 
-	base_estim_vel(&robot, 35000);
-
-	DOUBLES_EQUAL(0.0f, robot.vel[0], 1e-7);
-	DOUBLES_EQUAL(0.001256637f, robot.vel[1], 1e-9);
-
-	base_estim_vel(&robot, 40000);
-
-	DOUBLES_EQUAL(0.0f, robot.vel[0], 1e-7);
-	DOUBLES_EQUAL(0.001256637f, robot.vel[1], 1e-9);
+	DOUBLES_EQUAL(0.0f, robot.velocity.x, 1e-7);
+	DOUBLES_EQUAL(0.0f, robot.velocity.y, 1e-7);
+	DOUBLES_EQUAL(-0.958737992, robot.velocity.omega, 1e-7);
 }
 
-TEST(Base, BaseEstimatePoseZero)
+TEST(Base, BaseUpdateCstPositiveFwdAcc)
 {
-	wheel_update(&(robot.right_wheel), 25000, 10);
-	wheel_update(&(robot.right_wheel), 30000, 10);
-	wheel_update(&(robot.right_wheel), 35000, 10);
+	odometry_encoder_sample_t sample_r;
+	odometry_encoder_sample_t sample_l;
+	encoder_record_sample(&sample_r, 10000, 242);
+	encoder_record_sample(&sample_l, 10000, 242);
+	base_update(&robot, sample_r, sample_l);
+	encoder_record_sample(&sample_r, 20000, 342);
+	encoder_record_sample(&sample_l, 20000, 342);
+	base_update(&robot, sample_r, sample_l);
+	encoder_record_sample(&sample_r, 30000, 542);
+	encoder_record_sample(&sample_l, 30000, 542);
+	base_update(&robot, sample_r, sample_l);
 
-	wheel_update(&(robot.left_wheel), 25000, 10);
-	wheel_update(&(robot.left_wheel), 30000, 10);
-	wheel_update(&(robot.left_wheel), 35000, 10);
+	DOUBLES_EQUAL(1.4381069e-2, robot.pose.x, 1e-9);
+	DOUBLES_EQUAL(0.0f, robot.pose.y, 1e-7);
+	DOUBLES_EQUAL(0.0f, robot.pose.theta, 1e-8);
 
-	base_estim_pose(&robot, 35000);
+	DOUBLES_EQUAL(0.958737992, robot.velocity.x, 1e-7);
+	DOUBLES_EQUAL(0.0f, robot.velocity.y, 1e-7);
+	DOUBLES_EQUAL(0.0f, robot.velocity.omega, 1e-7);
+}
 
-	DOUBLES_EQUAL(0.0f, robot.pose[0], 1e-7);
-	DOUBLES_EQUAL(0.0f, robot.pose[1], 1e-7);
-	DOUBLES_EQUAL(0.0f, robot.pose[2], 1e-7);
+TEST(Base, BaseUpdateCstNegativeFwdAcc)
+{
+	odometry_encoder_sample_t sample_r;
+	odometry_encoder_sample_t sample_l;
+	encoder_record_sample(&sample_r, 10000, 242);
+	encoder_record_sample(&sample_l, 10000, 242);
+	base_update(&robot, sample_r, sample_l);
+	encoder_record_sample(&sample_r, 20000, 442);
+	encoder_record_sample(&sample_l, 20000, 442);
+	base_update(&robot, sample_r, sample_l);
+	encoder_record_sample(&sample_r, 30000, 542);
+	encoder_record_sample(&sample_l, 30000, 542);
+	base_update(&robot, sample_r, sample_l);
 
-	base_estim_vel(&robot, 40000);
+	DOUBLES_EQUAL(1.4381069e-2, robot.pose.x, 1e-9);
+	DOUBLES_EQUAL(0.0f, robot.pose.y, 1e-7);
+	DOUBLES_EQUAL(0.0f, robot.pose.theta, 1e-8);
 
-	DOUBLES_EQUAL(0.0f, robot.pose[0], 1e-7);
-	DOUBLES_EQUAL(0.0f, robot.pose[1], 1e-7);
-	DOUBLES_EQUAL(0.0f, robot.pose[2], 1e-7);
+	DOUBLES_EQUAL(0.479368996, robot.velocity.x, 1e-7);
+	DOUBLES_EQUAL(0.0f, robot.velocity.y, 1e-7);
+	DOUBLES_EQUAL(0.0f, robot.velocity.omega, 1e-7);
+}
+
+TEST(Base, BaseUpdateCstNegativeFwdAccAsyncWheels)
+{
+	odometry_encoder_sample_t sample_r;
+	odometry_encoder_sample_t sample_l;
+	encoder_record_sample(&sample_r, 10000, 242);
+	encoder_record_sample(&sample_l, 10000, 242);
+	base_update(&robot, sample_r, sample_l);
+	encoder_record_sample(&sample_r, 20000, 442);
+	encoder_record_sample(&sample_l, 20000, 442);
+	base_update(&robot, sample_r, sample_l);
+	encoder_record_sample(&sample_r, 30000, 542);
+	encoder_record_sample(&sample_l, 26000, 514);
+	base_update(&robot, sample_r, sample_l);
+
+	DOUBLES_EQUAL(1.4381069e-2, robot.pose.x, 1e-9);
+	DOUBLES_EQUAL(0.0f, robot.pose.y, 1e-7);
+	DOUBLES_EQUAL(0.0f, robot.pose.theta, 1e-8);
+
+	DOUBLES_EQUAL(0.479368996, robot.velocity.x, 1e-7);
+	DOUBLES_EQUAL(0.0f, robot.velocity.y, 1e-7);
+	DOUBLES_EQUAL(0.0f, robot.velocity.omega, 1e-7);
 }
