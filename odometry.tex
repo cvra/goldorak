@@ -23,8 +23,67 @@ Inputs:
 
 Wheel position prediction: for any arbitrary $t$, $t_0 < t_1 < t_2$
 \begin{equation}
-%    \phi_t = \phi_{t_2} + \frac{\phi_{t_2} - \phi_{t_1}}{t_2 - t_1} \cdot (t - t_2) + \frac{\phi_{t_2} - 2 \phi_{t_1} + \phi_{t_0}}{t_2 - t_0} \cdot \frac{(t - t_2)^2}{2}
-	\phi_t = \phi_{t_2} + \frac{\phi_{t_2} - \phi_{t_1}}{t_2 - t_1} \cdot (t - t_2) + \frac{(\phi_{t_2} - \phi_{t_1})(t_1 - t_0) - (\phi_{t_1} - \phi_{t_0})(t_2 - t_1)}{(t_1 - t_0)(t_2 - t_1)^2} \cdot \frac{(t - t_2)^2}{2}
+	\phi_t = \gamma + \beta \cdot (t - t_2) + \alpha \cdot (t - t_2)^2
+\end{equation}
+
+Where $\gamma$, $\beta$ and $\alpha$ are the parabolic motion parameters obtained from the samples by simply solving
+\begin{equation}
+    \begin{pmatrix}
+        \phi_{t_0} \\
+        \phi_{t_1} \\
+        \phi_{t_2}
+    \end{pmatrix}
+    =
+    \begin{pmatrix}
+        t_0^2 & t_0 & 1 \\
+        t_1^2 & t_1 & 1 \\
+        t_2^2 & t_2 & 1
+    \end{pmatrix}
+    \cdot
+    \begin{pmatrix}
+        \alpha \\
+        \beta \\
+        \gamma
+    \end{pmatrix}
+    \iff
+    \begin{pmatrix}
+        \phi_{t_0} \\
+        \phi_{t_1} - \phi_{t_0} \\
+        \phi_{t_2} - \phi_{t_0}
+    \end{pmatrix}
+    =
+    \begin{pmatrix}
+        t_0^2 & t_0 & 1 \\
+        t_1^2 - t_0^2 & t_1 - t_0 & 1 \\
+        t_2^2 - t_0^2 & t_2 - t_0 & 1
+    \end{pmatrix}
+    \cdot
+    \begin{pmatrix}
+        \alpha \\
+        \beta \\
+        \gamma
+    \end{pmatrix}
+\end{equation}
+
+This can be simplified by assuming WLOG that $t_0 = 0$ (shift the system) which yields
+\begin{equation}
+    \begin{pmatrix}
+        \alpha \\
+        \beta \\
+        \gamma
+    \end{pmatrix}
+    =
+    \begin{pmatrix}
+        0 & \frac{ -1}{t_1 \cdot (t_2 - t_1)} & \frac{ -1}{t_2 \cdot (t_1 - t_2)} \\
+        0 & \frac{t_2}{t_1 \cdot (t_2 - t_1)} & \frac{t_1}{t_2 \cdot (t_1 - t_2)} \\
+        1 &                       0 &                       0
+    \end{pmatrix}
+    \cdot
+    \begin{pmatrix}
+        \phi_{t_0} \\
+        \phi_{t_1} - \phi_{t_0} \\
+        \phi_{t_2} - \phi_{t_0}
+    \end{pmatrix}
 \end{equation}
 
 Wheel veloctiy calculation:
