@@ -10,8 +10,8 @@ TEST_GROUP(Encoder)
 
     void setup(void)
     {
-        encoder_record_sample(&sample1, 20000, 42);
-        encoder_record_sample(&sample2, 25000, 42);
+        odometry_encoder_record_sample(&sample1, 20000, 42);
+        odometry_encoder_record_sample(&sample2, 25000, 42);
     }
 };
 
@@ -30,7 +30,7 @@ TEST_GROUP(Wheel)
     void setup(void)
     {
         wheel_init(&wheel, 0.5f);
-        encoder_record_sample(&sample1, 10000, 42);
+        odometry_encoder_record_sample(&sample1, 10000, 42);
         wheel_update(&wheel, sample1);
     }
 };
@@ -51,7 +51,7 @@ TEST(Wheel, WheelInit)
 TEST(Wheel, WheelUpdatePostInit)
 {
     odometry_encoder_sample_t sample2;
-    encoder_record_sample(&sample2, 20000, 142);
+    odometry_encoder_record_sample(&sample2, 20000, 142);
     wheel_update(&wheel, sample2);
 
     CHECK_EQUAL(10000, wheel.samples[0].timestamp);
@@ -63,7 +63,7 @@ TEST(Wheel, WheelUpdatePostInit)
     CHECK_EQUAL(100, wheel.delta_pos_accumulator);
 
     odometry_encoder_sample_t sample3;
-    encoder_record_sample(&sample3, 30000, 242);
+    odometry_encoder_record_sample(&sample3, 30000, 242);
     wheel_update(&wheel, sample3);
 
     CHECK_EQUAL(10000, wheel.samples[0].timestamp);
@@ -78,11 +78,11 @@ TEST(Wheel, WheelUpdatePostInit)
 TEST(Wheel, WheelPredictNothing)
 {
     odometry_encoder_sample_t sample2;
-    encoder_record_sample(&sample2, 20000, 142);
+    odometry_encoder_record_sample(&sample2, 20000, 142);
     wheel_update(&wheel, sample2);
-    encoder_record_sample(&sample2, 30000, 242);
+    odometry_encoder_record_sample(&sample2, 30000, 242);
     wheel_update(&wheel, sample2);
-    encoder_record_sample(&sample2, 40000, 342);
+    odometry_encoder_record_sample(&sample2, 40000, 342);
     wheel_update(&wheel, sample2);
 
     wheel_predict(&wheel, 40000);
@@ -98,11 +98,11 @@ TEST(Wheel, WheelPredictNothing)
 TEST(Wheel, WheelPredictIdlePosition)
 {
     odometry_encoder_sample_t sample2;
-    encoder_record_sample(&sample2, 20000, 42);
+    odometry_encoder_record_sample(&sample2, 20000, 42);
     wheel_update(&wheel, sample2);
-    encoder_record_sample(&sample2, 30000, 42);
+    odometry_encoder_record_sample(&sample2, 30000, 42);
     wheel_update(&wheel, sample2);
-    encoder_record_sample(&sample2, 40000, 42);
+    odometry_encoder_record_sample(&sample2, 40000, 42);
     wheel_update(&wheel, sample2);
 
     wheel_predict(&wheel, 40000);
@@ -118,11 +118,11 @@ TEST(Wheel, WheelPredictIdlePosition)
 TEST(Wheel, WheelPredictPositiveVel)
 {
     odometry_encoder_sample_t sample2;
-    encoder_record_sample(&sample2, 20000, 142);
+    odometry_encoder_record_sample(&sample2, 20000, 142);
     wheel_update(&wheel, sample2);
-    encoder_record_sample(&sample2, 30000, 242);
+    odometry_encoder_record_sample(&sample2, 30000, 242);
     wheel_update(&wheel, sample2);
-    encoder_record_sample(&sample2, 40000, 342);
+    odometry_encoder_record_sample(&sample2, 40000, 342);
     wheel_update(&wheel, sample2);
 
     uint16_t prediction = wheel_predict(&wheel, 50000);
@@ -133,11 +133,11 @@ TEST(Wheel, WheelPredictPositiveVel)
 TEST(Wheel, WheelPredictNegativeVel)
 {
     odometry_encoder_sample_t sample2;
-    encoder_record_sample(&sample2, 20000, 342);
+    odometry_encoder_record_sample(&sample2, 20000, 342);
     wheel_update(&wheel, sample2);
-    encoder_record_sample(&sample2, 30000, 242);
+    odometry_encoder_record_sample(&sample2, 30000, 242);
     wheel_update(&wheel, sample2);
-    encoder_record_sample(&sample2, 40000, 142);
+    odometry_encoder_record_sample(&sample2, 40000, 142);
     wheel_update(&wheel, sample2);
 
     uint16_t prediction = wheel_predict(&wheel, 50000);
@@ -148,11 +148,11 @@ TEST(Wheel, WheelPredictNegativeVel)
 TEST(Wheel, WheelPredictPositiveAcc)
 {
     odometry_encoder_sample_t sample2;
-    encoder_record_sample(&sample2, 20000, 142);
+    odometry_encoder_record_sample(&sample2, 20000, 142);
     wheel_update(&wheel, sample2);
-    encoder_record_sample(&sample2, 30000, 242);
+    odometry_encoder_record_sample(&sample2, 30000, 242);
     wheel_update(&wheel, sample2);
-    encoder_record_sample(&sample2, 40000, 442);
+    odometry_encoder_record_sample(&sample2, 40000, 442);
     wheel_update(&wheel, sample2);
 
     uint16_t prediction = wheel_predict(&wheel, 50000);
@@ -163,11 +163,11 @@ TEST(Wheel, WheelPredictPositiveAcc)
 TEST(Wheel, WheelPredictNegativeAcc)
 {
     odometry_encoder_sample_t sample2;
-    encoder_record_sample(&sample2, 20000, 142);
+    odometry_encoder_record_sample(&sample2, 20000, 142);
     wheel_update(&wheel, sample2);
-    encoder_record_sample(&sample2, 30000, 442);
+    odometry_encoder_record_sample(&sample2, 30000, 442);
     wheel_update(&wheel, sample2);
-    encoder_record_sample(&sample2, 40000, 642);
+    odometry_encoder_record_sample(&sample2, 40000, 642);
     wheel_update(&wheel, sample2);
 
     uint16_t prediction = wheel_predict(&wheel, 50000);
@@ -178,7 +178,7 @@ TEST(Wheel, WheelPredictNegativeAcc)
 TEST(Wheel, WheelGetDeltaTicksZero)
 {
     odometry_encoder_sample_t sample2;
-    encoder_record_sample(&sample2, 20000, 42);
+    odometry_encoder_record_sample(&sample2, 20000, 42);
     wheel_update(&wheel, sample2);
 
     int16_t delta = wheel_get_delta_tick(&wheel, 20000);
@@ -189,7 +189,7 @@ TEST(Wheel, WheelGetDeltaTicksZero)
 TEST(Wheel, WheelGetDeltaTicksPositive)
 {
     odometry_encoder_sample_t sample2;
-    encoder_record_sample(&sample2, 20000, 142);
+    odometry_encoder_record_sample(&sample2, 20000, 142);
     wheel_update(&wheel, sample2);
 
     int16_t delta = wheel_get_delta_tick(&wheel, 20000);
@@ -200,7 +200,7 @@ TEST(Wheel, WheelGetDeltaTicksPositive)
 TEST(Wheel, WheelGetDeltaTicksNegative)
 {
     odometry_encoder_sample_t sample2;
-    encoder_record_sample(&sample2, 20000, 0);
+    odometry_encoder_record_sample(&sample2, 20000, 0);
     wheel_update(&wheel, sample2);
 
     int16_t delta = wheel_get_delta_tick(&wheel, 20000);
@@ -211,9 +211,9 @@ TEST(Wheel, WheelGetDeltaTicksNegative)
 TEST(Wheel, WheelGetDeltaTicksPredictPositive)
 {
     odometry_encoder_sample_t sample2;
-    encoder_record_sample(&sample2, 20000, 142);
+    odometry_encoder_record_sample(&sample2, 20000, 142);
     wheel_update(&wheel, sample2);
-    encoder_record_sample(&sample2, 30000, 242);
+    odometry_encoder_record_sample(&sample2, 30000, 242);
     wheel_update(&wheel, sample2);
 
     int16_t delta = wheel_get_delta_tick(&wheel, 40000);
@@ -224,9 +224,9 @@ TEST(Wheel, WheelGetDeltaTicksPredictPositive)
 TEST(Wheel, WheelGetDeltaTicksNegativePositive)
 {
     odometry_encoder_sample_t sample2;
-    encoder_record_sample(&sample2, 20000, 22);
+    odometry_encoder_record_sample(&sample2, 20000, 22);
     wheel_update(&wheel, sample2);
-    encoder_record_sample(&sample2, 30000, 2);
+    odometry_encoder_record_sample(&sample2, 30000, 2);
     wheel_update(&wheel, sample2);
 
     int16_t delta = wheel_get_delta_tick(&wheel, 40000);
@@ -237,7 +237,7 @@ TEST(Wheel, WheelGetDeltaTicksNegativePositive)
 TEST(Wheel, WheelGetDeltaMetersZero)
 {
     odometry_encoder_sample_t sample2;
-    encoder_record_sample(&sample2, 20000, 42);
+    odometry_encoder_record_sample(&sample2, 20000, 42);
     wheel_update(&wheel, sample2);
 
     float delta = wheel_get_delta_meter(&wheel, 20000);
@@ -248,7 +248,7 @@ TEST(Wheel, WheelGetDeltaMetersZero)
 TEST(Wheel, WheelGetDeltaMetersPositive)
 {
     odometry_encoder_sample_t sample2;
-    encoder_record_sample(&sample2, 20000, 142);
+    odometry_encoder_record_sample(&sample2, 20000, 142);
     wheel_update(&wheel, sample2);
 
     float delta = wheel_get_delta_meter(&wheel, 20000);
@@ -268,7 +268,7 @@ TEST_GROUP(Base)
         init_pose.y = 0.0f;
         init_pose.theta = 0.0f;
 
-        base_init(&robot, init_pose, 0.5f, 0.5f, 1.0f, 0);
+        odometry_base_init(&robot, init_pose, 0.5f, 0.5f, 1.0f, 0);
     }
 };
 
@@ -289,8 +289,8 @@ TEST(Base, BaseInit)
 TEST(Base, BaseUpdateIdle)
 {
     odometry_encoder_sample_t sample0;
-    encoder_record_sample(&sample0, 10000, 42);
-    base_update(&robot, sample0, sample0);
+    odometry_encoder_record_sample(&sample0, 10000, 42);
+    odometry_base_update(&robot, sample0, sample0);
 
     DOUBLES_EQUAL(0.0f, robot.pose.x, 1e-7);
     DOUBLES_EQUAL(0.0f, robot.pose.y, 1e-7);
@@ -304,12 +304,12 @@ TEST(Base, BaseUpdateIdle)
 TEST(Base, BaseUpdateCstPositiveFwdSpeed)
 {
     odometry_encoder_sample_t sample0;
-    encoder_record_sample(&sample0, 10000, 42);
-    base_update(&robot, sample0, sample0);
-    encoder_record_sample(&sample0, 20000, 142);
-    base_update(&robot, sample0, sample0);
-    encoder_record_sample(&sample0, 30000, 242);
-    base_update(&robot, sample0, sample0);
+    odometry_encoder_record_sample(&sample0, 10000, 42);
+    odometry_base_update(&robot, sample0, sample0);
+    odometry_encoder_record_sample(&sample0, 20000, 142);
+    odometry_base_update(&robot, sample0, sample0);
+    odometry_encoder_record_sample(&sample0, 30000, 242);
+    odometry_base_update(&robot, sample0, sample0);
 
     DOUBLES_EQUAL(9.587379924e-3, robot.pose.x, 1e-9);
     DOUBLES_EQUAL(0.0f, robot.pose.y, 1e-7);
@@ -323,12 +323,12 @@ TEST(Base, BaseUpdateCstPositiveFwdSpeed)
 TEST(Base, BaseUpdateCstNegativeFwdSpeed)
 {
     odometry_encoder_sample_t sample0;
-    encoder_record_sample(&sample0, 10000, 242);
-    base_update(&robot, sample0, sample0);
-    encoder_record_sample(&sample0, 20000, 142);
-    base_update(&robot, sample0, sample0);
-    encoder_record_sample(&sample0, 30000, 42);
-    base_update(&robot, sample0, sample0);
+    odometry_encoder_record_sample(&sample0, 10000, 242);
+    odometry_base_update(&robot, sample0, sample0);
+    odometry_encoder_record_sample(&sample0, 20000, 142);
+    odometry_base_update(&robot, sample0, sample0);
+    odometry_encoder_record_sample(&sample0, 30000, 42);
+    odometry_base_update(&robot, sample0, sample0);
 
     DOUBLES_EQUAL(-9.587379924e-3, robot.pose.x, 1e-9);
     DOUBLES_EQUAL(0.0f, robot.pose.y, 1e-7);
@@ -343,15 +343,15 @@ TEST(Base, BaseUpdateCstPositiveRotSpeed)
 {
     odometry_encoder_sample_t sample_r;
     odometry_encoder_sample_t sample_l;
-    encoder_record_sample(&sample_r, 10000, 242);
-    encoder_record_sample(&sample_l, 10000, 242);
-    base_update(&robot, sample_r, sample_l);
-    encoder_record_sample(&sample_r, 20000, 342);
-    encoder_record_sample(&sample_l, 20000, 142);
-    base_update(&robot, sample_r, sample_l);
-    encoder_record_sample(&sample_r, 30000, 442);
-    encoder_record_sample(&sample_l, 30000, 42);
-    base_update(&robot, sample_r, sample_l);
+    odometry_encoder_record_sample(&sample_r, 10000, 242);
+    odometry_encoder_record_sample(&sample_l, 10000, 242);
+    odometry_base_update(&robot, sample_r, sample_l);
+    odometry_encoder_record_sample(&sample_r, 20000, 342);
+    odometry_encoder_record_sample(&sample_l, 20000, 142);
+    odometry_base_update(&robot, sample_r, sample_l);
+    odometry_encoder_record_sample(&sample_r, 30000, 442);
+    odometry_encoder_record_sample(&sample_l, 30000, 42);
+    odometry_base_update(&robot, sample_r, sample_l);
 
     DOUBLES_EQUAL(0.0f, robot.pose.x, 1e-9);
     DOUBLES_EQUAL(0.0f, robot.pose.y, 1e-7);
@@ -366,15 +366,15 @@ TEST(Base, BaseUpdateCstNegativeRotSpeed)
 {
     odometry_encoder_sample_t sample_r;
     odometry_encoder_sample_t sample_l;
-    encoder_record_sample(&sample_r, 10000, 242);
-    encoder_record_sample(&sample_l, 10000, 242);
-    base_update(&robot, sample_r, sample_l);
-    encoder_record_sample(&sample_r, 20000, 142);
-    encoder_record_sample(&sample_l, 20000, 342);
-    base_update(&robot, sample_r, sample_l);
-    encoder_record_sample(&sample_r, 30000, 42);
-    encoder_record_sample(&sample_l, 30000, 442);
-    base_update(&robot, sample_r, sample_l);
+    odometry_encoder_record_sample(&sample_r, 10000, 242);
+    odometry_encoder_record_sample(&sample_l, 10000, 242);
+    odometry_base_update(&robot, sample_r, sample_l);
+    odometry_encoder_record_sample(&sample_r, 20000, 142);
+    odometry_encoder_record_sample(&sample_l, 20000, 342);
+    odometry_base_update(&robot, sample_r, sample_l);
+    odometry_encoder_record_sample(&sample_r, 30000, 42);
+    odometry_encoder_record_sample(&sample_l, 30000, 442);
+    odometry_base_update(&robot, sample_r, sample_l);
 
     DOUBLES_EQUAL(0.0f, robot.pose.x, 1e-9);
     DOUBLES_EQUAL(0.0f, robot.pose.y, 1e-7);
@@ -389,15 +389,15 @@ TEST(Base, BaseUpdateCstPositiveFwdAcc)
 {
     odometry_encoder_sample_t sample_r;
     odometry_encoder_sample_t sample_l;
-    encoder_record_sample(&sample_r, 10000, 242);
-    encoder_record_sample(&sample_l, 10000, 242);
-    base_update(&robot, sample_r, sample_l);
-    encoder_record_sample(&sample_r, 20000, 342);
-    encoder_record_sample(&sample_l, 20000, 342);
-    base_update(&robot, sample_r, sample_l);
-    encoder_record_sample(&sample_r, 30000, 542);
-    encoder_record_sample(&sample_l, 30000, 542);
-    base_update(&robot, sample_r, sample_l);
+    odometry_encoder_record_sample(&sample_r, 10000, 242);
+    odometry_encoder_record_sample(&sample_l, 10000, 242);
+    odometry_base_update(&robot, sample_r, sample_l);
+    odometry_encoder_record_sample(&sample_r, 20000, 342);
+    odometry_encoder_record_sample(&sample_l, 20000, 342);
+    odometry_base_update(&robot, sample_r, sample_l);
+    odometry_encoder_record_sample(&sample_r, 30000, 542);
+    odometry_encoder_record_sample(&sample_l, 30000, 542);
+    odometry_base_update(&robot, sample_r, sample_l);
 
     DOUBLES_EQUAL(1.4381069e-2, robot.pose.x, 1e-9);
     DOUBLES_EQUAL(0.0f, robot.pose.y, 1e-7);
@@ -412,15 +412,15 @@ TEST(Base, BaseUpdateCstNegativeFwdAcc)
 {
     odometry_encoder_sample_t sample_r;
     odometry_encoder_sample_t sample_l;
-    encoder_record_sample(&sample_r, 10000, 242);
-    encoder_record_sample(&sample_l, 10000, 242);
-    base_update(&robot, sample_r, sample_l);
-    encoder_record_sample(&sample_r, 20000, 442);
-    encoder_record_sample(&sample_l, 20000, 442);
-    base_update(&robot, sample_r, sample_l);
-    encoder_record_sample(&sample_r, 30000, 542);
-    encoder_record_sample(&sample_l, 30000, 542);
-    base_update(&robot, sample_r, sample_l);
+    odometry_encoder_record_sample(&sample_r, 10000, 242);
+    odometry_encoder_record_sample(&sample_l, 10000, 242);
+    odometry_base_update(&robot, sample_r, sample_l);
+    odometry_encoder_record_sample(&sample_r, 20000, 442);
+    odometry_encoder_record_sample(&sample_l, 20000, 442);
+    odometry_base_update(&robot, sample_r, sample_l);
+    odometry_encoder_record_sample(&sample_r, 30000, 542);
+    odometry_encoder_record_sample(&sample_l, 30000, 542);
+    odometry_base_update(&robot, sample_r, sample_l);
 
     DOUBLES_EQUAL(1.4381069e-2, robot.pose.x, 1e-9);
     DOUBLES_EQUAL(0.0f, robot.pose.y, 1e-7);
@@ -435,15 +435,15 @@ TEST(Base, BaseUpdateCstNegativeFwdAccAsyncWheels)
 {
     odometry_encoder_sample_t sample_r;
     odometry_encoder_sample_t sample_l;
-    encoder_record_sample(&sample_r, 10000, 242);
-    encoder_record_sample(&sample_l, 10000, 242);
-    base_update(&robot, sample_r, sample_l);
-    encoder_record_sample(&sample_r, 20000, 442);
-    encoder_record_sample(&sample_l, 20000, 442);
-    base_update(&robot, sample_r, sample_l);
-    encoder_record_sample(&sample_r, 30000, 542);
-    encoder_record_sample(&sample_l, 26000, 514);
-    base_update(&robot, sample_r, sample_l);
+    odometry_encoder_record_sample(&sample_r, 10000, 242);
+    odometry_encoder_record_sample(&sample_l, 10000, 242);
+    odometry_base_update(&robot, sample_r, sample_l);
+    odometry_encoder_record_sample(&sample_r, 20000, 442);
+    odometry_encoder_record_sample(&sample_l, 20000, 442);
+    odometry_base_update(&robot, sample_r, sample_l);
+    odometry_encoder_record_sample(&sample_r, 30000, 542);
+    odometry_encoder_record_sample(&sample_l, 26000, 514);
+    odometry_base_update(&robot, sample_r, sample_l);
 
     DOUBLES_EQUAL(1.4381069e-2, robot.pose.x, 1e-9);
     DOUBLES_EQUAL(0.0f, robot.pose.y, 1e-7);

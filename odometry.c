@@ -11,7 +11,7 @@
 #define MINIMUM_DELTA_T 1e-7 // To avoid dividing by zero in derivative
 
 
-void base_init(
+void odometry_base_init(
         odometry_differential_base_t *robot,
         const struct robot_base_pose_2d_s init_pose,
         const float right_wheel_radius,
@@ -34,7 +34,7 @@ void base_init(
     robot->time_last_estim = time_now;
 }
 
-void base_update(
+void odometry_base_update(
         odometry_differential_base_t *robot,
         const odometry_encoder_sample_t right_wheel_sample,
         const odometry_encoder_sample_t left_wheel_sample)
@@ -60,19 +60,38 @@ void base_update(
     float delta_fwd = 0.5f * (delta_right_wheel + delta_left_wheel);
     float delta_rot = (delta_right_wheel - delta_left_wheel) / robot->wheelbase;
 
+    float cos_theta = cos(robot->pose.theta + 0.5f * delta_rot);
+    float sin_theta = sin(robot->pose.theta + 0.5f * delta_rot);
+
     if (dt >= MINIMUM_DELTA_T) {
-        robot->velocity.x = delta_fwd
-                             * cos(robot->pose.theta + 0.5f * delta_rot) / dt;
-        robot->velocity.y = delta_fwd
-                             * sin(robot->pose.theta + 0.5f * delta_rot) / dt;
+        robot->velocity.x = delta_fwd * cos_theta / dt;
+        robot->velocity.y = delta_fwd * sin_theta / dt;
         robot->velocity.omega = delta_rot / dt;
     }
 
-    robot->pose.x += delta_fwd * cos(robot->pose.theta + 0.5f * delta_rot);
-    robot->pose.y += delta_fwd * sin(robot->pose.theta + 0.5f * delta_rot);
+    robot->pose.x += delta_fwd * cos_theta;
+    robot->pose.y += delta_fwd * sin_theta;
     robot->pose.theta += delta_rot;
 
     robot->time_last_estim = time_now;
+}
+
+void odometry_base_get_pose(
+        odometry_differential_base_t *robot,
+        struct robot_base_pose_2d_s *pose)
+{
+    pose->x = robot->pose.x;
+    pose->y = robot->pose.y;
+    pose->theta = robot->pose.theta;
+}
+
+void odometry_base_get_vel(
+        odometry_differential_base_t *robot,
+        struct robot_base_vel_2d_s *velocity)
+{
+    velocity->x = robot->velocity.x;
+    velocity->y = robot->velocity.y;
+    velocity->omega = robot->velocity.omega;
 }
 
 static void wheel_init(
@@ -175,7 +194,7 @@ static float wheel_get_delta_meter(
     return delta * wheel->tick_to_meter;
 }
 
-void encoder_record_sample(
+void odometry_encoder_record_sample(
         odometry_encoder_sample_t *sample,
         const timestamp_t timestamp,
         const uint32_t value)

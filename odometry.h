@@ -38,7 +38,7 @@ typedef struct {
 } odometry_differential_base_t;
 
 
-void base_init(
+void odometry_base_init(
         odometry_differential_base_t *robot,
         const struct robot_base_pose_2d_s init_pose,
         const float right_wheel_radius,
@@ -46,10 +46,18 @@ void base_init(
         const float wheelbase,
         const timestamp_t time_now);
 
-void base_update(
+void odometry_base_update(
         odometry_differential_base_t *robot,
         const odometry_encoder_sample_t right_wheel_sample,
         const odometry_encoder_sample_t left_wheel_sample);
+
+void odometry_base_get_pose(
+        odometry_differential_base_t *robot,
+        struct robot_base_pose_2d_s *pose);
+
+void odometry_base_get_vel(
+        odometry_differential_base_t *robot,
+        struct robot_base_vel_2d_s *velocity);
 
 static void wheel_init(
         odometry_wheel_t *wheel,
@@ -71,7 +79,7 @@ static float wheel_get_delta_meter(
         odometry_wheel_t *wheel,
         const timestamp_t time_now);
 
-void encoder_record_sample(
+void odometry_encoder_record_sample(
         odometry_encoder_sample_t *sample,
         const timestamp_t timestamp,
         const uint32_t value);
