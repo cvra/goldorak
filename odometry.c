@@ -166,20 +166,6 @@ float wheel_get_delta_meter(
     return delta * wheel->tick_to_meter;
 }
 
-float encoder_time_derivative(
-        odometry_encoder_sample_t sample1,
-        odometry_encoder_sample_t sample2)
-{
-    float dt = timestamp_duration_s(sample1.timestamp, sample2.timestamp);
-    int16_t dvalue = (int16_t) (sample2.value - sample1.value);
-
-    if (dt >= MINIMUM_DELTA_T) {
-        return (float) (dvalue / dt);
-    } else {
-        return 0.0f;
-    }
-}
-
 void encoder_record_sample(
         odometry_encoder_sample_t *sample,
         const timestamp_t timestamp,

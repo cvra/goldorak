@@ -71,10 +71,6 @@ float wheel_get_delta_meter(
         odometry_wheel_t *wheel,
         const timestamp_t time_now);
 
-float encoder_time_derivative(
-        odometry_encoder_sample_t sample1,
-        odometry_encoder_sample_t sample2);
-
 void encoder_record_sample(
         odometry_encoder_sample_t *sample,
         const timestamp_t timestamp,

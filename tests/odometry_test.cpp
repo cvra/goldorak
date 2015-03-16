@@ -23,31 +23,6 @@ TEST(Encoder, EncoderRecord)
     CHECK_EQUAL(42, sample1.value);
 }
 
-TEST(Encoder, GetDerivativeZero)
-{
-    float df = encoder_time_derivative(sample1, sample2);
-
-    DOUBLES_EQUAL(0.0f, df, 1e-5);
-}
-
-TEST(Encoder, GetDerivativePositive)
-{
-    encoder_record_sample(&sample1, 0, 10);
-    encoder_record_sample(&sample2, 1000, 11);
-    float df = encoder_time_derivative(sample1, sample2);
-
-    DOUBLES_EQUAL(1e3, df, 1e-4);
-}
-
-TEST(Encoder, GetDerivativeNegative)
-{
-    encoder_record_sample(&sample1, 0, 10);
-    encoder_record_sample(&sample2, 1000, 9);
-    float df = encoder_time_derivative(sample1, sample2);
-
-    DOUBLES_EQUAL(-1e3, df, 1e-4);
-}
-
 
 TEST_GROUP(Wheel)
 {
