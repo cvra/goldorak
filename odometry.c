@@ -150,10 +150,10 @@ int16_t wheel_get_delta_tick(
         const timestamp_t time_now)
 {
     int16_t delta;
-    uint16_t prediction;
-    prediction = wheel_predict(wheel, time_now) - wheel->samples[2].value;
-    delta = wheel->delta_pos_accumulator + prediction;
-    wheel->delta_pos_accumulator = prediction;
+    delta = wheel->delta_pos_accumulator;
+    wheel->delta_pos_accumulator = (int16_t) (wheel_predict(wheel, time_now)
+                                              - wheel->samples[2].value);
+    delta += wheel->delta_pos_accumulator;
     return delta;
 }
 
