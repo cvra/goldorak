@@ -1,10 +1,10 @@
 % Déclaration du type de document (report, book, paper, etc...)
 \documentclass[a4paper]{paper}
- 
+
 % Package pour avoir Latex en français
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
- 
+
 % Quelques packages utiles
 \usepackage{listings} % Pour afficher des listings de programmes
 \usepackage{graphicx} % Pour afficher des figures
@@ -19,6 +19,7 @@
 \usepackage{subcaption}
 \usepackage{mhchem}
 \usepackage[acronym,smallcaps]{glossaries}
+\graphicspath{{media/}}
 
 \author{Antoine Albertelli \texttt{a.albertelli@cvra.ch}}
 \title{Implementation and calibration of a dead reckoning system for Eurobot}
@@ -71,7 +72,7 @@ Then we can compute the robot movement :
 \begin{equation}
     \begin{pmatrix}
         u\\v
-    \end{pmatrix}  
+    \end{pmatrix}
     =
     \frac{T}{2}
     \begin{pmatrix}
@@ -94,7 +95,7 @@ We will then transpose those displacement vector in the global space ($\theta$ i
     \begin{pmatrix}
         \cos\theta \\-\sin\theta
     \end{pmatrix}
-    u 
+    u
 \end{equation}
 
 Finally, integrate the change into the robot position:
@@ -147,7 +148,7 @@ And finally we got the radius of the trajectory :
     R = T \left(\frac{1}{\lambda - 1}  + \frac{1}{2}\right)
 \end{equation*}
 
-Plugging reasonable parameters for Eurobot ($\lambda=1+0.1\%$, $T = \SI{0.2}{\meter}$), we obtain a radius $R = \SI{300}{\meter}$. 
+Plugging reasonable parameters for Eurobot ($\lambda=1+0.1\%$, $T = \SI{0.2}{\meter}$), we obtain a radius $R = \SI{300}{\meter}$.
 Such a big radius might seem indistinguishable from a straight line, but this is not the case.
 To show this, let's compute the lateral deviation on a full table crossing (\SI{2.5}{\meter}):
 \begin{equation*}
