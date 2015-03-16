@@ -128,6 +128,15 @@ static uint16_t wheel_predict(
                                    wheel->samples[2].timestamp);
         dy1 = (int16_t) (wheel->samples[1].value - wheel->samples[0].value);
         dy2 = (int16_t) (wheel->samples[2].value - wheel->samples[0].value);
+
+        // Avoid division by zero
+        if (dt1 <= MINIMUM_DELTA_T) {
+            dt2 = MINIMUM_DELTA_T;
+        }
+        if (dt2 <= MINIMUM_DELTA_T) {
+            dt2 = MINIMUM_DELTA_T;
+        }
+
         tau1 = dy1 / (- dt1 * dt1 + dt1 * dt2);
         tau2 = dy2 / (- dt2 * dt2 + dt1 * dt2);
 
@@ -135,7 +144,7 @@ static uint16_t wheel_predict(
         vel = tau1 * dt2 + tau2 * dt1;
         pos = wheel->samples[0].value;
 
-        // Predict change from last encoder value recorded
+        // Predict using fitted parabola
         dt = timestamp_duration_s(wheel->samples[0].timestamp, time_now);
         prediction = pos + (int16_t) (vel * dt + acc * dt * dt);
 
