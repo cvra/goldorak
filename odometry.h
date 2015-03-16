@@ -51,23 +51,23 @@ void base_update(
         const odometry_encoder_sample_t right_wheel_sample,
         const odometry_encoder_sample_t left_wheel_sample);
 
-void wheel_init(
+static void wheel_init(
         odometry_wheel_t *wheel,
         const float wheel_radius);
 
-void wheel_update(
+static void wheel_update(
         odometry_wheel_t *wheel,
         const odometry_encoder_sample_t new_sample);
 
-uint16_t wheel_predict(
+static uint16_t wheel_predict(
         odometry_wheel_t *wheel,
         const timestamp_t time_now);
 
-int16_t wheel_get_delta_tick(
+static int16_t wheel_get_delta_tick(
         odometry_wheel_t *wheel,
         const timestamp_t time_now);
 
-float wheel_get_delta_meter(
+static float wheel_get_delta_meter(
         odometry_wheel_t *wheel,
         const timestamp_t time_now);
 

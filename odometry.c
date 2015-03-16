@@ -75,7 +75,7 @@ void base_update(
     robot->time_last_estim = time_now;
 }
 
-void wheel_init(
+static void wheel_init(
         odometry_wheel_t *wheel,
         const float wheel_radius)
 {
@@ -84,7 +84,7 @@ void wheel_init(
     wheel->is_initialised = false;
 }
 
-void wheel_update(
+static void wheel_update(
         odometry_wheel_t *wheel,
         const odometry_encoder_sample_t new_sample)
 {
@@ -112,7 +112,7 @@ void wheel_update(
     }
 }
 
-uint16_t wheel_predict(
+static uint16_t wheel_predict(
         odometry_wheel_t *wheel,
         const timestamp_t time_now)
 {
@@ -145,7 +145,7 @@ uint16_t wheel_predict(
     }
 }
 
-int16_t wheel_get_delta_tick(
+static int16_t wheel_get_delta_tick(
         odometry_wheel_t *wheel,
         const timestamp_t time_now)
 {
@@ -157,7 +157,7 @@ int16_t wheel_get_delta_tick(
     return delta;
 }
 
-float wheel_get_delta_meter(
+static float wheel_get_delta_meter(
         odometry_wheel_t *wheel,
         const timestamp_t time_now)
 {

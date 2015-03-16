@@ -1,9 +1,7 @@
 #include "CppUTest/TestHarness.h"
-
-extern "C" {
-#include "../odometry.h"
 #include "../robot_base.h"
-}
+#include "../odometry.h"
+#include "../odometry.c"
 
 TEST_GROUP(Encoder)
 {
