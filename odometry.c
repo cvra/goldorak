@@ -60,8 +60,8 @@ void odometry_base_update(
     float delta_fwd = 0.5f * (delta_right_wheel + delta_left_wheel);
     float delta_rot = (delta_right_wheel - delta_left_wheel) / robot->wheelbase;
 
-    float cos_theta = cos(robot->pose.theta + 0.5f * delta_rot);
-    float sin_theta = sin(robot->pose.theta + 0.5f * delta_rot);
+    float cos_theta = cosf(robot->pose.theta + 0.5f * delta_rot);
+    float sin_theta = sinf(robot->pose.theta + 0.5f * delta_rot);
 
     if (dt >= MINIMUM_DELTA_T) {
         robot->velocity.x = delta_fwd * cos_theta / dt;
