@@ -9,7 +9,7 @@
 #include "odometry.h"
 
 #define MINIMUM_DELTA_T 1e-7 // To avoid dividing by zero in derivative
-
+#define TICKS_PER_TURN  16384
 
 void odometry_base_init(
         odometry_differential_base_t *robot,
@@ -111,7 +111,7 @@ static void wheel_init(
         odometry_wheel_t *wheel,
         const float wheel_radius)
 {
-    wheel->tick_to_meter = (2 * M_PI * wheel_radius / 65536);
+    wheel->tick_to_meter = (2 * M_PI * wheel_radius / TICKS_PER_TURN);
     wheel->delta_pos_accumulator = 0;
     wheel->is_initialised = false;
 }
