@@ -47,6 +47,8 @@ void odometry_base_init(
         const struct robot_base_pose_2d_s init_pose,
         const float right_wheel_radius,
         const float left_wheel_radius,
+        const int right_wheel_direction, // 1 or -1
+        const int left_wheel_direction, // 1 or -1
         const float wheelbase,
         const timestamp_t time_now);
 
