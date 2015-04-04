@@ -1,6 +1,10 @@
 #ifndef ODOMETRY_H_
 #define ODOMETRY_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "timestamp/timestamp.h"
 #include "robot_base.h"
 
@@ -83,5 +87,9 @@ void odometry_encoder_record_sample(
         odometry_encoder_sample_t *sample,
         const timestamp_t timestamp,
         const uint32_t value);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
