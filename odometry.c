@@ -29,19 +29,21 @@ void odometry_base_init(
     robot->velocity.y = 0.0f;
     robot->velocity.omega = 0.0f;
 
+    int right_wheel_dir, left_wheel_dir;
+
     if(right_wheel_direction >= 0.0f) {
-        right_wheel_direction = 1.0f;
+        right_wheel_dir = 1.0f;
     } else {
-        right_wheel_direction = -1.0f;
+        right_wheel_dir = -1.0f;
     }
     if(left_wheel_direction >= 0.0f) {
-        left_wheel_direction = 1.0f;
+        left_wheel_dir = 1.0f;
     } else {
-        left_wheel_direction = -1.0f;
+        left_wheel_dir = -1.0f;
     }
 
-    wheel_init(&robot->right_wheel, right_wheel_radius * right_wheel_direction);
-    wheel_init(&robot->left_wheel, left_wheel_radius * left_wheel_direction);
+    wheel_init(&robot->right_wheel, right_wheel_radius * right_wheel_dir);
+    wheel_init(&robot->left_wheel, left_wheel_radius * left_wheel_dir);
 
     robot->wheelbase = wheelbase;
     robot->time_last_estim = time_now;
