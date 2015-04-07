@@ -37,7 +37,7 @@ TEST_GROUP(Wheel)
 
 TEST(Wheel, WheelInit)
 {
-    DOUBLES_EQUAL(4.793689962e-5, wheel.tick_to_meter, 1e-11);
+    DOUBLES_EQUAL(1.917475985e-4, wheel.tick_to_meter, 1e-10);
     CHECK_EQUAL(0, wheel.delta_pos_accumulator);
 
     CHECK_EQUAL(10000, wheel.samples[0].timestamp);
@@ -253,7 +253,7 @@ TEST(Wheel, WheelGetDeltaMetersPositive)
 
     float delta = wheel_get_delta_meter(&wheel, 20000);
 
-    DOUBLES_EQUAL(4.79369e-3, delta, 1e-9);
+    DOUBLES_EQUAL(19.17476e-3, delta, 1e-9);
 }
 
 
@@ -311,11 +311,11 @@ TEST(Base, BaseUpdateCstPositiveFwdSpeed)
     odometry_encoder_record_sample(&sample0, 30000, 242);
     odometry_base_update(&robot, sample0, sample0);
 
-    DOUBLES_EQUAL(9.587379924e-3, robot.pose.x, 1e-9);
+    DOUBLES_EQUAL(3.83495197e-2, robot.pose.x, 1e-8);
     DOUBLES_EQUAL(0.0f, robot.pose.y, 1e-7);
     DOUBLES_EQUAL(0.0f, robot.pose.theta, 1e-7);
 
-    DOUBLES_EQUAL(0.479368996, robot.velocity.x, 1e-7);
+    DOUBLES_EQUAL(1.9174760f, robot.velocity.x, 1e-7);
     DOUBLES_EQUAL(0.0f, robot.velocity.y, 1e-7);
     DOUBLES_EQUAL(0.0f, robot.velocity.omega, 1e-7);
 }
@@ -330,11 +330,11 @@ TEST(Base, BaseUpdateCstNegativeFwdSpeed)
     odometry_encoder_record_sample(&sample0, 30000, 42);
     odometry_base_update(&robot, sample0, sample0);
 
-    DOUBLES_EQUAL(-9.587379924e-3, robot.pose.x, 1e-9);
+    DOUBLES_EQUAL(-3.83495197e-2, robot.pose.x, 1e-8);
     DOUBLES_EQUAL(0.0f, robot.pose.y, 1e-7);
     DOUBLES_EQUAL(0.0f, robot.pose.theta, 1e-7);
 
-    DOUBLES_EQUAL(-0.479368996, robot.velocity.x, 1e-7);
+    DOUBLES_EQUAL(-1.9174760f, robot.velocity.x, 1e-7);
     DOUBLES_EQUAL(0.0f, robot.velocity.y, 1e-7);
     DOUBLES_EQUAL(0.0f, robot.velocity.omega, 1e-7);
 }
@@ -355,11 +355,11 @@ TEST(Base, BaseUpdateCstPositiveRotSpeed)
 
     DOUBLES_EQUAL(0.0f, robot.pose.x, 1e-9);
     DOUBLES_EQUAL(0.0f, robot.pose.y, 1e-7);
-    DOUBLES_EQUAL(1.917475984e-2, robot.pose.theta, 1e-8);
+    DOUBLES_EQUAL(7.6699039e-2, robot.pose.theta, 1e-8);
 
     DOUBLES_EQUAL(0.0f, robot.velocity.x, 1e-7);
     DOUBLES_EQUAL(0.0f, robot.velocity.y, 1e-7);
-    DOUBLES_EQUAL(0.958737992, robot.velocity.omega, 1e-7);
+    DOUBLES_EQUAL(3.8349520f, robot.velocity.omega, 1e-7);
 }
 
 TEST(Base, BaseUpdateCstNegativeRotSpeed)
@@ -378,11 +378,11 @@ TEST(Base, BaseUpdateCstNegativeRotSpeed)
 
     DOUBLES_EQUAL(0.0f, robot.pose.x, 1e-9);
     DOUBLES_EQUAL(0.0f, robot.pose.y, 1e-7);
-    DOUBLES_EQUAL(-1.917475984e-2, robot.pose.theta, 1e-8);
+    DOUBLES_EQUAL(-7.6699039e-2, robot.pose.theta, 1e-8);
 
     DOUBLES_EQUAL(0.0f, robot.velocity.x, 1e-7);
     DOUBLES_EQUAL(0.0f, robot.velocity.y, 1e-7);
-    DOUBLES_EQUAL(-0.958737992, robot.velocity.omega, 1e-7);
+    DOUBLES_EQUAL(-3.8349520f, robot.velocity.omega, 1e-7);
 }
 
 TEST(Base, BaseUpdateCstPositiveFwdAcc)
@@ -399,11 +399,11 @@ TEST(Base, BaseUpdateCstPositiveFwdAcc)
     odometry_encoder_record_sample(&sample_l, 30000, 542);
     odometry_base_update(&robot, sample_r, sample_l);
 
-    DOUBLES_EQUAL(1.4381069e-2, robot.pose.x, 1e-9);
+    DOUBLES_EQUAL(5.7524276e-2, robot.pose.x, 1e-7);
     DOUBLES_EQUAL(0.0f, robot.pose.y, 1e-7);
     DOUBLES_EQUAL(0.0f, robot.pose.theta, 1e-8);
 
-    DOUBLES_EQUAL(0.958737992, robot.velocity.x, 1e-7);
+    DOUBLES_EQUAL(3.8349520f, robot.velocity.x, 1e-7);
     DOUBLES_EQUAL(0.0f, robot.velocity.y, 1e-7);
     DOUBLES_EQUAL(0.0f, robot.velocity.omega, 1e-7);
 }
@@ -422,11 +422,11 @@ TEST(Base, BaseUpdateCstNegativeFwdAcc)
     odometry_encoder_record_sample(&sample_l, 30000, 542);
     odometry_base_update(&robot, sample_r, sample_l);
 
-    DOUBLES_EQUAL(1.4381069e-2, robot.pose.x, 1e-9);
+    DOUBLES_EQUAL(5.7524276e-2, robot.pose.x, 1e-7);
     DOUBLES_EQUAL(0.0f, robot.pose.y, 1e-7);
     DOUBLES_EQUAL(0.0f, robot.pose.theta, 1e-8);
 
-    DOUBLES_EQUAL(0.479368996, robot.velocity.x, 1e-7);
+    DOUBLES_EQUAL(1.9174760f, robot.velocity.x, 1e-7);
     DOUBLES_EQUAL(0.0f, robot.velocity.y, 1e-7);
     DOUBLES_EQUAL(0.0f, robot.velocity.omega, 1e-7);
 }
@@ -445,11 +445,11 @@ TEST(Base, BaseUpdateCstNegativeFwdAccAsyncWheels)
     odometry_encoder_record_sample(&sample_l, 26000, 514);
     odometry_base_update(&robot, sample_r, sample_l);
 
-    DOUBLES_EQUAL(1.4381069e-2, robot.pose.x, 1e-9);
+    DOUBLES_EQUAL(5.7524276e-2, robot.pose.x, 1e-7);
     DOUBLES_EQUAL(0.0f, robot.pose.y, 1e-7);
     DOUBLES_EQUAL(0.0f, robot.pose.theta, 1e-8);
 
-    DOUBLES_EQUAL(0.479368996, robot.velocity.x, 1e-7);
+    DOUBLES_EQUAL(1.9174760f, robot.velocity.x, 1e-7);
     DOUBLES_EQUAL(0.0f, robot.velocity.y, 1e-7);
     DOUBLES_EQUAL(0.0f, robot.velocity.omega, 1e-7);
 }
