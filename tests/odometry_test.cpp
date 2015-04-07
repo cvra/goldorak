@@ -268,7 +268,7 @@ TEST_GROUP(Base)
         init_pose.y = 0.0f;
         init_pose.theta = 0.0f;
 
-        odometry_base_init(&robot, init_pose, 0.5f, 0.5f, 1.0f, 0);
+        odometry_base_init(&robot, init_pose, 0.5f, 0.5f, 1.0f, 1.0f, 1.0f, 0);
     }
 };
 

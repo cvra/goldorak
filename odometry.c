@@ -11,6 +11,28 @@
 #define MINIMUM_DELTA_T 1e-7 // To avoid dividing by zero in derivative
 #define TICKS_PER_TURN  16384
 
+
+static void wheel_init(
+        odometry_wheel_t *wheel,
+        const float wheel_radius);
+
+static void wheel_update(
+        odometry_wheel_t *wheel,
+        const odometry_encoder_sample_t new_sample);
+
+static uint16_t wheel_predict(
+        odometry_wheel_t *wheel,
+        const timestamp_t time_now);
+
+static int16_t wheel_get_delta_tick(
+        odometry_wheel_t *wheel,
+        const timestamp_t time_now);
+
+static float wheel_get_delta_meter(
+        odometry_wheel_t *wheel,
+        const timestamp_t time_now);
+
+
 void odometry_base_init(
         odometry_differential_base_t *robot,
         const struct robot_base_pose_2d_s init_pose,

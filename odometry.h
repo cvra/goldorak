@@ -65,26 +65,6 @@ void odometry_base_get_vel(
         odometry_differential_base_t *robot,
         struct robot_base_vel_2d_s *velocity);
 
-static void wheel_init(
-        odometry_wheel_t *wheel,
-        const float wheel_radius);
-
-static void wheel_update(
-        odometry_wheel_t *wheel,
-        const odometry_encoder_sample_t new_sample);
-
-static uint16_t wheel_predict(
-        odometry_wheel_t *wheel,
-        const timestamp_t time_now);
-
-static int16_t wheel_get_delta_tick(
-        odometry_wheel_t *wheel,
-        const timestamp_t time_now);
-
-static float wheel_get_delta_meter(
-        odometry_wheel_t *wheel,
-        const timestamp_t time_now);
-
 void odometry_encoder_record_sample(
         odometry_encoder_sample_t *sample,
         const timestamp_t timestamp,
