@@ -24,6 +24,7 @@ typedef struct {
     odometry_encoder_sample_t samples[3];
     int16_t delta_pos_accumulator;
     float tick_to_meter;
+    float radius;
     bool is_initialised;
 } odometry_wheel_t;
 
@@ -64,6 +65,18 @@ void odometry_base_get_pose(
 void odometry_base_get_vel(
         odometry_differential_base_t *robot,
         struct robot_base_vel_2d_s *velocity);
+
+void odometry_base_get_parameters(
+        odometry_differential_base_t *robot,
+        float *wheelbase,
+        float *right_wheel_radius,
+        float *left_wheel_radius);
+
+void odometry_base_set_parameters(
+        odometry_differential_base_t *robot,
+        const float wheelbase,
+        const float right_wheel_radius,
+        const float left_wheel_radius);
 
 void odometry_encoder_record_sample(
         odometry_encoder_sample_t *sample,

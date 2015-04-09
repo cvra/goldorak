@@ -280,7 +280,7 @@ TEST_GROUP(Base)
         init_pose.y = 0.0f;
         init_pose.theta = 0.0f;
 
-        odometry_base_init(&robot, init_pose, 0.5f, 0.5f, 1.0f, 1.0f, 1.0f, 0);
+        odometry_base_init(&robot, init_pose, 0.5f, 0.5f, 1, 1, 1.0f, 0);
     }
 };
 
@@ -464,4 +464,21 @@ TEST(Base, BaseUpdateCstNegativeFwdAccAsyncWheels)
     DOUBLES_EQUAL(1.9174760f, robot.velocity.x, 1e-7);
     DOUBLES_EQUAL(0.0f, robot.velocity.y, 1e-7);
     DOUBLES_EQUAL(0.0f, robot.velocity.omega, 1e-7);
+}
+
+TEST(Base, BaseParameterSetter)
+{
+    odometry_base_set_parameters(&robot, 0.42f, 0.042f, 0.024f);
+    DOUBLES_EQUAL(0.42f, robot.wheelbase, 10e-7);
+    DOUBLES_EQUAL(0.042f, robot.right_wheel.radius, 10e-8);
+    DOUBLES_EQUAL(0.024f, robot.left_wheel.radius, 10e-8);
+}
+
+TEST(Base, BaseParameterGetter)
+{
+    float wheelbase, right_wheel_radius, left_wheel_radius;
+    odometry_base_get_parameters(&robot, &wheelbase, &right_wheel_radius, &left_wheel_radius);
+    DOUBLES_EQUAL(1.0f, wheelbase, 10e-7);
+    DOUBLES_EQUAL(0.5f, right_wheel_radius, 10e-7);
+    DOUBLES_EQUAL(0.5f, left_wheel_radius, 10e-7);
 }

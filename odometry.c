@@ -138,6 +138,28 @@ void odometry_base_get_vel(
     velocity->omega = robot->velocity.omega;
 }
 
+void odometry_base_get_parameters(
+        odometry_differential_base_t *robot,
+        float *wheelbase,
+        float *right_wheel_radius,
+        float *left_wheel_radius)
+{
+    *wheelbase = robot->wheelbase;
+    *right_wheel_radius = wheel_get_radius(&robot->right_wheel);
+    *left_wheel_radius = wheel_get_radius(&robot->left_wheel);
+}
+
+void odometry_base_set_parameters(
+        odometry_differential_base_t *robot,
+        const float wheelbase,
+        const float right_wheel_radius,
+        const float left_wheel_radius)
+{
+    robot->wheelbase = wheelbase;
+    wheel_set_radius(&robot->right_wheel, right_wheel_radius);
+    wheel_set_radius(&robot->left_wheel, left_wheel_radius);
+}
+
 static void wheel_init(
         odometry_wheel_t *wheel,
         const float wheel_radius)
