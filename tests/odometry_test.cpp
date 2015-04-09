@@ -37,6 +37,7 @@ TEST_GROUP(Wheel)
 
 TEST(Wheel, WheelInit)
 {
+    DOUBLES_EQUAL(0.5f, wheel.radius, 1e-7);
     DOUBLES_EQUAL(1.917475985e-4, wheel.tick_to_meter, 1e-10);
     CHECK_EQUAL(0, wheel.delta_pos_accumulator);
 
@@ -254,6 +255,17 @@ TEST(Wheel, WheelGetDeltaMetersPositive)
     float delta = wheel_get_delta_meter(&wheel, 20000);
 
     DOUBLES_EQUAL(19.17476e-3, delta, 1e-9);
+}
+
+TEST(Wheel, WheelRadiusSetter)
+{
+    wheel_set_radius(&wheel, 0.1f);
+    DOUBLES_EQUAL(0.1f, wheel.radius, 10e-7);
+}
+
+TEST(Wheel, WheelRadiusGetter)
+{
+    DOUBLES_EQUAL(0.5f, wheel_get_radius(&wheel), 10e-7);
 }
 
 

@@ -32,6 +32,13 @@ static float wheel_get_delta_meter(
         odometry_wheel_t *wheel,
         const timestamp_t time_now);
 
+static float wheel_get_radius(
+        odometry_wheel_t *wheel);
+
+static void wheel_set_radius(
+        odometry_wheel_t *wheel,
+        const float new_radius);
+
 
 void odometry_base_init(
         odometry_differential_base_t *robot,
@@ -135,6 +142,7 @@ static void wheel_init(
         odometry_wheel_t *wheel,
         const float wheel_radius)
 {
+    wheel->radius = wheel_radius;
     wheel->tick_to_meter = (2 * M_PI * wheel_radius / TICKS_PER_TURN);
     wheel->delta_pos_accumulator = 0;
     wheel->is_initialised = false;
@@ -229,6 +237,20 @@ static float wheel_get_delta_meter(
     int16_t delta;
     delta = wheel_get_delta_tick(wheel, time_now);
     return delta * wheel->tick_to_meter;
+}
+
+static float wheel_get_radius(
+        odometry_wheel_t *wheel)
+{
+    return wheel->radius;
+}
+
+static void wheel_set_radius(
+        odometry_wheel_t *wheel,
+        const float new_radius)
+{
+    wheel->tick_to_meter *= (new_radius / wheel->radius);
+    wheel->radius = new_radius;
 }
 
 void odometry_encoder_record_sample(
