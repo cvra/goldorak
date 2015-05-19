@@ -298,6 +298,24 @@ TEST(Base, BaseInit)
     CHECK_EQUAL(0, robot.time_last_estim);
 }
 
+TEST(Base, BaseOverrideState)
+{
+    robot_base_pose_2d_s new_state;
+    new_state.x = 1.0f;
+    new_state.y = 0.5f;
+    new_state.theta = 1.57f;
+
+    DOUBLES_EQUAL(0.0f, robot.pose.x, new_state.x);
+    DOUBLES_EQUAL(0.0f, robot.pose.y, new_state.y);
+    DOUBLES_EQUAL(0.0f, robot.pose.theta, new_state.theta);
+
+    DOUBLES_EQUAL(0.0f, robot.velocity.x, 1e-7);
+    DOUBLES_EQUAL(0.0f, robot.velocity.y, 1e-7);
+    DOUBLES_EQUAL(0.0f, robot.velocity.omega, 1e-7);
+
+    CHECK_EQUAL(0, robot.time_last_estim);
+}
+
 TEST(Base, BaseUpdateIdle)
 {
     odometry_encoder_sample_t sample0;

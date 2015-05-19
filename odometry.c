@@ -120,6 +120,22 @@ void odometry_base_update(
     robot->time_last_estim = time_now;
 }
 
+void odometry_state_override(
+        odometry_differential_base_t *robot,
+        const struct robot_base_pose_2d_s new_state,
+        const timestamp_t time_now)
+{
+    robot->pose.x = new_state.x;
+    robot->pose.y = new_state.y;
+    robot->pose.theta = new_state.theta;
+
+    robot->velocity.x = 0.0f;
+    robot->velocity.y = 0.0f;
+    robot->velocity.omega = 0.0f;
+
+    robot->time_last_estim = time_now;
+}
+
 void odometry_base_get_pose(
         odometry_differential_base_t *robot,
         struct robot_base_pose_2d_s *pose)
