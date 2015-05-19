@@ -58,6 +58,11 @@ void odometry_base_update(
         const odometry_encoder_sample_t right_wheel_sample,
         const odometry_encoder_sample_t left_wheel_sample);
 
+void odometry_state_override(
+        odometry_differential_base_t *robot,
+        const struct robot_base_pose_2d_s new_state,
+        const timestamp_t time_now);
+
 void odometry_base_get_pose(
         odometry_differential_base_t *robot,
         struct robot_base_pose_2d_s *pose);

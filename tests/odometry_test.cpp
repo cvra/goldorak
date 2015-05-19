@@ -305,15 +305,19 @@ TEST(Base, BaseOverrideState)
     new_state.y = 0.5f;
     new_state.theta = 1.57f;
 
-    DOUBLES_EQUAL(0.0f, robot.pose.x, new_state.x);
-    DOUBLES_EQUAL(0.0f, robot.pose.y, new_state.y);
-    DOUBLES_EQUAL(0.0f, robot.pose.theta, new_state.theta);
+    timestamp_t now = 1000;
+
+    odometry_state_override(&robot, new_state, now);
+
+    DOUBLES_EQUAL(new_state.x, robot.pose.x, 1e-7);
+    DOUBLES_EQUAL(new_state.y, robot.pose.y, 1e-7);
+    DOUBLES_EQUAL(new_state.theta, robot.pose.theta, 1e-7);
 
     DOUBLES_EQUAL(0.0f, robot.velocity.x, 1e-7);
     DOUBLES_EQUAL(0.0f, robot.velocity.y, 1e-7);
     DOUBLES_EQUAL(0.0f, robot.velocity.omega, 1e-7);
 
-    CHECK_EQUAL(0, robot.time_last_estim);
+    CHECK_EQUAL(now, robot.time_last_estim);
 }
 
 TEST(Base, BaseUpdateIdle)
