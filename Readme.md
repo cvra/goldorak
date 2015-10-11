@@ -1,6 +1,8 @@
-# Goldorak
+# Project Goldorak
 
 ## Setup of the Beaglebone black
+
+### Ubuntu & Xenomai
 
 First, get an SD card (at least 4GB) that we'll use to flash the Beaglebone black.
 Then, download an Ubuntu 14.04 image from the [official links](https://rcn-ee.com/rootfs/),
@@ -68,12 +70,36 @@ make install
 exit
 ```
 
-Install some useful packages
+### CAN setup
+
+Start by getting can-utils
 ```sh
-sudo apt-get install git
+sudo apt-get install git dh-autoreconf
+
+git clone https://github.com/linux-can/can-utils.git
+cd can-utils
+
+./autogen.sh
+./configure
+make
+sudo checkinstall make install
 ```
 
-## IO setup
+Now, we need UAVCAN in order to use the command line utilities
+```sh
+sudo apt-get install cmake
+git clone https://github.com/UAVCAN/libuavcan
+
+cd libuavcan
+git submodule update --init
+
+mkdir build
+cd build
+cmake ..
+make
+```
+
+### IOs setup
 
 To setup the IOs on the BBB, you can run the provided script
 ```sh
