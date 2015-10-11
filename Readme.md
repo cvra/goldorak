@@ -19,3 +19,38 @@ Once the LEDs are off, it’s done, you can unplug/replug it and SSH into it.
 ```sh
 ssh ubuntu@192.168.7.2
 ```
+
+Share internet using this on you PC
+```sh
+./sysops/share_internet_pc.sh
+```
+
+And this on your BBB
+```sh
+./sysops/share_internet_bbb.sh
+```
+
+Then, we install Xenomai
+```sh
+sudo apt-get update
+sudo apt-get install linux-image-3.8.13-xenomai-r78 linux-headers-3.8.13-xenomai-r78 linux-firmware-image-3.8.13-xenomai-r78
+sudo reboot
+```
+
+Then SSH again and install userspace bindings of Xenomai
+```sh
+sudo apt-get install checkinstall
+
+wget http://download.gna.org/xenomai/stable/xenomai-2.6.4.tar.bz2
+tar xvjf xenomai-2.6.4.tar.bz2
+
+cd xenomai-2.6.4
+./configure
+make
+sudo checkinstall make install
+```
+
+You could check by running some example
+```sh
+sudo /usr/xenomai/bin/latency
+```
