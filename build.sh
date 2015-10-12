@@ -7,6 +7,8 @@ cmake ..
 make
 popd
 
+export UAVCAN_LIB=$(pwd)/uavcan/libuavcan/build/libuavcan.a
+
 # Build dsdl
 pushd uavcan/libuavcan/dsdl_compiler
 ./setup.py build
@@ -16,6 +18,6 @@ popd
 # Build application
 mkdir build
 pushd build
-cmake ..
+cmake .. -DUAVCAN_LIB=${UAVCAN_LIB}
 make
 popd

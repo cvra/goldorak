@@ -14,8 +14,7 @@ include_directories(
     ${UAVCAN_SRC_DIR}/libuavcan/dsdl_compiler/dsdlc_generated/
     )
 
-set(UAVCAN_LIB uavcan/libuavcan/build/libuavcan.a)
-find_library(${CMAKE_CURRENT_SOURCE_DIR}/../uavcan/libuavcan/build/libuavcan.a uavcan REQUIRED)
+find_library(UAVCAN_LIB uavcan REQUIRED)
 
 add_executable(
     node
