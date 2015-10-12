@@ -1,0 +1,3 @@
+[submodule "uavcan"]
+	path = uavcan
+	url = https://github.com/UAVCAN/libuavcan
