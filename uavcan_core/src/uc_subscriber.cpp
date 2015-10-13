@@ -29,16 +29,14 @@ int main(int argc, const char** argv)
         return 1;
     }
 
-    /* Start ROS node  & publisher */
+    /* Start ROS node & publisher */
     ros::init(argc, (char **)argv, "uavcanSubscriber");
-
     ros::NodeHandle n;
-    ros::Publisher pub = n.advertise<cvra_msgs::MotorControlVelocity>("vel_commands", 10);
+    ros::Publisher pub = n.advertise<cvra_msgs::MotorControlVelocity>("vel_measured", 10);
     ros::Rate loop_rate(100);
 
-    /* Start UAVCAN Node  and subscribers */
+    /* Start UAVCAN node and subscribers */
     const int self_node_id = std::stoi(argv[1]);
-
     auto& node = getNode();
     node.setNodeID(self_node_id);
     node.setName("uavcan_subscriber");
@@ -67,7 +65,7 @@ int main(int argc, const char** argv)
             ros_msg.node_id = msg.node_id;
             ros_msg.velocity = msg.velocity;
 
-            ROS_INFO("Got a velocity setpoint for node %u", ros_msg.velocity, ros_msg.node_id);
+            ROS_INFO("Got a velocity setpoint for node %u", ros_msg.node_id);
             pub.publish(ros_msg);
         }
     );
@@ -79,9 +77,11 @@ int main(int argc, const char** argv)
 
     while (ros::ok()) {
         ros::spinOnce();
-        const int res = node.spin(uavcan::MonotonicDuration::getInfinite());
+        const int res = node.spin(uavcan::MonotonicDuration::fromMSec(1));
         if (res < 0) {
             std::cerr << "Transient failure: " << res << std::endl;
         }
     }
+
+    return 0;
 }
