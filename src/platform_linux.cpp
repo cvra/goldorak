@@ -9,10 +9,9 @@ uavcan::ISystemClock& getSystemClock()
 uavcan::ICanDriver& getCanDriver()
 {
     static uavcan_linux::SocketCanDriver driver(dynamic_cast<const uavcan_linux::SystemClock&>(getSystemClock()));
-    if (driver.getNumIfaces() == 0)     // Will be executed once
-    {
-        if (driver.addIface("vcan0") < 0)
-        {
+    // Will be executed once
+    if (driver.getNumIfaces() == 0) {
+        if (driver.addIface("vcan0") < 0) {
             throw std::runtime_error("Failed to add iface");
         }
     }
