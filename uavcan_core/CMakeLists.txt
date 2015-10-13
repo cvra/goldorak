@@ -24,26 +24,17 @@ catkin_package()
 
 find_library(UAVCAN_LIB uavcan REQUIRED)
 
-
 add_executable(
-    uc_node
-    ${SRC}/uc_node.cpp
+    uavcan_bridge
+    ${SRC}/uavcan_bridge.cpp
     ${SRC}/platform_linux.cpp
 )
-target_link_libraries(uc_node ${UAVCAN_LIB} rt)
+target_link_libraries(uavcan_bridge ${UAVCAN_LIB} rt ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+add_dependencies(uavcan_bridge cvra_msgs)
 
 add_executable(
     uc_publisher
     ${SRC}/uc_publisher.cpp
     ${SRC}/platform_linux.cpp
-)
-target_link_libraries(uc_publisher ${UAVCAN_LIB} rt ${catkin_LIBRARIES} ${Boost_LIBRARIES})
-add_dependencies(uc_publisher cvra_msgs)
-
-add_executable(
-    uc_subscriber
-    ${SRC}/uc_subscriber.cpp
-    ${SRC}/platform_linux.cpp
-)
-target_link_libraries(uc_subscriber ${UAVCAN_LIB} rt ${catkin_LIBRARIES})
-add_dependencies(uc_subscriber cvra_msgs)
+    )
+target_link_libraries(uc_publisher ${UAVCAN_LIB} rt)
