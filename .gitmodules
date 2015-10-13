@@ -1,3 +1,6 @@
 [submodule "uavcan"]
 	path = uavcan
 	url = https://github.com/UAVCAN/libuavcan
+[submodule "cvra/motor"]
+	path = cvra/motor
+	url = https://github.com/cvra/motor-control-uavcan-dsdl
