@@ -17,22 +17,22 @@ include_directories(
 find_library(UAVCAN_LIB uavcan REQUIRED)
 
 add_executable(
-    node
-    ${SRC}/node.cpp
+    uc_node
+    ${SRC}/uc_node.cpp
     ${SRC}/platform_linux.cpp
     )
-target_link_libraries(node ${UAVCAN_LIB} rt)
+target_link_libraries(uc_node ${UAVCAN_LIB} rt)
 
 add_executable(
-    publisher
-   ${SRC}/publisher.cpp
+    uc_publisher
+   ${SRC}/uc_publisher.cpp
    ${SRC}/platform_linux.cpp
     )
-target_link_libraries(publisher ${UAVCAN_LIB} rt)
+target_link_libraries(uc_publisher ${UAVCAN_LIB} rt)
 
 add_executable(
-    subscriber
-    ${SRC}/subscriber.cpp
+    uc_subscriber
+    ${SRC}/uc_subscriber.cpp
     ${SRC}/platform_linux.cpp
     )
-target_link_libraries(subscriber ${UAVCAN_LIB} rt)
+target_link_libraries(uc_subscriber ${UAVCAN_LIB} rt)

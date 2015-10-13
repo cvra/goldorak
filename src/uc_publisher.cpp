@@ -50,7 +50,7 @@ int main(int argc, const char** argv)
     node.setModeOperational();
 
     while (true) {
-        const int spin_res = node.spin(uavcan::MonotonicDuration::fromMSec(1000));
+        const int spin_res = node.spin(uavcan::MonotonicDuration::fromMSec(1));
         if (spin_res < 0) {
             std::cerr << "Transient failure: " << spin_res << std::endl;
         }
