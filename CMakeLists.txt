@@ -21,5 +21,18 @@ add_executable(
     ${SRC}/node.cpp
     ${SRC}/platform_linux.cpp
     )
-
 target_link_libraries(node ${UAVCAN_LIB} rt)
+
+add_executable(
+    publisher
+   ${SRC}/publisher.cpp
+   ${SRC}/platform_linux.cpp
+    )
+target_link_libraries(publisher ${UAVCAN_LIB} rt)
+
+add_executable(
+    subscriber
+    ${SRC}/subscriber.cpp
+    ${SRC}/platform_linux.cpp
+    )
+target_link_libraries(subscriber ${UAVCAN_LIB} rt)
