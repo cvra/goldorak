@@ -13,6 +13,7 @@ export UAVCAN_LIB=$(pwd)/uavcan/libuavcan/build/libuavcan.a
 pushd uavcan/libuavcan/dsdl_compiler
 ./setup.py build
 ./libuavcan_dsdlc ../../dsdl/uavcan/
+./libuavcan_dsdlc ../../../cvra/
 popd
 
 # Build application
