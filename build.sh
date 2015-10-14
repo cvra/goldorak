@@ -1,4 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
+source /opt/ros/indigo/setup.bash
+
+pushd uavcan_core
 
 # Build UAVCAN
 mkdir uavcan/libuavcan/build
@@ -16,9 +20,9 @@ pushd uavcan/libuavcan/dsdl_compiler
 ./libuavcan_dsdlc ../../../../cvra_msgs/uavcan/cvra/
 popd
 
-# Build application
-mkdir build
-pushd build
-cmake .. -DUAVCAN_LIB=${UAVCAN_LIB}
-make
+popd # exit uavcan_core
+
+pushd ../..
+catkin build uavcan_core
+source devel/setup.bash
 popd
