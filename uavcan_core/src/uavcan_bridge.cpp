@@ -54,6 +54,36 @@ public:
     }
 };
 
+class UavcanRosMotorFeedbackHandler {
+public:
+    ros::Publisher ros_encoder_pub;
+    uavcan::Subscriber<cvra::motor::feedback::MotorEncoderPosition> uc_encoder_sub;
+    cvra_msgs::MotorFeedbackEncoderPosition ros_encoder_msg;
+
+    UavcanRosMotorFeedbackHandler(Node& uc_node, ros::NodeHandle& ros_node):
+        uc_encoder_sub(uc_node)
+    {
+        /* ROS publishers */
+        ros_encoder_pub = ros_node.advertise<cvra_msgs::MotorFeedbackEncoderPosition>(
+            "encoder_raw", 10);
+
+        /* UAVCAN subscribers */
+        const int vel_sub_start_res = uc_encoder_sub.start(
+            [&](const uavcan::ReceivedDataStructure<cvra::motor::feedback::MotorEncoderPosition>& msg)
+            {
+                ros_encoder_msg.raw_encoder_position = msg.raw_encoder_position;
+
+                ROS_INFO("Got an encoder raw position %u, %u",
+                         ros_encoder_msg.raw_encoder_position, msg.raw_encoder_position);
+                ros_encoder_pub.publish(ros_encoder_msg);
+            }
+        );
+        if (vel_sub_start_res < 0) {
+            throw std::runtime_error("Failed to start the velocity subscriber");
+        }
+    }
+};
+
 class UavcanRosBridge {
 public:
     int node_id;
@@ -61,22 +91,16 @@ public:
     ros::NodeHandle ros_node;
 
     UavcanRosMotorController motor_controller;
-
-    ros::Publisher encoder_ros_pub;
-    cvra_msgs::MotorFeedbackEncoderPosition encoder_pub_msg;
-    uavcan::Subscriber<cvra::motor::feedback::MotorEncoderPosition>* encoder_uc_sub;
+    UavcanRosMotorFeedbackHandler motor_feedback_handler;
 
     uavcan::Subscriber<uavcan::protocol::debug::LogMessage>* log_uavcan_sub;
 
     UavcanRosBridge(int id):
         uc_node(getCanDriver(), getSystemClock()),
-        motor_controller(uc_node, ros_node)
+        motor_controller(uc_node, ros_node),
+        motor_feedback_handler(uc_node, ros_node)
     {
         node_id = id;
-
-        /* Start ROS subscribers / publishers */
-        encoder_ros_pub = ros_node.advertise<cvra_msgs::MotorFeedbackEncoderPosition>(
-            "encoder_raw", 10);
 
         /* Start UAVCAN node and publisher */
         const int self_node_id = node_id;
@@ -97,21 +121,6 @@ public:
         );
         if (log_sub_start_res < 0) {
             throw std::runtime_error("Failed to start the log subscriber");
-        }
-
-        encoder_uc_sub = new uavcan::Subscriber<cvra::motor::feedback::MotorEncoderPosition>(uc_node);
-        const int vel_sub_start_res = encoder_uc_sub->start(
-            [&](const uavcan::ReceivedDataStructure<cvra::motor::feedback::MotorEncoderPosition>& msg)
-            {
-                encoder_pub_msg.raw_encoder_position = msg.raw_encoder_position;
-
-                ROS_INFO("Got an encoder raw position %u, %u",
-                         encoder_pub_msg.raw_encoder_position, msg.raw_encoder_position);
-                encoder_ros_pub.publish(encoder_pub_msg);
-            }
-        );
-        if (vel_sub_start_res < 0) {
-            throw std::runtime_error("Failed to start the velocity subscriber");
         }
 
         uc_node.setModeOperational();
