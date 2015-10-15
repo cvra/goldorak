@@ -9,7 +9,7 @@
 
 #include "ros/ros.h"
 #include "cvra_msgs/MotorControlVelocity.h"
-#include "std_msgs/UInt16.h"
+#include "cvra_msgs/MotorFeedbackEncoderPosition.h"
 
 extern uavcan::ICanDriver& getCanDriver();
 extern uavcan::ISystemClock& getSystemClock();
@@ -34,7 +34,7 @@ public:
     uavcan::Publisher<cvra::motor::control::Velocity>* velocity_uc_pub;
 
     ros::Publisher encoder_ros_pub;
-    std_msgs::UInt16 encoder_pub_msg;
+    cvra_msgs::MotorFeedbackEncoderPosition encoder_pub_msg;
     uavcan::Subscriber<cvra::motor::feedback::MotorEncoderPosition>* encoder_uc_sub;
 
     uavcan::Subscriber<uavcan::protocol::debug::LogMessage>* log_uavcan_sub;
@@ -45,10 +45,11 @@ public:
         node_id = id;
 
         /* Start ROS subscribers / publishers */
-        velocity_ros_sub = ros_node.subscribe("vel_commands", 10,
-            &UavcanRosBridge::velocityCallback, this);
+        velocity_ros_sub = ros_node.subscribe(
+            "vel_commands", 10, &UavcanRosBridge::velocityCallback, this);
 
-        encoder_ros_pub = ros_node.advertise<std_msgs::UInt16>("encoder_raw", 10);
+        encoder_ros_pub = ros_node.advertise<cvra_msgs::MotorFeedbackEncoderPosition>(
+            "encoder_raw", 10);
 
         /* Start UAVCAN node and publisher */
         const int self_node_id = node_id;
@@ -84,11 +85,11 @@ public:
         const int vel_sub_start_res = encoder_uc_sub->start(
             [&](const uavcan::ReceivedDataStructure<cvra::motor::feedback::MotorEncoderPosition>& msg)
             {
-                std_msgs::UInt16 pub_msg;
-                pub_msg.data = msg.raw_encoder_position;
+                encoder_pub_msg.raw_encoder_position = msg.raw_encoder_position;
 
-                ROS_INFO("Got an encoder raw position %u, %u", pub_msg.data, msg.raw_encoder_position);
-                encoder_ros_pub.publish(pub_msg);
+                ROS_INFO("Got an encoder raw position %u, %u",
+                         encoder_pub_msg.raw_encoder_position, msg.raw_encoder_position);
+                encoder_ros_pub.publish(encoder_pub_msg);
             }
         );
         if (vel_sub_start_res < 0) {
