@@ -93,10 +93,11 @@ public:
     UavcanRosMotorController motor_controller;
     UavcanRosMotorFeedbackHandler motor_feedback_handler;
 
-    uavcan::Subscriber<uavcan::protocol::debug::LogMessage>* log_uavcan_sub;
+    uavcan::Subscriber<uavcan::protocol::debug::LogMessage> uc_log_sub;
 
     UavcanRosBridge(int id):
         uc_node(getCanDriver(), getSystemClock()),
+        uc_log_sub(uc_node)
         motor_controller(uc_node, ros_node),
         motor_feedback_handler(uc_node, ros_node)
     {
@@ -112,14 +113,13 @@ public:
             throw std::runtime_error("Failed to start the node");
         }
 
-        log_uavcan_sub = new uavcan::Subscriber<uavcan::protocol::debug::LogMessage>(uc_node);
-        const int log_sub_start_res = log_uavcan_sub->start(
+        const int uc_log_res = uc_log_sub.start(
             [&](const uavcan::ReceivedDataStructure<uavcan::protocol::debug::LogMessage>& msg)
             {
                 std::cout << msg << std::endl;
             }
         );
-        if (log_sub_start_res < 0) {
+        if (uc_log_res < 0) {
             throw std::runtime_error("Failed to start the log subscriber");
         }
 
