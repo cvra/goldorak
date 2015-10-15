@@ -17,16 +17,11 @@ extern uavcan::ISystemClock& getSystemClock();
 constexpr unsigned NodeMemoryPoolSize = 16384;
 typedef uavcan::Node<NodeMemoryPoolSize> Node;
 
-static Node& getNode()
-{
-    static Node node(getCanDriver(), getSystemClock());
-    return node;
-}
 
 class UavcanRosBridge {
 public:
     int node_id;
-    Node* uc_node;
+    Node uc_node;
     ros::NodeHandle ros_node;
 
     ros::Subscriber velocity_ros_sub;
@@ -39,8 +34,8 @@ public:
 
     uavcan::Subscriber<uavcan::protocol::debug::LogMessage>* log_uavcan_sub;
 
-
-    UavcanRosBridge(int id)
+    UavcanRosBridge(int id):
+        uc_node(getCanDriver(), getSystemClock())
     {
         node_id = id;
 
@@ -53,16 +48,15 @@ public:
 
         /* Start UAVCAN node and publisher */
         const int self_node_id = node_id;
-        uc_node = new Node(getCanDriver(), getSystemClock());
-        uc_node->setNodeID(self_node_id);
-        uc_node->setName("uavcan_ros_bridge");
+        uc_node.setNodeID(self_node_id);
+        uc_node.setName("uavcan_ros_bridge");
 
-        const int node_start_res = uc_node->start();
+        const int node_start_res = uc_node.start();
         if (node_start_res < 0) {
             throw std::runtime_error("Failed to start the node");
         }
 
-        velocity_uc_pub = new uavcan::Publisher<cvra::motor::control::Velocity>(*uc_node);
+        velocity_uc_pub = new uavcan::Publisher<cvra::motor::control::Velocity>(uc_node);
         const int vel_pub_init_res = velocity_uc_pub->init();
         if (vel_pub_init_res < 0) {
             throw std::runtime_error("Failed to start the publisher");
@@ -70,7 +64,7 @@ public:
         velocity_uc_pub->setTxTimeout(uavcan::MonotonicDuration::fromMSec(1000));
         velocity_uc_pub->setPriority(uavcan::TransferPriority::MiddleLower);
 
-        log_uavcan_sub = new uavcan::Subscriber<uavcan::protocol::debug::LogMessage>(*uc_node);
+        log_uavcan_sub = new uavcan::Subscriber<uavcan::protocol::debug::LogMessage>(uc_node);
         const int log_sub_start_res = log_uavcan_sub->start(
             [&](const uavcan::ReceivedDataStructure<uavcan::protocol::debug::LogMessage>& msg)
             {
@@ -81,7 +75,7 @@ public:
             throw std::runtime_error("Failed to start the log subscriber");
         }
 
-        encoder_uc_sub = new uavcan::Subscriber<cvra::motor::feedback::MotorEncoderPosition>(*uc_node);
+        encoder_uc_sub = new uavcan::Subscriber<cvra::motor::feedback::MotorEncoderPosition>(uc_node);
         const int vel_sub_start_res = encoder_uc_sub->start(
             [&](const uavcan::ReceivedDataStructure<cvra::motor::feedback::MotorEncoderPosition>& msg)
             {
@@ -96,7 +90,7 @@ public:
             throw std::runtime_error("Failed to start the velocity subscriber");
         }
 
-        uc_node->setModeOperational();
+        uc_node.setModeOperational();
 
     }
 
@@ -117,7 +111,7 @@ public:
     {
         while (ros::ok()) {
             ros::spinOnce();
-            const int spin_res = uc_node->spin(uavcan::MonotonicDuration::fromMSec(1));
+            const int spin_res = uc_node.spin(uavcan::MonotonicDuration::fromMSec(1));
             if (spin_res < 0) {
                 std::cerr << "Transient failure: " << spin_res << std::endl;
             }
