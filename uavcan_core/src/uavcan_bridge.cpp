@@ -115,9 +115,12 @@ public:
 
     void spin(void)
     {
-        const int spin_res = uc_node->spin(uavcan::MonotonicDuration::fromMSec(1));
-        if (spin_res < 0) {
-            std::cerr << "Transient failure: " << spin_res << std::endl;
+        while (ros::ok()) {
+            ros::spinOnce();
+            const int spin_res = uc_node->spin(uavcan::MonotonicDuration::fromMSec(1));
+            if (spin_res < 0) {
+                std::cerr << "Transient failure: " << spin_res << std::endl;
+            }
         }
     }
 };
@@ -134,10 +137,7 @@ int main(int argc, const char** argv)
 
     UavcanRosBridge uavcan_bridge(std::stoi(argv[1]));
 
-    while (ros::ok()) {
-        ros::spinOnce();
-        uavcan_bridge.spin();
-    }
+    uavcan_bridge.spin();
 
     return 0;
 }
