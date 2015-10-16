@@ -103,3 +103,39 @@ To setup the IOs on the BBB, you can run the provided script
 ```sh
 ./sysops/goldorak_overlay.sh
 ```
+
+### ROS installation
+
+```sh
+sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu trusty main" > /etc/apt/sources.list.d/ros-latest.list'
+wget https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -O - | sudo apt-key add -
+
+sudo apt-get update
+sudo apt-get install ros-indigo-ros-base
+
+sudo apt-get install python-rosdep
+sudo rosdep init
+rosdep update
+
+echo "source /opt/ros/indigo/setup.bash" >> ~/.bashrc
+source ~/.bashrc
+
+echo "export DISTRIB_ID=Ubuntu" >> ~/.bashrc
+echo "export DISTRIB_RELEASE=14.04" >> ~/.bashrc
+echo "export DISTRIB_CODENAME=trusty" >> ~/.bashrc
+echo "export DISTRIB_DESCRIPTION="Ubuntu 14.04"" >> ~/.bashrc
+
+sudo apt-get install python-rosinstall python-catkin-tools
+```
+
+### Catkin workspace setup
+
+```sh
+mkdir -p ~/catkin_ws/src
+cd ~/catkin_ws/src
+catkin_init_workspace
+
+cd ~/catkin_ws
+catkin_make
+rm -rf build/ devel/
+```
