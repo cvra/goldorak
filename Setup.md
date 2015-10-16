@@ -1,6 +1,4 @@
-# Project Goldorak
-
-## Setup of the Beaglebone black
+# Setup of the Beaglebone black
 
 ### Ubuntu & Xenomai
 
