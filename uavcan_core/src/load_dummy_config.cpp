@@ -63,6 +63,11 @@ int main(int argc, const char** argv)
 
     LoadConfiguration::Request request;
 
+    request.second_encoder_steps_per_revolution = 4096;
+    request.motor_encoder_steps_per_revolution = 4096;
+    request.transmission_ratio_p = 1;
+    request.transmission_ratio_q = 1;
+
     const int call_res = client.call(server_node_id, request);
     if (call_res < 0) {
         throw std::runtime_error("Unable to perform service call: " + std::to_string(call_res));
