@@ -4,12 +4,12 @@
 
 #include <uavcan/uavcan.hpp>
 #include <cvra/motor/control/Velocity.hpp>
-#include <cvra/motor/feedback/MotorEncoderPosition.hpp>
+#include <cvra/motor/feedback/MotorPosition.hpp>
 #include <uavcan/protocol/debug/LogMessage.hpp>
 
 #include "ros/ros.h"
 #include "cvra_msgs/MotorControlVelocity.h"
-#include "cvra_msgs/MotorFeedbackEncoderPosition.h"
+#include "cvra_msgs/MotorFeedbackMotorPosition.h"
 
 extern uavcan::ICanDriver& getCanDriver();
 extern uavcan::ISystemClock& getSystemClock();
@@ -56,29 +56,30 @@ public:
 
 class UavcanRosMotorFeedbackHandler {
 public:
-    ros::Publisher ros_encoder_pub;
-    uavcan::Subscriber<cvra::motor::feedback::MotorEncoderPosition> uc_encoder_sub;
-    cvra_msgs::MotorFeedbackEncoderPosition ros_encoder_msg;
+    ros::Publisher ros_motor_pub;
+    uavcan::Subscriber<cvra::motor::feedback::MotorPosition> uc_motor_sub;
+    cvra_msgs::MotorFeedbackMotorPosition ros_motor_msg;
 
     UavcanRosMotorFeedbackHandler(Node& uc_node, ros::NodeHandle& ros_node):
-        uc_encoder_sub(uc_node)
+        uc_motor_sub(uc_node)
     {
         /* ROS publishers */
-        ros_encoder_pub = ros_node.advertise<cvra_msgs::MotorFeedbackEncoderPosition>(
-            "encoder_raw", 10);
+        ros_motor_pub = ros_node.advertise<cvra_msgs::MotorFeedbackMotorPosition>(
+            "motor_position", 10);
 
         /* UAVCAN subscribers */
-        const int vel_sub_start_res = uc_encoder_sub.start(
-            [&](const uavcan::ReceivedDataStructure<cvra::motor::feedback::MotorEncoderPosition>& msg)
+        const int res = uc_motor_sub.start(
+            [&](const uavcan::ReceivedDataStructure<cvra::motor::feedback::MotorPosition>& msg)
             {
-                ros_encoder_msg.raw_encoder_position = msg.raw_encoder_position;
+                ros_motor_msg.position = msg.position;
+                ros_motor_msg.velocity = msg.velocity;
 
                 ROS_INFO("Got an encoder raw position %u, %u",
-                         ros_encoder_msg.raw_encoder_position, msg.raw_encoder_position);
-                ros_encoder_pub.publish(ros_encoder_msg);
+                         ros_motor_msg.position, msg.velocity);
+                ros_motor_pub.publish(ros_motor_msg);
             }
         );
-        if (vel_sub_start_res < 0) {
+        if (res < 0) {
             throw std::runtime_error("Failed to start the velocity subscriber");
         }
     }
