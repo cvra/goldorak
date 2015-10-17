@@ -38,3 +38,10 @@ add_executable(
     ${SRC}/platform_linux.cpp
     )
 target_link_libraries(uc_publisher ${UAVCAN_LIB} rt)
+
+add_executable(
+    uc_service_client
+    ${SRC}/uc_service_client.cpp
+    ${SRC}/platform_linux.cpp
+    )
+target_link_libraries(uc_service_client ${UAVCAN_LIB} rt)
