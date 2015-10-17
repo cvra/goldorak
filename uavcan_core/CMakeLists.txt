@@ -52,3 +52,10 @@ add_executable(
     ${SRC}/platform_linux.cpp
     )
 target_link_libraries(enable_encoder_stream ${UAVCAN_LIB} rt)
+
+add_executable(
+    enable_motor_control
+    ${SRC}/enable_motor_control.cpp
+    ${SRC}/platform_linux.cpp
+    )
+target_link_libraries(enable_motor_control ${UAVCAN_LIB} rt)
