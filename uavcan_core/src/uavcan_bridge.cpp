@@ -97,7 +97,7 @@ public:
 
     UavcanRosBridge(int id):
         uc_node(getCanDriver(), getSystemClock()),
-        uc_log_sub(uc_node)
+        uc_log_sub(uc_node),
         motor_controller(uc_node, ros_node),
         motor_feedback_handler(uc_node, ros_node)
     {
