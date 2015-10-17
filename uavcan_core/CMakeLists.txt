@@ -45,3 +45,10 @@ add_executable(
     ${SRC}/platform_linux.cpp
     )
 target_link_libraries(load_dummy_config ${UAVCAN_LIB} rt)
+
+add_executable(
+    enable_encoder_stream
+    ${SRC}/enable_encoder_stream.cpp
+    ${SRC}/platform_linux.cpp
+    )
+target_link_libraries(enable_encoder_stream ${UAVCAN_LIB} rt)
