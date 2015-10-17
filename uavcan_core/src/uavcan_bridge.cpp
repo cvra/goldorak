@@ -74,7 +74,7 @@ public:
                 ros_motor_msg.position = msg.position;
                 ros_motor_msg.velocity = msg.velocity;
 
-                ROS_INFO("Got an encoder raw position %u, %u",
+                ROS_INFO("Got an encoder raw position %.3f, %.3f",
                          ros_motor_msg.position, msg.velocity);
                 ros_motor_pub.publish(ros_motor_msg);
             }
