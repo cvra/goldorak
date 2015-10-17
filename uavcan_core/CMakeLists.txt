@@ -40,8 +40,8 @@ add_executable(
 target_link_libraries(uc_publisher ${UAVCAN_LIB} rt)
 
 add_executable(
-    uc_service_client
-    ${SRC}/uc_service_client.cpp
+    load_dummy_config
+    ${SRC}/load_dummy_config.cpp
     ${SRC}/platform_linux.cpp
     )
-target_link_libraries(uc_service_client ${UAVCAN_LIB} rt)
+target_link_libraries(load_dummy_config ${UAVCAN_LIB} rt)
