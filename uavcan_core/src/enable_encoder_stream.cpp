@@ -62,7 +62,7 @@ int main(int argc, const char** argv)
     client.setPriority(uavcan::TransferPriority::OneHigherThanLowest);
 
     FeedbackStream::Request request;
-    request.stream = FeedbackStream::Request::STREAM_MOTOR_ENCODER;
+    request.stream = FeedbackStream::Request::STREAM_MOTOR_POSITION;
     request.enabled = 1;
     request.frequency = 10;
 
