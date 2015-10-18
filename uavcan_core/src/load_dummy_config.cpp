@@ -63,10 +63,19 @@ int main(int argc, const char** argv)
 
     LoadConfiguration::Request request;
 
-    request.second_encoder_steps_per_revolution = 4096;
-    request.motor_encoder_steps_per_revolution = 4096;
+    request.mode = LoadConfiguration::Request::MODE_ENC_BOUNDED;
+    request.position_pid.kp = 4;
+    request.velocity_pid.kp = 4;
+    request.current_pid.kp = 4;
+    request.second_encoder_steps_per_revolution = 16384;
+    request.motor_encoder_steps_per_revolution = 16384;
     request.transmission_ratio_p = 1;
     request.transmission_ratio_q = 1;
+    request.torque_constant = 1;
+    request.torque_limit = 14;
+    request.velocity_limit = 50;
+    request.acceleration_limit = 100;
+    request.low_batt_th = 5;
 
     const int call_res = client.call(server_node_id, request);
     if (call_res < 0) {
