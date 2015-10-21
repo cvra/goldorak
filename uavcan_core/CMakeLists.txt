@@ -16,10 +16,16 @@ include_directories(
 
 find_package(catkin REQUIRED COMPONENTS
     cvra_msgs
+    dynamic_reconfigure
     roscpp
     rospy
     std_msgs
 )
+
+generate_dynamic_reconfigure_options(
+    cfg/MotorBoard.cfg
+)
+
 catkin_package()
 
 find_library(UAVCAN_LIB uavcan REQUIRED)
@@ -59,3 +65,10 @@ add_executable(
     ${SRC}/platform_linux.cpp
     )
 target_link_libraries(enable_motor_control ${UAVCAN_LIB} rt)
+
+add_executable(
+    motor_config_server
+    src/motor_config_server.cpp
+)
+target_link_libraries(motor_config_server ${UAVCAN_LIB} rt ${catkin_LIBRARIES})
+add_dependencies(motor_config_server ${PROJECT_NAME}_gencfg)
