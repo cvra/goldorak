@@ -6,10 +6,10 @@
 void callback(uavcan_core::MotorBoardConfig &config, uint32_t level)
 {
     ROS_INFO("Reconfigure Request: %.3f %.3f %.3f %.3f",
-             config.position_p,
-             config.position_i,
-             config.position_d,
-             config.position_i_limit);
+             config.pos_p,
+             config.pos_i,
+             config.pos_d,
+             config.pos_i_limit);
 }
 
 int main(int argc, char **argv)
