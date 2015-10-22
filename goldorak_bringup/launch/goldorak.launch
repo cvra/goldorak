@@ -1,0 +1,15 @@
+<launch>
+    <arg name="robot_ns" default="goldorak" />
+
+    <include file="$(find uavcan_core)/launch/motor.launch">
+        <arg name="motor_ns" value="right_wheel" />
+        <arg name="node_uavcan_id" value="10" />
+        <arg name="motor_uavcan_id" value="50" />
+    </include>
+
+    <include file="$(find uavcan_core)/launch/motor.launch">
+        <arg name="motor_ns" value="left_wheel" />
+        <arg name="node_uavcan_id" value="11" />
+        <arg name="motor_uavcan_id" value="41" />
+    </include>
+</launch>
