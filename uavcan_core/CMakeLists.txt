@@ -47,13 +47,6 @@ add_executable(
 target_link_libraries(uc_publisher ${UAVCAN_LIB} rt)
 
 add_executable(
-    load_dummy_config
-    ${SRC}/load_dummy_config.cpp
-    ${SRC}/platform_linux.cpp
-    )
-target_link_libraries(load_dummy_config ${UAVCAN_LIB} rt)
-
-add_executable(
     enable_encoder_stream
     ${SRC}/enable_encoder_stream.cpp
     ${SRC}/platform_linux.cpp
