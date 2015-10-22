@@ -12,7 +12,7 @@ extern uavcan::ISystemClock& getSystemClock();
 class UavcanMotorConfig
 {
     static const unsigned NodeMemoryPoolSize = 16384;
-    uavcan::Node<NodeMemoryPoolSize> node_;
+    uavcan::Node<NodeMemoryPoolSize> node;
 
     typedef uavcan::MethodBinder<UavcanMotorConfig*, void (UavcanMotorConfig::*)(const uavcan::ServiceCallResult<cvra::motor::config::LoadConfiguration>&) const>
         LoadConfigurationCallbackBinder;
@@ -31,20 +31,20 @@ class UavcanMotorConfig
 
 public:
     UavcanMotorConfig(uavcan::NodeID id) :
-        node_(getCanDriver(), getSystemClock()),
-        client(node_)
+        node(getCanDriver(), getSystemClock()),
+        client(node)
     {
-        node_.setNodeID(id);
-        node_.setName("motor_control_config");
+        node.setNodeID(id);
+        node.setName("motor_control_config");
 
-        const int start_res = node_.start();
+        const int start_res = node.start();
         if (start_res < 0) {
             throw std::runtime_error("Failed to start the node: " + std::to_string(start_res));
         }
 
         client.setCallback(LoadConfigurationCallbackBinder(this, &UavcanMotorConfig::LoadConfigurationCallback));
 
-        node_.setModeOperational();
+        node.setModeOperational();
     }
 
     void send_config(uavcan::NodeID server_node_id, cvra::motor::config::LoadConfiguration::Request config)
@@ -57,7 +57,7 @@ public:
 
         /* Spin until all calls are done */
         while (client.hasPendingCalls()) {
-            const int res = node_.spin(uavcan::MonotonicDuration::fromMSec(10));
+            const int res = node.spin(uavcan::MonotonicDuration::fromMSec(10));
             if (res < 0) {
                 std::cerr << "Transient failure: " << res << std::endl;
             }
@@ -66,14 +66,14 @@ public:
 
     void spin_once(void)
     {
-        const int res = node_.spin(uavcan::MonotonicDuration::fromMSec(1));
+        const int res = node.spin(uavcan::MonotonicDuration::fromMSec(1));
         if (res < 0) {
             std::cerr << "Transient failure: " << res << std::endl;
         }
     }
 };
 
-class RosMotorConfig {
+class UavcanRosMotorConfig {
 public:
     int node_id;
     int target_id;
@@ -95,7 +95,7 @@ public:
     dynamic_reconfigure::Server<uavcan_core::PIDConfig>::CallbackType f_cur;
     dynamic_reconfigure::Server<uavcan_core::MotorBoardConfig>::CallbackType f_params;
 
-    RosMotorConfig(int id, int target):
+    UavcanRosMotorConfig(int id, int target):
         uc_config_node(id),
         nh_pos_pid("~pid_position"),
         nh_vel_pid("~pid_velocity"),
@@ -109,10 +109,10 @@ public:
         node_id = id;
         target_id = target;
 
-        f_pos = boost::bind(&RosMotorConfig::callback_pos_pid, this, _1, _2);
-        f_vel = boost::bind(&RosMotorConfig::callback_vel_pid, this, _1, _2);
-        f_cur = boost::bind(&RosMotorConfig::callback_cur_pid, this, _1, _2);
-        f_params = boost::bind(&RosMotorConfig::callback_params, this, _1, _2);
+        f_pos = boost::bind(&UavcanRosMotorConfig::callback_pos_pid, this, _1, _2);
+        f_vel = boost::bind(&UavcanRosMotorConfig::callback_vel_pid, this, _1, _2);
+        f_cur = boost::bind(&UavcanRosMotorConfig::callback_cur_pid, this, _1, _2);
+        f_params = boost::bind(&UavcanRosMotorConfig::callback_params, this, _1, _2);
 
         cfg_pos_pid.setCallback(f_pos);
         cfg_vel_pid.setCallback(f_vel);
@@ -214,8 +214,7 @@ int main(int argc, char **argv)
 
     ros::init(argc, argv, "motor_control_config");
 
-    UavcanMotorConfig uc_motor_config(node_id);
-    RosMotorConfig ros_motor_config(node_id, target_id);
+    UavcanRosMotorConfig ros_motor_config(node_id, target_id);
 
     ros_motor_config.spin();
 
