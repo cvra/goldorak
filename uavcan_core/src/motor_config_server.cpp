@@ -28,10 +28,10 @@ int main(int argc, char **argv)
 {
     ros::init(argc, argv, "motor_control_config");
 
-    ros::NodeHandle nh_pos_pid("~/pid_position");
-    ros::NodeHandle nh_vel_pid("~/pid_velocity");
-    ros::NodeHandle nh_cur_pid("~/pid_current");
-    ros::NodeHandle nh_params("~/parameters");
+    ros::NodeHandle nh_pos_pid("~pid_position");
+    ros::NodeHandle nh_vel_pid("~pid_velocity");
+    ros::NodeHandle nh_cur_pid("~pid_current");
+    ros::NodeHandle nh_params("~parameters");
 
     dynamic_reconfigure::Server<uavcan_core::PIDConfig> cfg_pos_pid(nh_pos_pid);
     dynamic_reconfigure::Server<uavcan_core::PIDConfig> cfg_vel_pid(nh_vel_pid);
