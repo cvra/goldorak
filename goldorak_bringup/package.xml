@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package>
+  <name>goldorak_bringup</name>
+  <version>0.1.0</version>
+  <description>Goldorak bringup package</description>
+
+  <maintainer email="missrisalaheddine@gmail.com">Salah-Eddine Missr</maintainer>
+
+  <license>MIT</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>uavcan_core</build_depend>
+  <run_depend>uavcan_core</run_depend>
+
+  <export>
+  </export>
+</package>
