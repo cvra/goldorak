@@ -69,7 +69,8 @@ target_link_libraries(enable_motor_control ${UAVCAN_LIB} rt)
 
 add_executable(
     motor_config_server
-    src/motor_config_server.cpp
+    ${SRC}/motor_config_server.cpp
+    ${SRC}/platform_linux.cpp
 )
 target_link_libraries(motor_config_server ${UAVCAN_LIB} rt ${catkin_LIBRARIES})
 add_dependencies(motor_config_server ${PROJECT_NAME}_gencfg)
