@@ -3,7 +3,7 @@
 #include <unistd.h>
 #include <uavcan/uavcan.hpp>
 
-#include <cvra/motor/control/Velocity.hpp> // cvra.motor.control.Velocity
+#include <cvra/motor/feedback/MotorEncoderPosition.hpp>
 
 extern uavcan::ICanDriver& getCanDriver();
 extern uavcan::ISystemClock& getSystemClock();
@@ -37,32 +37,30 @@ int main(int argc, const char** argv)
         throw std::runtime_error("Failed to start the node; error: " + std::to_string(node_start_res));
     }
 
-    uavcan::Publisher<cvra::motor::control::Velocity> vel_pub(node);
-    const int vel_pub_init_res = vel_pub.init();
-    if (vel_pub_init_res < 0) {
-        throw std::runtime_error("Failed to start the publisher; error: " + std::to_string(vel_pub_init_res));
+    uavcan::Publisher<cvra::motor::feedback::MotorEncoderPosition> encoder_pub(node);
+    const int encoder_pub_init_res = encoder_pub.init();
+    if (encoder_pub_init_res < 0) {
+        throw std::runtime_error("Failed to start the publisher; error: " + std::to_string(encoder_pub_init_res));
     }
 
-    vel_pub.setTxTimeout(uavcan::MonotonicDuration::fromMSec(1000));
+    encoder_pub.setTxTimeout(uavcan::MonotonicDuration::fromMSec(1000));
 
-    vel_pub.setPriority(uavcan::TransferPriority::MiddleLower);
+    encoder_pub.setPriority(uavcan::TransferPriority::MiddleLower);
 
     node.setModeOperational();
 
     while (true) {
-        const int spin_res = node.spin(uavcan::MonotonicDuration::fromMSec(1000));
+        const int spin_res = node.spin(uavcan::MonotonicDuration::fromMSec(200));
         if (spin_res < 0) {
             std::cerr << "Transient failure: " << spin_res << std::endl;
         }
 
-        cvra::motor::control::Velocity vel_msg;
-        vel_msg.velocity = 1.0f;
+        cvra::motor::feedback::MotorEncoderPosition encoder_msg;
+        encoder_msg.raw_encoder_position = 42;
 
-        vel_msg.node_id = 42;
-
-        const int pub_res = vel_pub.broadcast(vel_msg);
+        const int pub_res = encoder_pub.broadcast(encoder_msg);
         if (pub_res < 0) {
-            std::cerr << "Vel publication failure: " << pub_res << std::endl;
+            std::cerr << "Encoder publication failure: " << pub_res << std::endl;
         }
     }
 }
