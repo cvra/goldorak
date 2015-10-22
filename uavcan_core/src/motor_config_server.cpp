@@ -109,10 +109,10 @@ public:
         node_id = id;
         target_id = target;
 
-        f_pos = boost::bind(&UavcanRosMotorConfig::callback_pos_pid, this, _1, _2);
-        f_vel = boost::bind(&UavcanRosMotorConfig::callback_vel_pid, this, _1, _2);
-        f_cur = boost::bind(&UavcanRosMotorConfig::callback_cur_pid, this, _1, _2);
-        f_params = boost::bind(&UavcanRosMotorConfig::callback_params, this, _1, _2);
+        f_pos = boost::bind(&UavcanRosMotorConfig::position_pid_cb, this, _1, _2);
+        f_vel = boost::bind(&UavcanRosMotorConfig::velocity_pid_cb, this, _1, _2);
+        f_cur = boost::bind(&UavcanRosMotorConfig::current_pid_cb, this, _1, _2);
+        f_params = boost::bind(&UavcanRosMotorConfig::parameters_cb, this, _1, _2);
 
         cfg_pos_pid.setCallback(f_pos);
         cfg_vel_pid.setCallback(f_vel);
@@ -122,7 +122,7 @@ public:
         uc_config_node.send_config(target_id, motor_config);
     }
 
-    bool callback_pos_pid(uavcan_core::PIDConfig &config, uint32_t level)
+    bool position_pid_cb(uavcan_core::PIDConfig &config, uint32_t level)
     {
         ROS_INFO("Updating position PID gains");
 
@@ -134,7 +134,7 @@ public:
         uc_config_node.send_config(target_id, motor_config);
     }
 
-    bool callback_vel_pid(uavcan_core::PIDConfig &config, uint32_t level)
+    bool velocity_pid_cb(uavcan_core::PIDConfig &config, uint32_t level)
     {
         ROS_INFO("Updating velocity PID gains");
 
@@ -146,7 +146,7 @@ public:
         uc_config_node.send_config(target_id, motor_config);
     }
 
-    bool callback_cur_pid(uavcan_core::PIDConfig &config, uint32_t level)
+    bool current_pid_cb(uavcan_core::PIDConfig &config, uint32_t level)
     {
         ROS_INFO("Updating current PID gains");
 
@@ -158,7 +158,7 @@ public:
         uc_config_node.send_config(target_id, motor_config);
     }
 
-    bool callback_params(uavcan_core::MotorBoardConfig &config, uint32_t level)
+    bool parameters_cb(uavcan_core::MotorBoardConfig &config, uint32_t level)
     {
         ROS_INFO("Updating motor parameters");
 
