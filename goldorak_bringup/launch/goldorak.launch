@@ -2,7 +2,7 @@
     <arg name="robot_ns" default="goldorak" />
 
     <!-- Right wheel -->
-    <include file="$(find uavcan_core)/launch/motor.launch">
+    <include file="$(find uavcan_core)/launch/motor.launch" ns="$(arg robot_ns)">
         <arg name="motor_ns" value="right_wheel" />
         <arg name="node_uavcan_id" value="10" />
         <arg name="motor_uavcan_id" value="50" />
@@ -10,7 +10,7 @@
     </include>
 
     <!-- Left wheel -->
-    <include file="$(find uavcan_core)/launch/motor.launch">
+    <include file="$(find uavcan_core)/launch/motor.launch" ns="$(arg robot_ns)">
         <arg name="motor_ns" value="left_wheel" />
         <arg name="node_uavcan_id" value="11" />
         <arg name="motor_uavcan_id" value="41" />
