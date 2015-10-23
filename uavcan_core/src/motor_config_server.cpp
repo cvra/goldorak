@@ -15,10 +15,10 @@ class UavcanMotorConfig
     uavcan::Node<NodeMemoryPoolSize> node;
 
     typedef uavcan::MethodBinder<UavcanMotorConfig*, void (UavcanMotorConfig::*)(const uavcan::ServiceCallResult<cvra::motor::config::LoadConfiguration>&) const>
-        LoadConfigurationCallbackBinder;
-    uavcan::ServiceClient<cvra::motor::config::LoadConfiguration, LoadConfigurationCallbackBinder> client;
+        config_client_cb_binder;
+    uavcan::ServiceClient<cvra::motor::config::LoadConfiguration, config_client_cb_binder> config_client;
 
-    void LoadConfigurationCallback(const uavcan::ServiceCallResult<cvra::motor::config::LoadConfiguration>& res) const
+    void config_client_cb(const uavcan::ServiceCallResult<cvra::motor::config::LoadConfiguration>& res) const
     {
         if (res.isSuccessful()) {
             std::cout << res << std::endl;
@@ -32,7 +32,7 @@ class UavcanMotorConfig
 public:
     UavcanMotorConfig(uavcan::NodeID id) :
         node(getCanDriver(), getSystemClock()),
-        client(node)
+        config_client(node)
     {
         node.setNodeID(id);
         node.setName("motor_control_config");
@@ -42,25 +42,16 @@ public:
             throw std::runtime_error("Failed to start the node: " + std::to_string(start_res));
         }
 
-        client.setCallback(LoadConfigurationCallbackBinder(this, &UavcanMotorConfig::LoadConfigurationCallback));
+        config_client.setCallback(config_client_cb_binder(this, &UavcanMotorConfig::config_client_cb));
 
         node.setModeOperational();
     }
 
     void send_config(uavcan::NodeID server_node_id, cvra::motor::config::LoadConfiguration::Request config)
     {
-        /* Send configuration */
-        const int call_res = client.call(server_node_id, config);
+        const int call_res = config_client.call(server_node_id, config);
         if (call_res < 0) {
             throw std::runtime_error("Unable to perform service call: " + std::to_string(call_res));
-        }
-
-        /* Spin until all calls are done */
-        while (client.hasPendingCalls()) {
-            const int res = node.spin(uavcan::MonotonicDuration::fromMSec(10));
-            if (res < 0) {
-                std::cerr << "Transient failure: " << res << std::endl;
-            }
         }
     }
 
@@ -78,7 +69,7 @@ public:
     int node_id;
     int target_id;
     UavcanMotorConfig uc_config_node;
-    cvra::motor::config::LoadConfiguration::Request motor_config;
+    cvra::motor::config::LoadConfiguration::Request config_msg;
 
     ros::NodeHandle nh_pos_pid;
     ros::NodeHandle nh_vel_pid;
@@ -119,78 +110,81 @@ public:
         cfg_cur_pid.setCallback(f_cur);
         cfg_params.setCallback(f_params);
 
-        uc_config_node.send_config(target_id, motor_config);
+/*        uavcan_core::PIDConfig config;
+        cfg_pos_pid.updateConfig(config);*/
+
+        uc_config_node.send_config(target_id, config_msg);
     }
 
     bool position_pid_cb(uavcan_core::PIDConfig &config, uint32_t level)
     {
         ROS_INFO("Updating position PID gains");
 
-        motor_config.position_pid.kp = config.p;
-        motor_config.position_pid.ki = config.i;
-        motor_config.position_pid.kd = config.d;
-        motor_config.position_pid.ilimit = config.i_limit;
+        config_msg.position_pid.kp = config.p;
+        config_msg.position_pid.ki = config.i;
+        config_msg.position_pid.kd = config.d;
+        config_msg.position_pid.ilimit = config.i_limit;
 
-        uc_config_node.send_config(target_id, motor_config);
+        uc_config_node.send_config(target_id, config_msg);
     }
 
     bool velocity_pid_cb(uavcan_core::PIDConfig &config, uint32_t level)
     {
         ROS_INFO("Updating velocity PID gains");
 
-        motor_config.velocity_pid.kp = config.p;
-        motor_config.velocity_pid.ki = config.i;
-        motor_config.velocity_pid.kd = config.d;
-        motor_config.velocity_pid.ilimit = config.i_limit;
+        config_msg.velocity_pid.kp = config.p;
+        config_msg.velocity_pid.ki = config.i;
+        config_msg.velocity_pid.kd = config.d;
+        config_msg.velocity_pid.ilimit = config.i_limit;
 
-        uc_config_node.send_config(target_id, motor_config);
+        uc_config_node.send_config(target_id, config_msg);
     }
 
     bool current_pid_cb(uavcan_core::PIDConfig &config, uint32_t level)
     {
         ROS_INFO("Updating current PID gains");
 
-        motor_config.current_pid.kp = config.p;
-        motor_config.current_pid.ki = config.i;
-        motor_config.current_pid.kd = config.d;
-        motor_config.current_pid.ilimit = config.i_limit;
+        config_msg.current_pid.kp = config.p;
+        config_msg.current_pid.ki = config.i;
+        config_msg.current_pid.kd = config.d;
+        config_msg.current_pid.ilimit = config.i_limit;
 
-        uc_config_node.send_config(target_id, motor_config);
+        uc_config_node.send_config(target_id, config_msg);
     }
 
     bool parameters_cb(uavcan_core::MotorBoardConfig &config, uint32_t level)
     {
         ROS_INFO("Updating motor parameters");
 
-        motor_config.torque_limit = config.torque_limit;
-        motor_config.velocity_limit = config.velocity_limit;
-        motor_config.acceleration_limit = config.acceleration_limit;
-        motor_config.low_batt_th = config.low_batt_th;
+        config_msg.torque_limit = config.torque_limit;
+        config_msg.velocity_limit = config.velocity_limit;
+        config_msg.acceleration_limit = config.acceleration_limit;
+        config_msg.low_batt_th = config.low_batt_th;
 
-        motor_config.thermal_capacity = config.thermal_capacity;
-        motor_config.thermal_resistance = config.thermal_resistance;
-        motor_config.thermal_current_gain = config.thermal_current_gain;
-        motor_config.max_temperature = config.max_temperature;
+        config_msg.thermal_capacity = config.thermal_capacity;
+        config_msg.thermal_resistance = config.thermal_resistance;
+        config_msg.thermal_current_gain = config.thermal_current_gain;
+        config_msg.max_temperature = config.max_temperature;
 
-        motor_config.torque_constant = config.torque_constant;
+        config_msg.torque_constant = config.torque_constant;
 
-        motor_config.transmission_ratio_p = config.transmission_ratio_p;
-        motor_config.transmission_ratio_q = config.transmission_ratio_q;
-        motor_config.motor_encoder_steps_per_revolution = config.motor_encoder_steps_per_revolution;
-        motor_config.second_encoder_steps_per_revolution = config.second_encoder_steps_per_revolution;
-        motor_config.potentiometer_gain = config.potentiometer_gain;
+        config_msg.transmission_ratio_p = config.transmission_ratio_p;
+        config_msg.transmission_ratio_q = config.transmission_ratio_q;
+        config_msg.motor_encoder_steps_per_revolution = config.motor_encoder_steps_per_revolution;
+        config_msg.second_encoder_steps_per_revolution = config.second_encoder_steps_per_revolution;
+        config_msg.potentiometer_gain = config.potentiometer_gain;
 
         using cvra::motor::config::LoadConfiguration;
         switch(config.mode) {
-            case 0: motor_config.mode = LoadConfiguration::Request::MODE_OPEN_LOOP; break;
-            case 1: motor_config.mode = LoadConfiguration::Request::MODE_INDEX; break;
-            case 2: motor_config.mode = LoadConfiguration::Request::MODE_ENC_PERIODIC; break;
-            case 3: motor_config.mode = LoadConfiguration::Request::MODE_ENC_BOUNDED; break;
-            case 4: motor_config.mode = LoadConfiguration::Request::MODE_2_ENC_PERIODIC; break;
-            case 5: motor_config.mode = LoadConfiguration::Request::MODE_MOTOR_POT; break;
+            case 0: config_msg.mode = LoadConfiguration::Request::MODE_OPEN_LOOP; break;
+            case 1: config_msg.mode = LoadConfiguration::Request::MODE_INDEX; break;
+            case 2: config_msg.mode = LoadConfiguration::Request::MODE_ENC_PERIODIC; break;
+            case 3: config_msg.mode = LoadConfiguration::Request::MODE_ENC_BOUNDED; break;
+            case 4: config_msg.mode = LoadConfiguration::Request::MODE_2_ENC_PERIODIC; break;
+            case 5: config_msg.mode = LoadConfiguration::Request::MODE_MOTOR_POT; break;
         }
 
-        uc_config_node.send_config(target_id, motor_config);
+        uc_config_node.send_config(target_id, config_msg);
     }
 
     void spin(void)
