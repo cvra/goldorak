@@ -49,20 +49,6 @@ add_executable(
 target_link_libraries(uc_publisher ${UAVCAN_LIB} rt)
 
 add_executable(
-    enable_encoder_stream
-    ${SRC}/enable_encoder_stream.cpp
-    ${SRC}/platform_linux.cpp
-    )
-target_link_libraries(enable_encoder_stream ${UAVCAN_LIB} rt)
-
-add_executable(
-    enable_motor_control
-    ${SRC}/enable_motor_control.cpp
-    ${SRC}/platform_linux.cpp
-    )
-target_link_libraries(enable_motor_control ${UAVCAN_LIB} rt)
-
-add_executable(
     motor_config_server
     ${SRC}/motor_config_server.cpp
     ${SRC}/platform_linux.cpp
