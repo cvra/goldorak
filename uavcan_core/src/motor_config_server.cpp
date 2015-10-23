@@ -1,12 +1,14 @@
 #include <uavcan/uavcan.hpp>
 #include <cvra/motor/config/LoadConfiguration.hpp>
 #include <cvra/motor/config/EnableMotor.hpp>
+#include <cvra/motor/config/FeedbackStream.hpp>
 
 #include <ros/ros.h>
 #include <dynamic_reconfigure/server.h>
 #include <uavcan_core/PIDConfig.h>
 #include <uavcan_core/MotorBoardConfig.h>
 #include <uavcan_core/EnableMotorConfig.h>
+#include <uavcan_core/FeedbackStreamConfig.h>
 
 extern uavcan::ICanDriver& getCanDriver();
 extern uavcan::ISystemClock& getSystemClock();
@@ -36,11 +38,22 @@ class UavcanMotorConfig
         }
     }
 
+    typedef uavcan::MethodBinder<UavcanMotorConfig*, void (UavcanMotorConfig::*)(const uavcan::ServiceCallResult<cvra::motor::config::FeedbackStream>&) const>
+        stream_client_cb_binder;
+    uavcan::ServiceClient<cvra::motor::config::FeedbackStream, stream_client_cb_binder> stream_client;
+    void stream_client_cb(const uavcan::ServiceCallResult<cvra::motor::config::FeedbackStream>& res) const
+    {
+        if (!res.isSuccessful()) {
+            std::cerr << "Service call to node has failed" << std::endl;
+        }
+    }
+
 public:
     UavcanMotorConfig(uavcan::NodeID id) :
         node(getCanDriver(), getSystemClock()),
         config_client(this->node),
-        enable_client(this->node)
+        enable_client(this->node),
+        stream_client(this->node)
     {
         this->node.setNodeID(id);
         this->node.setName("motor_control_config");
@@ -52,6 +65,7 @@ public:
 
         this->config_client.setCallback(config_client_cb_binder(this, &UavcanMotorConfig::config_client_cb));
         this->enable_client.setCallback(enable_client_cb_binder(this, &UavcanMotorConfig::enable_client_cb));
+        this->stream_client.setCallback(stream_client_cb_binder(this, &UavcanMotorConfig::stream_client_cb));
 
         this->node.setModeOperational();
     }
@@ -67,6 +81,14 @@ public:
     void send_enable(uavcan::NodeID server_node_id, cvra::motor::config::EnableMotor::Request config)
     {
         const int call_res = this->enable_client.call(server_node_id, config);
+        if (call_res < 0) {
+            throw std::runtime_error("Unable to perform service call: " + std::to_string(call_res));
+        }
+    }
+
+    void send_stream_config(uavcan::NodeID server_node_id, cvra::motor::config::FeedbackStream::Request config)
+    {
+        const int call_res = stream_client.call(server_node_id, config);
         if (call_res < 0) {
             throw std::runtime_error("Unable to perform service call: " + std::to_string(call_res));
         }
@@ -89,24 +111,30 @@ public:
 
     cvra::motor::config::LoadConfiguration::Request config_msg;
     cvra::motor::config::EnableMotor::Request enable_msg;
+    cvra::motor::config::FeedbackStream::Request stream_msg;
+
+    uavcan_core::FeedbackStreamConfig stream_config_cached;
 
     ros::NodeHandle nh_pos_pid;
     ros::NodeHandle nh_vel_pid;
     ros::NodeHandle nh_cur_pid;
     ros::NodeHandle nh_params;
     ros::NodeHandle nh_enable;
+    ros::NodeHandle nh_stream;
 
     dynamic_reconfigure::Server<uavcan_core::PIDConfig> cfg_pos_pid;
     dynamic_reconfigure::Server<uavcan_core::PIDConfig> cfg_vel_pid;
     dynamic_reconfigure::Server<uavcan_core::PIDConfig> cfg_cur_pid;
     dynamic_reconfigure::Server<uavcan_core::MotorBoardConfig> cfg_params;
     dynamic_reconfigure::Server<uavcan_core::EnableMotorConfig> cfg_enable;
+    dynamic_reconfigure::Server<uavcan_core::FeedbackStreamConfig> cfg_stream;
 
     dynamic_reconfigure::Server<uavcan_core::PIDConfig>::CallbackType f_pos;
     dynamic_reconfigure::Server<uavcan_core::PIDConfig>::CallbackType f_vel;
     dynamic_reconfigure::Server<uavcan_core::PIDConfig>::CallbackType f_cur;
     dynamic_reconfigure::Server<uavcan_core::MotorBoardConfig>::CallbackType f_params;
     dynamic_reconfigure::Server<uavcan_core::EnableMotorConfig>::CallbackType f_enable;
+    dynamic_reconfigure::Server<uavcan_core::FeedbackStreamConfig>::CallbackType f_stream;
 
     UavcanRosMotorConfig(int id, int target):
         uc_config_node(id),
@@ -115,11 +143,13 @@ public:
         nh_cur_pid("~pid_current"),
         nh_params("~parameters"),
         nh_enable("~enable"),
+        nh_stream("~stream"),
         cfg_pos_pid(this->nh_pos_pid),
         cfg_vel_pid(this->nh_vel_pid),
         cfg_cur_pid(this->nh_cur_pid),
         cfg_params(this->nh_params),
-        cfg_enable(this->nh_enable)
+        cfg_enable(this->nh_enable),
+        cfg_stream(this->nh_stream)
     {
         this->node_id = id;
         this->target_id = target;
@@ -129,12 +159,14 @@ public:
         this->f_cur = boost::bind(&UavcanRosMotorConfig::current_pid_cb, this, _1, _2);
         this->f_params = boost::bind(&UavcanRosMotorConfig::parameters_cb, this, _1, _2);
         this->f_enable = boost::bind(&UavcanRosMotorConfig::enable_cb, this, _1, _2);
+        this->f_stream = boost::bind(&UavcanRosMotorConfig::stream_cb, this, _1, _2);
 
         this->cfg_pos_pid.setCallback(this->f_pos);
         this->cfg_vel_pid.setCallback(this->f_vel);
         this->cfg_cur_pid.setCallback(this->f_cur);
         this->cfg_params.setCallback(this->f_params);
         this->cfg_enable.setCallback(this->f_enable);
+        this->cfg_stream.setCallback(this->f_stream);
     }
 
     bool position_pid_cb(uavcan_core::PIDConfig &config, uint32_t level)
@@ -210,11 +242,68 @@ public:
 
     bool enable_cb(uavcan_core::EnableMotorConfig &config, uint32_t level)
     {
-        ROS_INFO("Updating motor parameters");
+        ROS_INFO("Updating motor control enable");
 
         this->enable_msg.enable = config.enable;
 
         this->uc_config_node.send_enable(this->target_id, this->enable_msg);
+    }
+
+    bool stream_cb(uavcan_core::FeedbackStreamConfig &config, uint32_t level)
+    {
+        ROS_INFO("Updating feedback stream parameters");
+
+        using cvra::motor::config::FeedbackStream;
+
+        if (this->stream_config_cached.current_pid != config.current_pid) {
+            this->stream_msg.stream = FeedbackStream::Request::STREAM_CURRENT_PID;
+            this->stream_msg.enabled = (config.current_pid != 0);
+            this->stream_msg.frequency = config.current_pid;
+            this->stream_config_cached.current_pid = config.current_pid;
+            this->uc_config_node.send_stream_config(this->target_id, this->stream_msg);
+        }
+        if (this->stream_config_cached.velocity_pid != config.velocity_pid) {
+            this->stream_msg.stream = FeedbackStream::Request::STREAM_VELOCITY_PID;
+            this->stream_msg.enabled = (config.velocity_pid != 0);
+            this->stream_msg.frequency = config.velocity_pid;
+            this->stream_config_cached.velocity_pid = config.velocity_pid;
+            this->uc_config_node.send_stream_config(this->target_id, this->stream_msg);
+        }
+        if (this->stream_config_cached.position_pid != config.position_pid) {
+            this->stream_msg.stream = FeedbackStream::Request::STREAM_POSITION_PID;
+            this->stream_msg.enabled = (config.position_pid != 0);
+            this->stream_msg.frequency = config.position_pid;
+            this->stream_config_cached.position_pid = config.position_pid;
+            this->uc_config_node.send_stream_config(this->target_id, this->stream_msg);
+        }
+        if (this->stream_config_cached.index != config.index) {
+            this->stream_msg.stream = FeedbackStream::Request::STREAM_INDEX;
+            this->stream_msg.enabled = (config.index != 0);
+            this->stream_msg.frequency = config.index;
+            this->stream_config_cached.index = config.index;
+            this->uc_config_node.send_stream_config(this->target_id, this->stream_msg);
+        }
+        if (this->stream_config_cached.motor_encoder != config.motor_encoder) {
+            this->stream_msg.stream = FeedbackStream::Request::STREAM_MOTOR_ENCODER;
+            this->stream_msg.enabled = (config.motor_encoder != 0);
+            this->stream_msg.frequency = config.motor_encoder;
+            this->stream_config_cached.motor_encoder = config.motor_encoder;
+            this->uc_config_node.send_stream_config(this->target_id, this->stream_msg);
+        }
+        if (this->stream_config_cached.motor_position != config.motor_position) {
+            this->stream_msg.stream = FeedbackStream::Request::STREAM_MOTOR_POSITION;
+            this->stream_msg.enabled = (config.motor_position != 0);
+            this->stream_msg.frequency = config.motor_position;
+            this->stream_config_cached.motor_position = config.motor_position;
+            this->uc_config_node.send_stream_config(this->target_id, this->stream_msg);
+        }
+        if (this->stream_config_cached.motor_torque != config.motor_torque) {
+            this->stream_msg.stream = FeedbackStream::Request::STREAM_MOTOR_TORQUE;
+            this->stream_msg.enabled = (config.motor_torque != 0);
+            this->stream_msg.frequency = config.motor_torque;
+            this->stream_config_cached.motor_torque = config.motor_torque;
+            this->uc_config_node.send_stream_config(this->target_id, this->stream_msg);
+        }
     }
 
     void spin(void)

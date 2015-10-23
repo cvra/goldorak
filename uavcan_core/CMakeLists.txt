@@ -26,6 +26,7 @@ generate_dynamic_reconfigure_options(
     cfg/PID.cfg
     cfg/MotorBoard.cfg
     cfg/EnableMotor.cfg
+    cfg/FeedbackStream.cfg
 )
 
 catkin_package()
