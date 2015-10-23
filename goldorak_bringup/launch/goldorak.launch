@@ -1,6 +1,15 @@
 <launch>
     <arg name="robot_ns" default="goldorak" />
 
+    <rosparam
+        command="load"
+        file="$(find goldorak_bringup)/config/right_wheel.yaml"
+        ns="$(arg robot_ns)" />
+    <rosparam
+        command="load"
+        file="$(find goldorak_bringup)/config/left_wheel.yaml"
+        ns="$(arg robot_ns)" />
+
     <include file="$(find uavcan_core)/launch/motor.launch">
         <arg name="motor_ns" value="right_wheel" />
         <arg name="node_uavcan_id" value="10" />
