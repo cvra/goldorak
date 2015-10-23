@@ -2,7 +2,12 @@
     <arg name="motor_ns" default="right_wheel" />
     <arg name="node_uavcan_id" default="10" />
     <arg name="motor_uavcan_id" default="50" />
+    <arg name="default_params" default="$(find uavcan_core)/param/motor.yaml"/>
 
+    <!-- Load parameters into Parameter server -->
+    <rosparam command="load" file="$(arg default_params)" ns="$(arg motor_ns)" />
+
+    <!-- Start configuration node -->
     <node name="motor_control_config"
           pkg="uavcan_core"
           type="motor_config_server"
