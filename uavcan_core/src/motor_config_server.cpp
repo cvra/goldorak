@@ -1,10 +1,12 @@
 #include <uavcan/uavcan.hpp>
 #include <cvra/motor/config/LoadConfiguration.hpp>
+#include <cvra/motor/config/EnableMotor.hpp>
 
 #include <ros/ros.h>
 #include <dynamic_reconfigure/server.h>
 #include <uavcan_core/PIDConfig.h>
 #include <uavcan_core/MotorBoardConfig.h>
+#include <uavcan_core/EnableMotorConfig.h>
 
 extern uavcan::ICanDriver& getCanDriver();
 extern uavcan::ISystemClock& getSystemClock();
@@ -17,22 +19,28 @@ class UavcanMotorConfig
     typedef uavcan::MethodBinder<UavcanMotorConfig*, void (UavcanMotorConfig::*)(const uavcan::ServiceCallResult<cvra::motor::config::LoadConfiguration>&) const>
         config_client_cb_binder;
     uavcan::ServiceClient<cvra::motor::config::LoadConfiguration, config_client_cb_binder> config_client;
-
     void config_client_cb(const uavcan::ServiceCallResult<cvra::motor::config::LoadConfiguration>& res) const
     {
-        if (res.isSuccessful()) {
-            std::cout << res << std::endl;
-        } else {
-            std::cerr << "Service call to node "
-                      << static_cast<int>(res.getCallID().server_node_id.get())
-                      << " has failed" << std::endl;
+        if (!res.isSuccessful()) {
+            std::cerr << "Service call to node has failed" << std::endl;
+        }
+    }
+
+    typedef uavcan::MethodBinder<UavcanMotorConfig*, void (UavcanMotorConfig::*)(const uavcan::ServiceCallResult<cvra::motor::config::EnableMotor>&) const>
+        enable_client_cb_binder;
+    uavcan::ServiceClient<cvra::motor::config::EnableMotor, enable_client_cb_binder> enable_client;
+    void enable_client_cb(const uavcan::ServiceCallResult<cvra::motor::config::EnableMotor>& res) const
+    {
+        if (!res.isSuccessful()) {
+            std::cerr << "Service call to node has failed" << std::endl;
         }
     }
 
 public:
     UavcanMotorConfig(uavcan::NodeID id) :
         node(getCanDriver(), getSystemClock()),
-        config_client(node)
+        config_client(node),
+        enable_client(node)
     {
         node.setNodeID(id);
         node.setName("motor_control_config");
@@ -43,6 +51,7 @@ public:
         }
 
         config_client.setCallback(config_client_cb_binder(this, &UavcanMotorConfig::config_client_cb));
+        enable_client.setCallback(enable_client_cb_binder(this, &UavcanMotorConfig::enable_client_cb));
 
         node.setModeOperational();
     }
@@ -50,6 +59,14 @@ public:
     void send_config(uavcan::NodeID server_node_id, cvra::motor::config::LoadConfiguration::Request config)
     {
         const int call_res = config_client.call(server_node_id, config);
+        if (call_res < 0) {
+            throw std::runtime_error("Unable to perform service call: " + std::to_string(call_res));
+        }
+    }
+
+    void send_enable(uavcan::NodeID server_node_id, cvra::motor::config::EnableMotor::Request config)
+    {
+        const int call_res = enable_client.call(server_node_id, config);
         if (call_res < 0) {
             throw std::runtime_error("Unable to perform service call: " + std::to_string(call_res));
         }
@@ -69,22 +86,27 @@ public:
     int node_id;
     int target_id;
     UavcanMotorConfig uc_config_node;
+
     cvra::motor::config::LoadConfiguration::Request config_msg;
+    cvra::motor::config::EnableMotor::Request enable_msg;
 
     ros::NodeHandle nh_pos_pid;
     ros::NodeHandle nh_vel_pid;
     ros::NodeHandle nh_cur_pid;
     ros::NodeHandle nh_params;
+    ros::NodeHandle nh_enable;
 
     dynamic_reconfigure::Server<uavcan_core::PIDConfig> cfg_pos_pid;
     dynamic_reconfigure::Server<uavcan_core::PIDConfig> cfg_vel_pid;
     dynamic_reconfigure::Server<uavcan_core::PIDConfig> cfg_cur_pid;
     dynamic_reconfigure::Server<uavcan_core::MotorBoardConfig> cfg_params;
+    dynamic_reconfigure::Server<uavcan_core::EnableMotorConfig> cfg_enable;
 
     dynamic_reconfigure::Server<uavcan_core::PIDConfig>::CallbackType f_pos;
     dynamic_reconfigure::Server<uavcan_core::PIDConfig>::CallbackType f_vel;
     dynamic_reconfigure::Server<uavcan_core::PIDConfig>::CallbackType f_cur;
     dynamic_reconfigure::Server<uavcan_core::MotorBoardConfig>::CallbackType f_params;
+    dynamic_reconfigure::Server<uavcan_core::EnableMotorConfig>::CallbackType f_enable;
 
     UavcanRosMotorConfig(int id, int target):
         uc_config_node(id),
@@ -92,10 +114,12 @@ public:
         nh_vel_pid("~pid_velocity"),
         nh_cur_pid("~pid_current"),
         nh_params("~parameters"),
+        nh_enable("~enable"),
         cfg_pos_pid(nh_pos_pid),
         cfg_vel_pid(nh_vel_pid),
         cfg_cur_pid(nh_cur_pid),
-        cfg_params(nh_params)
+        cfg_params(nh_params),
+        cfg_enable(nh_enable)
     {
         node_id = id;
         target_id = target;
@@ -104,11 +128,13 @@ public:
         f_vel = boost::bind(&UavcanRosMotorConfig::velocity_pid_cb, this, _1, _2);
         f_cur = boost::bind(&UavcanRosMotorConfig::current_pid_cb, this, _1, _2);
         f_params = boost::bind(&UavcanRosMotorConfig::parameters_cb, this, _1, _2);
+        f_enable = boost::bind(&UavcanRosMotorConfig::enable_cb, this, _1, _2);
 
         cfg_pos_pid.setCallback(f_pos);
         cfg_vel_pid.setCallback(f_vel);
         cfg_cur_pid.setCallback(f_cur);
         cfg_params.setCallback(f_params);
+        cfg_enable.setCallback(f_enable);
 
 /*        uavcan_core::PIDConfig config;
         cfg_pos_pid.updateConfig(config);*/
@@ -185,6 +211,15 @@ public:
         }
 
         uc_config_node.send_config(target_id, config_msg);
+    }
+
+    bool enable_cb(uavcan_core::EnableMotorConfig &config, uint32_t level)
+    {
+        ROS_INFO("Updating motor parameters");
+
+        enable_msg.enable = config.enable;
+
+        uc_config_node.send_enable(target_id, enable_msg);
     }
 
     void spin(void)
