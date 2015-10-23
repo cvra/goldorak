@@ -39,26 +39,26 @@ class UavcanMotorConfig
 public:
     UavcanMotorConfig(uavcan::NodeID id) :
         node(getCanDriver(), getSystemClock()),
-        config_client(node),
-        enable_client(node)
+        config_client(this->node),
+        enable_client(this->node)
     {
-        node.setNodeID(id);
-        node.setName("motor_control_config");
+        this->node.setNodeID(id);
+        this->node.setName("motor_control_config");
 
-        const int start_res = node.start();
+        const int start_res = this->node.start();
         if (start_res < 0) {
             throw std::runtime_error("Failed to start the node: " + std::to_string(start_res));
         }
 
-        config_client.setCallback(config_client_cb_binder(this, &UavcanMotorConfig::config_client_cb));
-        enable_client.setCallback(enable_client_cb_binder(this, &UavcanMotorConfig::enable_client_cb));
+        this->config_client.setCallback(config_client_cb_binder(this, &UavcanMotorConfig::config_client_cb));
+        this->enable_client.setCallback(enable_client_cb_binder(this, &UavcanMotorConfig::enable_client_cb));
 
-        node.setModeOperational();
+        this->node.setModeOperational();
     }
 
     void send_config(uavcan::NodeID server_node_id, cvra::motor::config::LoadConfiguration::Request config)
     {
-        const int call_res = config_client.call(server_node_id, config);
+        const int call_res = this->config_client.call(server_node_id, config);
         if (call_res < 0) {
             throw std::runtime_error("Unable to perform service call: " + std::to_string(call_res));
         }
@@ -66,7 +66,7 @@ public:
 
     void send_enable(uavcan::NodeID server_node_id, cvra::motor::config::EnableMotor::Request config)
     {
-        const int call_res = enable_client.call(server_node_id, config);
+        const int call_res = this->enable_client.call(server_node_id, config);
         if (call_res < 0) {
             throw std::runtime_error("Unable to perform service call: " + std::to_string(call_res));
         }
@@ -74,7 +74,7 @@ public:
 
     void spin_once(void)
     {
-        const int res = node.spin(uavcan::MonotonicDuration::fromMSec(1));
+        const int res = this->node.spin(uavcan::MonotonicDuration::fromMSec(1));
         if (res < 0) {
             std::cerr << "Transient failure: " << res << std::endl;
         }
@@ -115,118 +115,113 @@ public:
         nh_cur_pid("~pid_current"),
         nh_params("~parameters"),
         nh_enable("~enable"),
-        cfg_pos_pid(nh_pos_pid),
-        cfg_vel_pid(nh_vel_pid),
-        cfg_cur_pid(nh_cur_pid),
-        cfg_params(nh_params),
-        cfg_enable(nh_enable)
+        cfg_pos_pid(this->nh_pos_pid),
+        cfg_vel_pid(this->nh_vel_pid),
+        cfg_cur_pid(this->nh_cur_pid),
+        cfg_params(this->nh_params),
+        cfg_enable(this->nh_enable)
     {
-        node_id = id;
-        target_id = target;
+        this->node_id = id;
+        this->target_id = target;
 
-        f_pos = boost::bind(&UavcanRosMotorConfig::position_pid_cb, this, _1, _2);
-        f_vel = boost::bind(&UavcanRosMotorConfig::velocity_pid_cb, this, _1, _2);
-        f_cur = boost::bind(&UavcanRosMotorConfig::current_pid_cb, this, _1, _2);
-        f_params = boost::bind(&UavcanRosMotorConfig::parameters_cb, this, _1, _2);
-        f_enable = boost::bind(&UavcanRosMotorConfig::enable_cb, this, _1, _2);
+        this->f_pos = boost::bind(&UavcanRosMotorConfig::position_pid_cb, this, _1, _2);
+        this->f_vel = boost::bind(&UavcanRosMotorConfig::velocity_pid_cb, this, _1, _2);
+        this->f_cur = boost::bind(&UavcanRosMotorConfig::current_pid_cb, this, _1, _2);
+        this->f_params = boost::bind(&UavcanRosMotorConfig::parameters_cb, this, _1, _2);
+        this->f_enable = boost::bind(&UavcanRosMotorConfig::enable_cb, this, _1, _2);
 
-        cfg_pos_pid.setCallback(f_pos);
-        cfg_vel_pid.setCallback(f_vel);
-        cfg_cur_pid.setCallback(f_cur);
-        cfg_params.setCallback(f_params);
-        cfg_enable.setCallback(f_enable);
-
-/*        uavcan_core::PIDConfig config;
-        cfg_pos_pid.updateConfig(config);*/
-
-        uc_config_node.send_config(target_id, config_msg);
+        this->cfg_pos_pid.setCallback(this->f_pos);
+        this->cfg_vel_pid.setCallback(this->f_vel);
+        this->cfg_cur_pid.setCallback(this->f_cur);
+        this->cfg_params.setCallback(this->f_params);
+        this->cfg_enable.setCallback(this->f_enable);
     }
 
     bool position_pid_cb(uavcan_core::PIDConfig &config, uint32_t level)
     {
         ROS_INFO("Updating position PID gains");
 
-        config_msg.position_pid.kp = config.p;
-        config_msg.position_pid.ki = config.i;
-        config_msg.position_pid.kd = config.d;
-        config_msg.position_pid.ilimit = config.i_limit;
+        this->config_msg.position_pid.kp = config.p;
+        this->config_msg.position_pid.ki = config.i;
+        this->config_msg.position_pid.kd = config.d;
+        this->config_msg.position_pid.ilimit = config.i_limit;
 
-        uc_config_node.send_config(target_id, config_msg);
+        this->uc_config_node.send_config(this->target_id, this->config_msg);
     }
 
     bool velocity_pid_cb(uavcan_core::PIDConfig &config, uint32_t level)
     {
         ROS_INFO("Updating velocity PID gains");
 
-        config_msg.velocity_pid.kp = config.p;
-        config_msg.velocity_pid.ki = config.i;
-        config_msg.velocity_pid.kd = config.d;
-        config_msg.velocity_pid.ilimit = config.i_limit;
+        this->config_msg.velocity_pid.kp = config.p;
+        this->config_msg.velocity_pid.ki = config.i;
+        this->config_msg.velocity_pid.kd = config.d;
+        this->config_msg.velocity_pid.ilimit = config.i_limit;
 
-        uc_config_node.send_config(target_id, config_msg);
+        this->uc_config_node.send_config(this->target_id, this->config_msg);
     }
 
     bool current_pid_cb(uavcan_core::PIDConfig &config, uint32_t level)
     {
         ROS_INFO("Updating current PID gains");
 
-        config_msg.current_pid.kp = config.p;
-        config_msg.current_pid.ki = config.i;
-        config_msg.current_pid.kd = config.d;
-        config_msg.current_pid.ilimit = config.i_limit;
+        this->config_msg.current_pid.kp = config.p;
+        this->config_msg.current_pid.ki = config.i;
+        this->config_msg.current_pid.kd = config.d;
+        this->config_msg.current_pid.ilimit = config.i_limit;
 
-        uc_config_node.send_config(target_id, config_msg);
+        this->uc_config_node.send_config(this->target_id, this->config_msg);
     }
 
     bool parameters_cb(uavcan_core::MotorBoardConfig &config, uint32_t level)
     {
         ROS_INFO("Updating motor parameters");
 
-        config_msg.torque_limit = config.torque_limit;
-        config_msg.velocity_limit = config.velocity_limit;
-        config_msg.acceleration_limit = config.acceleration_limit;
-        config_msg.low_batt_th = config.low_batt_th;
+        this->config_msg.torque_limit = config.torque_limit;
+        this->config_msg.velocity_limit = config.velocity_limit;
+        this->config_msg.acceleration_limit = config.acceleration_limit;
+        this->config_msg.low_batt_th = config.low_batt_th;
 
-        config_msg.thermal_capacity = config.thermal_capacity;
-        config_msg.thermal_resistance = config.thermal_resistance;
-        config_msg.thermal_current_gain = config.thermal_current_gain;
-        config_msg.max_temperature = config.max_temperature;
+        this->config_msg.thermal_capacity = config.thermal_capacity;
+        this->config_msg.thermal_resistance = config.thermal_resistance;
+        this->config_msg.thermal_current_gain = config.thermal_current_gain;
+        this->config_msg.max_temperature = config.max_temperature;
 
-        config_msg.torque_constant = config.torque_constant;
+        this->config_msg.torque_constant = config.torque_constant;
 
-        config_msg.transmission_ratio_p = config.transmission_ratio_p;
-        config_msg.transmission_ratio_q = config.transmission_ratio_q;
-        config_msg.motor_encoder_steps_per_revolution = config.motor_encoder_steps_per_revolution;
-        config_msg.second_encoder_steps_per_revolution = config.second_encoder_steps_per_revolution;
-        config_msg.potentiometer_gain = config.potentiometer_gain;
+        this->config_msg.transmission_ratio_p = config.transmission_ratio_p;
+        this->config_msg.transmission_ratio_q = config.transmission_ratio_q;
+        this->config_msg.motor_encoder_steps_per_revolution = config.motor_encoder_steps_per_revolution;
+        this->config_msg.second_encoder_steps_per_revolution = config.second_encoder_steps_per_revolution;
+        this->config_msg.potentiometer_gain = config.potentiometer_gain;
 
         using cvra::motor::config::LoadConfiguration;
         switch(config.mode) {
-            case 0: config_msg.mode = LoadConfiguration::Request::MODE_OPEN_LOOP; break;
-            case 1: config_msg.mode = LoadConfiguration::Request::MODE_INDEX; break;
-            case 2: config_msg.mode = LoadConfiguration::Request::MODE_ENC_PERIODIC; break;
-            case 3: config_msg.mode = LoadConfiguration::Request::MODE_ENC_BOUNDED; break;
-            case 4: config_msg.mode = LoadConfiguration::Request::MODE_2_ENC_PERIODIC; break;
-            case 5: config_msg.mode = LoadConfiguration::Request::MODE_MOTOR_POT; break;
+            case 0: this->config_msg.mode = LoadConfiguration::Request::MODE_OPEN_LOOP; break;
+            case 1: this->config_msg.mode = LoadConfiguration::Request::MODE_INDEX; break;
+            case 2: this->config_msg.mode = LoadConfiguration::Request::MODE_ENC_PERIODIC; break;
+            case 3: this->config_msg.mode = LoadConfiguration::Request::MODE_ENC_BOUNDED; break;
+            case 4: this->config_msg.mode = LoadConfiguration::Request::MODE_2_ENC_PERIODIC; break;
+            case 5: this->config_msg.mode = LoadConfiguration::Request::MODE_MOTOR_POT; break;
         }
 
-        uc_config_node.send_config(target_id, config_msg);
+        this->uc_config_node.send_config(this->target_id, this->config_msg);
     }
 
     bool enable_cb(uavcan_core::EnableMotorConfig &config, uint32_t level)
     {
         ROS_INFO("Updating motor parameters");
 
-        enable_msg.enable = config.enable;
+        this->enable_msg.enable = config.enable;
 
-        uc_config_node.send_enable(target_id, enable_msg);
+        this->uc_config_node.send_enable(this->target_id, this->enable_msg);
     }
 
     void spin(void)
     {
         while (ros::ok()) {
             ros::spinOnce();
-            uc_config_node.spin_once();
+            this->uc_config_node.spin_once();
         }
     }
 };
