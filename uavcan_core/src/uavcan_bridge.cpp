@@ -99,12 +99,10 @@ public:
     virtual void motor_position_sub_cb(
         const uavcan::ReceivedDataStructure<cvra::motor::feedback::MotorPosition>& msg)
     {
+        ROS_INFO("Got motor position and velocity feedback");
+
         this->motor_position_msg.data = msg.position;
         this->motor_velocity_msg.data = msg.velocity;
-
-        ROS_INFO("Got a motor position feedback, position: %.3f, velocity: %.3f",
-                 this->motor_position_msg.data,
-                 this->motor_velocity_msg.data);
 
         this->motor_position_pub.publish(this->motor_position_msg);
         this->motor_velocity_pub.publish(this->motor_velocity_msg);
@@ -113,53 +111,50 @@ public:
 
 class UavcanRosBridge {
 public:
-    int node_id;
-    Node uc_node;
+    int uavcan_id;
+    Node uavcan_node;
     ros::NodeHandle ros_node;
 
     UavcanRosMotorController motor_controller;
     UavcanRosMotorFeedbackHandler motor_feedback_handler;
 
-    uavcan::Subscriber<uavcan::protocol::debug::LogMessage> uc_log_sub;
+    uavcan::Subscriber<uavcan::protocol::debug::LogMessage> uavcan_log_sub;
 
     UavcanRosBridge(int id):
-        uc_node(getCanDriver(), getSystemClock()),
-        uc_log_sub(uc_node),
-        motor_controller(uc_node, ros_node),
-        motor_feedback_handler(uc_node, ros_node)
+        uavcan_node(getCanDriver(), getSystemClock()),
+        uavcan_log_sub(this->uavcan_node),
+        motor_controller(this->uavcan_node, this->ros_node),
+        motor_feedback_handler(this->uavcan_node, this->ros_node)
     {
-        node_id = id;
+        this->uavcan_id = id;
 
         /* Start UAVCAN node and publisher */
-        const int self_node_id = node_id;
-        uc_node.setNodeID(self_node_id);
-        uc_node.setName("uavcan_ros_bridge");
+        const int self_node_id = this->uavcan_id;
+        this->uavcan_node.setNodeID(self_node_id);
+        this->uavcan_node.setName("uavcan_ros_bridge");
 
-        const int node_start_res = uc_node.start();
+        const int node_start_res = uavcan_node.start();
         if (node_start_res < 0) {
             throw std::runtime_error("Failed to start the node");
         }
 
-        const int uc_log_res = uc_log_sub.start(
+        this->uavcan_log_sub.start(
             [&](const uavcan::ReceivedDataStructure<uavcan::protocol::debug::LogMessage>& msg)
             {
                 std::cout << msg << std::endl;
             }
         );
-        if (uc_log_res < 0) {
-            throw std::runtime_error("Failed to start the log subscriber");
-        }
 
-        uc_node.setModeOperational();
+        this->uavcan_node.setModeOperational();
     }
 
     void spin(void)
     {
         while (ros::ok()) {
             ros::spinOnce();
-            const int spin_res = uc_node.spin(uavcan::MonotonicDuration::fromMSec(1));
-            if (spin_res < 0) {
-                std::cerr << "Transient failure: " << spin_res << std::endl;
+            const int res = this->uavcan_node.spin(uavcan::MonotonicDuration::fromMSec(1));
+            if (res < 0) {
+                std::cerr << "Transient failure: " << res << std::endl;
             }
         }
     }
