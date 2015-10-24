@@ -3,7 +3,7 @@
 #include <unistd.h>
 
 #include <uavcan/uavcan.hpp>
-#include <cvra/motor/control/Voltage.hpp>
+#include <cvra/motor/control/Velocity.hpp>
 #include <cvra/motor/feedback/MotorPosition.hpp>
 #include <uavcan/protocol/debug/LogMessage.hpp>
 
@@ -21,8 +21,8 @@ typedef uavcan::Node<NodeMemoryPoolSize> Node;
 class UavcanRosMotorController {
 public:
     ros::Subscriber ros_velocity_sub;
-    uavcan::Publisher<cvra::motor::control::Voltage> uc_velocity_pub;
-    cvra::motor::control::Voltage uc_velocity_msg;
+    uavcan::Publisher<cvra::motor::control::Velocity> uc_velocity_pub;
+    cvra::motor::control::Velocity uc_velocity_msg;
 
     UavcanRosMotorController(Node& uc_node, ros::NodeHandle& ros_node):
         uc_velocity_pub(uc_node)
@@ -42,7 +42,7 @@ public:
 
     void velocityCallback(const cvra_msgs::MotorControlVelocity::ConstPtr& msg)
     {
-        uc_velocity_msg.voltage = msg->velocity;
+        uc_velocity_msg.velocity = msg->velocity;
         uc_velocity_msg.node_id = msg->node_id;
 
         ROS_INFO("I heard: [%f]", msg->velocity);
