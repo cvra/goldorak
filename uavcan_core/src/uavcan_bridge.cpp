@@ -21,17 +21,30 @@ typedef uavcan::Node<NodeMemoryPoolSize> Node;
 class UavcanMotorController {
 public:
     uavcan::Publisher<cvra::motor::control::Velocity> velocity_pub;
+
+    uavcan::Subscriber<cvra::motor::feedback::MotorPosition> motor_position_sub;
+
     cvra::motor::control::Velocity velocity_msg;
 
     UavcanMotorController(Node& uavcan_node):
-        velocity_pub(uavcan_node)
+        velocity_pub(uavcan_node),
+        motor_position_sub(uavcan_node)
     {
+        /* Initialise UAVCAN publishers (setpoint sending) */
         const int vel_pub_init_res = this->velocity_pub.init();
         if (vel_pub_init_res < 0) {
             throw std::runtime_error("Failed to start the publisher");
         }
         this->velocity_pub.setTxTimeout(uavcan::MonotonicDuration::fromMSec(1000));
         this->velocity_pub.setPriority(uavcan::TransferPriority::MiddleLower);
+
+        /* Intiialise UAVCAN subscribers (feedback stream) */
+        this->motor_position_sub.start(
+            [&](const uavcan::ReceivedDataStructure<cvra::motor::feedback::MotorPosition>& msg)
+            {
+                this->motor_position_sub_cb(msg);
+            }
+        );
     }
 
     void send_velocity_setpoint(int node_id, float velocity)
@@ -41,17 +54,31 @@ public:
 
         this->velocity_pub.broadcast(this->velocity_msg);
     }
+
+    virtual void motor_position_sub_cb(
+        const uavcan::ReceivedDataStructure<cvra::motor::feedback::MotorPosition>& msg) = 0;
 };
 
 class UavcanRosMotorController : public UavcanMotorController {
 public:
     ros::Subscriber velocity_sub;
 
+    ros::Publisher motor_position_pub;
+    ros::Publisher motor_velocity_pub;
+
+    std_msgs::Float32 motor_position_msg;
+    std_msgs::Float32 motor_velocity_msg;
+
     UavcanRosMotorController(Node& uavcan_node, ros::NodeHandle& ros_node):
         UavcanMotorController(uavcan_node)
     {
+        /* Intiialise ROS subscribers (setpoint sending) */
         this->velocity_sub = ros_node.subscribe(
             "vel_commands", 10, &UavcanRosMotorController::velocity_setpoint_cb, this);
+
+        /* Intiialise ROS publishers (feedback stream) */
+        this->motor_position_pub = ros_node.advertise<std_msgs::Float32>("feedback/position", 10);
+        this->motor_velocity_pub = ros_node.advertise<std_msgs::Float32>("feedback/velocity", 10);
     }
 
     void velocity_setpoint_cb(const cvra_msgs::MotorControlVelocity::ConstPtr& msg)
@@ -59,41 +86,6 @@ public:
         ROS_INFO("Sending velocity setpoint %.3f to node %d", msg->velocity, msg->node_id);
 
         this->send_velocity_setpoint(msg->node_id, msg->velocity);
-    }
-};
-
-class UavcanMotorFeedbackHandler {
-public:
-    uavcan::Subscriber<cvra::motor::feedback::MotorPosition> motor_position_sub;
-
-    UavcanMotorFeedbackHandler(Node& uavcan_node):
-        motor_position_sub(uavcan_node)
-    {
-        this->motor_position_sub.start(
-            [&](const uavcan::ReceivedDataStructure<cvra::motor::feedback::MotorPosition>& msg)
-            {
-                this->motor_position_sub_cb(msg);
-            }
-        );
-    }
-
-    virtual void motor_position_sub_cb(
-        const uavcan::ReceivedDataStructure<cvra::motor::feedback::MotorPosition>& msg) = 0;
-};
-
-class UavcanRosMotorFeedbackHandler : public UavcanMotorFeedbackHandler {
-public:
-    ros::Publisher motor_position_pub;
-    ros::Publisher motor_velocity_pub;
-
-    std_msgs::Float32 motor_position_msg;
-    std_msgs::Float32 motor_velocity_msg;
-
-    UavcanRosMotorFeedbackHandler(Node& uavcan_node, ros::NodeHandle& ros_node):
-        UavcanMotorFeedbackHandler(uavcan_node)
-    {
-        motor_position_pub = ros_node.advertise<std_msgs::Float32>("feedback/position", 10);
-        motor_velocity_pub = ros_node.advertise<std_msgs::Float32>("feedback/velocity", 10);
     }
 
     virtual void motor_position_sub_cb(
@@ -116,15 +108,13 @@ public:
     ros::NodeHandle ros_node;
 
     UavcanRosMotorController motor_controller;
-    UavcanRosMotorFeedbackHandler motor_feedback_handler;
 
     uavcan::Subscriber<uavcan::protocol::debug::LogMessage> uavcan_log_sub;
 
     UavcanRosBridge(int id):
         uavcan_node(getCanDriver(), getSystemClock()),
         uavcan_log_sub(this->uavcan_node),
-        motor_controller(this->uavcan_node, this->ros_node),
-        motor_feedback_handler(this->uavcan_node, this->ros_node)
+        motor_controller(this->uavcan_node, this->ros_node)
     {
         this->uavcan_id = id;
 
@@ -164,11 +154,11 @@ public:
 int main(int argc, const char** argv)
 {
     if (argc < 2) {
-        std::cerr << "Usage: " << argv[0] << " <node-id>" << std::endl;
+        std::cerr << "Usage: " << argv[0] << " <uavcan-id>" << std::endl;
         return 1;
     }
 
-    ros::init(argc, (char **)argv, "uavcan_ros_bridge");
+    ros::init(argc, (char **)argv, "uavcan_bridge");
 
     UavcanRosBridge uavcan_bridge(std::stoi(argv[1]));
 
