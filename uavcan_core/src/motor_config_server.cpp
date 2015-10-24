@@ -103,11 +103,10 @@ public:
     }
 };
 
-class UavcanRosMotorConfig {
+class UavcanRosMotorConfig : public UavcanMotorConfig {
 public:
     int node_id;
     int target_id;
-    UavcanMotorConfig uc_config_node;
 
     cvra::motor::config::LoadConfiguration::Request config_msg;
     cvra::motor::config::EnableMotor::Request enable_msg;
@@ -136,8 +135,8 @@ public:
     dynamic_reconfigure::Server<uavcan_core::EnableMotorConfig>::CallbackType f_enable;
     dynamic_reconfigure::Server<uavcan_core::FeedbackStreamConfig>::CallbackType f_stream;
 
-    UavcanRosMotorConfig(int id, int target):
-        uc_config_node(id),
+    UavcanRosMotorConfig(int uavcan_id, int target_id):
+        UavcanMotorConfig(uavcan_id),
         nh_pos_pid("~pid_position"),
         nh_vel_pid("~pid_velocity"),
         nh_cur_pid("~pid_current"),
@@ -151,8 +150,7 @@ public:
         cfg_enable(this->nh_enable),
         cfg_stream(this->nh_stream)
     {
-        this->node_id = id;
-        this->target_id = target;
+        this->target_id = target_id;
 
         this->f_pos = boost::bind(&UavcanRosMotorConfig::position_pid_cb, this, _1, _2);
         this->f_vel = boost::bind(&UavcanRosMotorConfig::velocity_pid_cb, this, _1, _2);
@@ -178,7 +176,7 @@ public:
         this->config_msg.position_pid.kd = config.d;
         this->config_msg.position_pid.ilimit = config.i_limit;
 
-        this->uc_config_node.send_config(this->target_id, this->config_msg);
+        this->send_config(this->target_id, this->config_msg);
     }
 
     bool velocity_pid_cb(uavcan_core::PIDConfig &config, uint32_t level)
@@ -190,7 +188,7 @@ public:
         this->config_msg.velocity_pid.kd = config.d;
         this->config_msg.velocity_pid.ilimit = config.i_limit;
 
-        this->uc_config_node.send_config(this->target_id, this->config_msg);
+        this->send_config(this->target_id, this->config_msg);
     }
 
     bool current_pid_cb(uavcan_core::PIDConfig &config, uint32_t level)
@@ -202,7 +200,7 @@ public:
         this->config_msg.current_pid.kd = config.d;
         this->config_msg.current_pid.ilimit = config.i_limit;
 
-        this->uc_config_node.send_config(this->target_id, this->config_msg);
+        this->send_config(this->target_id, this->config_msg);
     }
 
     bool parameters_cb(uavcan_core::MotorBoardConfig &config, uint32_t level)
@@ -237,7 +235,7 @@ public:
             case 5: this->config_msg.mode = LoadConfiguration::Request::MODE_MOTOR_POT; break;
         }
 
-        this->uc_config_node.send_config(this->target_id, this->config_msg);
+        this->send_config(this->target_id, this->config_msg);
     }
 
     bool enable_cb(uavcan_core::EnableMotorConfig &config, uint32_t level)
@@ -246,7 +244,7 @@ public:
 
         this->enable_msg.enable = config.enable;
 
-        this->uc_config_node.send_enable(this->target_id, this->enable_msg);
+        this->send_enable(this->target_id, this->enable_msg);
     }
 
     bool stream_cb(uavcan_core::FeedbackStreamConfig &config, uint32_t level)
@@ -260,49 +258,49 @@ public:
             this->stream_msg.enabled = (config.current_pid != 0);
             this->stream_msg.frequency = config.current_pid;
             this->stream_config_cached.current_pid = config.current_pid;
-            this->uc_config_node.send_stream_config(this->target_id, this->stream_msg);
+            this->send_stream_config(this->target_id, this->stream_msg);
         }
         if (this->stream_config_cached.velocity_pid != config.velocity_pid) {
             this->stream_msg.stream = FeedbackStream::Request::STREAM_VELOCITY_PID;
             this->stream_msg.enabled = (config.velocity_pid != 0);
             this->stream_msg.frequency = config.velocity_pid;
             this->stream_config_cached.velocity_pid = config.velocity_pid;
-            this->uc_config_node.send_stream_config(this->target_id, this->stream_msg);
+            this->send_stream_config(this->target_id, this->stream_msg);
         }
         if (this->stream_config_cached.position_pid != config.position_pid) {
             this->stream_msg.stream = FeedbackStream::Request::STREAM_POSITION_PID;
             this->stream_msg.enabled = (config.position_pid != 0);
             this->stream_msg.frequency = config.position_pid;
             this->stream_config_cached.position_pid = config.position_pid;
-            this->uc_config_node.send_stream_config(this->target_id, this->stream_msg);
+            this->send_stream_config(this->target_id, this->stream_msg);
         }
         if (this->stream_config_cached.index != config.index) {
             this->stream_msg.stream = FeedbackStream::Request::STREAM_INDEX;
             this->stream_msg.enabled = (config.index != 0);
             this->stream_msg.frequency = config.index;
             this->stream_config_cached.index = config.index;
-            this->uc_config_node.send_stream_config(this->target_id, this->stream_msg);
+            this->send_stream_config(this->target_id, this->stream_msg);
         }
         if (this->stream_config_cached.motor_encoder != config.motor_encoder) {
             this->stream_msg.stream = FeedbackStream::Request::STREAM_MOTOR_ENCODER;
             this->stream_msg.enabled = (config.motor_encoder != 0);
             this->stream_msg.frequency = config.motor_encoder;
             this->stream_config_cached.motor_encoder = config.motor_encoder;
-            this->uc_config_node.send_stream_config(this->target_id, this->stream_msg);
+            this->send_stream_config(this->target_id, this->stream_msg);
         }
         if (this->stream_config_cached.motor_position != config.motor_position) {
             this->stream_msg.stream = FeedbackStream::Request::STREAM_MOTOR_POSITION;
             this->stream_msg.enabled = (config.motor_position != 0);
             this->stream_msg.frequency = config.motor_position;
             this->stream_config_cached.motor_position = config.motor_position;
-            this->uc_config_node.send_stream_config(this->target_id, this->stream_msg);
+            this->send_stream_config(this->target_id, this->stream_msg);
         }
         if (this->stream_config_cached.motor_torque != config.motor_torque) {
             this->stream_msg.stream = FeedbackStream::Request::STREAM_MOTOR_TORQUE;
             this->stream_msg.enabled = (config.motor_torque != 0);
             this->stream_msg.frequency = config.motor_torque;
             this->stream_config_cached.motor_torque = config.motor_torque;
-            this->uc_config_node.send_stream_config(this->target_id, this->stream_msg);
+            this->send_stream_config(this->target_id, this->stream_msg);
         }
     }
 
@@ -310,7 +308,7 @@ public:
     {
         while (ros::ok()) {
             ros::spinOnce();
-            this->uc_config_node.spin_once();
+            this->spin_once();
         }
     }
 };
