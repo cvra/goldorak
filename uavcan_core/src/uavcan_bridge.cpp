@@ -43,14 +43,12 @@ public:
     }
 };
 
-class UavcanRosMotorController {
+class UavcanRosMotorController : public UavcanMotorController {
 public:
-    UavcanMotorController uc_motor_controller;
-
     ros::Subscriber velocity_sub;
 
     UavcanRosMotorController(Node& uavcan_node, ros::NodeHandle& ros_node):
-        uc_motor_controller(uavcan_node)
+        UavcanMotorController(uavcan_node)
     {
         this->velocity_sub = ros_node.subscribe(
             "vel_commands", 10, &UavcanRosMotorController::velocity_setpoint_cb, this);
@@ -60,7 +58,7 @@ public:
     {
         ROS_INFO("Sending velocity setpoint %.3f to node %d", msg->velocity, msg->node_id);
 
-        this->uc_motor_controller.send_velocity_setpoint(msg->node_id, msg->velocity);
+        this->send_velocity_setpoint(msg->node_id, msg->velocity);
     }
 };
 
