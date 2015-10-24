@@ -62,34 +62,47 @@ public:
     }
 };
 
-class UavcanRosMotorFeedbackHandler {
+class UavcanMotorFeedbackHandler {
 public:
-    ros::Publisher ros_motor_pub;
-    uavcan::Subscriber<cvra::motor::feedback::MotorPosition> uc_motor_sub;
-    cvra_msgs::MotorFeedbackMotorPosition ros_motor_msg;
+    uavcan::Subscriber<cvra::motor::feedback::MotorPosition> motor_position_sub;
 
-    UavcanRosMotorFeedbackHandler(Node& uc_node, ros::NodeHandle& ros_node):
-        uc_motor_sub(uc_node)
+    UavcanMotorFeedbackHandler(Node& uavcan_node):
+        motor_position_sub(uavcan_node)
     {
-        /* ROS publishers */
-        ros_motor_pub = ros_node.advertise<cvra_msgs::MotorFeedbackMotorPosition>(
-            "motor_position", 10);
-
-        /* UAVCAN subscribers */
-        const int res = uc_motor_sub.start(
+        this->motor_position_sub.start(
             [&](const uavcan::ReceivedDataStructure<cvra::motor::feedback::MotorPosition>& msg)
             {
-                ros_motor_msg.position = msg.position;
-                ros_motor_msg.velocity = msg.velocity;
-
-                ROS_INFO("Got an encoder raw position %.3f, %.3f",
-                         ros_motor_msg.position, msg.velocity);
-                ros_motor_pub.publish(ros_motor_msg);
+                this->motor_position_sub_cb(msg);
             }
         );
-        if (res < 0) {
-            throw std::runtime_error("Failed to start the velocity subscriber");
-        }
+    }
+
+    virtual void motor_position_sub_cb(
+        const uavcan::ReceivedDataStructure<cvra::motor::feedback::MotorPosition>& msg) = 0;
+};
+
+class UavcanRosMotorFeedbackHandler : public UavcanMotorFeedbackHandler {
+public:
+    ros::Publisher motor_position_pub;
+    cvra_msgs::MotorFeedbackMotorPosition motor_position_msg;
+
+    UavcanRosMotorFeedbackHandler(Node& uavcan_node, ros::NodeHandle& ros_node):
+        UavcanMotorFeedbackHandler(uavcan_node)
+    {
+        motor_position_pub =
+            ros_node.advertise<cvra_msgs::MotorFeedbackMotorPosition>("motor_position", 10);
+    }
+
+    virtual void motor_position_sub_cb(
+        const uavcan::ReceivedDataStructure<cvra::motor::feedback::MotorPosition>& msg)
+    {
+        this->motor_position_msg.position = msg.position;
+        this->motor_position_msg.velocity = msg.velocity;
+
+        ROS_INFO("Got a motor position feedback, position %.3f, velocity %.3f",
+                 this->motor_position_msg.position,
+                 this->motor_position_msg.velocity);
+        this->motor_position_pub.publish(this->motor_position_msg);
     }
 };
 
