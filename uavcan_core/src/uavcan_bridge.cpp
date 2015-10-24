@@ -9,7 +9,7 @@
 
 #include "ros/ros.h"
 #include "cvra_msgs/MotorControlVelocity.h"
-#include "cvra_msgs/MotorFeedbackMotorPosition.h"
+#include "std_msgs/Float32.h"
 
 extern uavcan::ICanDriver& getCanDriver();
 extern uavcan::ISystemClock& getSystemClock();
@@ -84,25 +84,30 @@ public:
 class UavcanRosMotorFeedbackHandler : public UavcanMotorFeedbackHandler {
 public:
     ros::Publisher motor_position_pub;
-    cvra_msgs::MotorFeedbackMotorPosition motor_position_msg;
+    ros::Publisher motor_velocity_pub;
+
+    std_msgs::Float32 motor_position_msg;
+    std_msgs::Float32 motor_velocity_msg;
 
     UavcanRosMotorFeedbackHandler(Node& uavcan_node, ros::NodeHandle& ros_node):
         UavcanMotorFeedbackHandler(uavcan_node)
     {
-        motor_position_pub =
-            ros_node.advertise<cvra_msgs::MotorFeedbackMotorPosition>("motor_position", 10);
+        motor_position_pub = ros_node.advertise<std_msgs::Float32>("feedback/position", 10);
+        motor_velocity_pub = ros_node.advertise<std_msgs::Float32>("feedback/velocity", 10);
     }
 
     virtual void motor_position_sub_cb(
         const uavcan::ReceivedDataStructure<cvra::motor::feedback::MotorPosition>& msg)
     {
-        this->motor_position_msg.position = msg.position;
-        this->motor_position_msg.velocity = msg.velocity;
+        this->motor_position_msg.data = msg.position;
+        this->motor_velocity_msg.data = msg.velocity;
 
-        ROS_INFO("Got a motor position feedback, position %.3f, velocity %.3f",
-                 this->motor_position_msg.position,
-                 this->motor_position_msg.velocity);
+        ROS_INFO("Got a motor position feedback, position: %.3f, velocity: %.3f",
+                 this->motor_position_msg.data,
+                 this->motor_velocity_msg.data);
+
         this->motor_position_pub.publish(this->motor_position_msg);
+        this->motor_velocity_pub.publish(this->motor_velocity_msg);
     }
 };
 
