@@ -18,39 +18,49 @@ constexpr unsigned NodeMemoryPoolSize = 16384;
 typedef uavcan::Node<NodeMemoryPoolSize> Node;
 
 
-class UavcanRosMotorController {
+class UavcanMotorController {
 public:
-    ros::Subscriber ros_velocity_sub;
-    uavcan::Publisher<cvra::motor::control::Velocity> uc_velocity_pub;
-    cvra::motor::control::Velocity uc_velocity_msg;
+    uavcan::Publisher<cvra::motor::control::Velocity> velocity_pub;
+    cvra::motor::control::Velocity velocity_msg;
 
-    UavcanRosMotorController(Node& uc_node, ros::NodeHandle& ros_node):
-        uc_velocity_pub(uc_node)
+    UavcanMotorController(Node& uavcan_node):
+        velocity_pub(uavcan_node)
     {
-        /* ROS subscribers */
-        ros_velocity_sub = ros_node.subscribe(
-            "vel_commands", 10, &UavcanRosMotorController::velocityCallback, this);
-
-        /* UAVCAN publishers */
-        const int vel_pub_init_res = uc_velocity_pub.init();
+        const int vel_pub_init_res = this->velocity_pub.init();
         if (vel_pub_init_res < 0) {
             throw std::runtime_error("Failed to start the publisher");
         }
-        uc_velocity_pub.setTxTimeout(uavcan::MonotonicDuration::fromMSec(1000));
-        uc_velocity_pub.setPriority(uavcan::TransferPriority::MiddleLower);
+        this->velocity_pub.setTxTimeout(uavcan::MonotonicDuration::fromMSec(1000));
+        this->velocity_pub.setPriority(uavcan::TransferPriority::MiddleLower);
     }
 
-    void velocityCallback(const cvra_msgs::MotorControlVelocity::ConstPtr& msg)
+    void send_velocity_setpoint(int node_id, float velocity)
     {
-        uc_velocity_msg.velocity = msg->velocity;
-        uc_velocity_msg.node_id = msg->node_id;
+        this->velocity_msg.velocity = velocity;
+        this->velocity_msg.node_id = node_id;
 
-        ROS_INFO("I heard: [%f]", msg->velocity);
+        this->velocity_pub.broadcast(this->velocity_msg);
+    }
+};
 
-        const int pub_res = uc_velocity_pub.broadcast(uc_velocity_msg);
-        if (pub_res < 0) {
-            std::cerr << "Vel publication failure: " << pub_res << std::endl;
-        }
+class UavcanRosMotorController {
+public:
+    UavcanMotorController uc_motor_controller;
+
+    ros::Subscriber velocity_sub;
+
+    UavcanRosMotorController(Node& uavcan_node, ros::NodeHandle& ros_node):
+        uc_motor_controller(uavcan_node)
+    {
+        this->velocity_sub = ros_node.subscribe(
+            "vel_commands", 10, &UavcanRosMotorController::velocity_setpoint_cb, this);
+    }
+
+    void velocity_setpoint_cb(const cvra_msgs::MotorControlVelocity::ConstPtr& msg)
+    {
+        ROS_INFO("Sending velocity setpoint %.3f to node %d", msg->velocity, msg->node_id);
+
+        this->uc_motor_controller.send_velocity_setpoint(msg->node_id, msg->velocity);
     }
 };
 
