@@ -61,10 +61,12 @@ public:
 
 class UavcanRosMotorController : public UavcanMotorController {
 public:
-    ros::Subscriber velocity_sub;
+    std::map<std::string, int> uavcan_nodes;
 
-    ros::Publisher motor_position_pub;
-    ros::Publisher motor_velocity_pub;
+    std::map<int, ros::Subscriber> velocity_sub;
+
+    std::map<int, ros::Publisher> motor_position_pub;
+    std::map<int, ros::Publisher> motor_velocity_pub;
 
     std_msgs::Float32 motor_position_msg;
     std_msgs::Float32 motor_velocity_msg;
@@ -72,13 +74,22 @@ public:
     UavcanRosMotorController(Node& uavcan_node, ros::NodeHandle& ros_node):
         UavcanMotorController(uavcan_node)
     {
-        /* Intiialise ROS subscribers (setpoint sending) */
-        this->velocity_sub = ros_node.subscribe(
-            "vel_commands", 10, &UavcanRosMotorController::velocity_setpoint_cb, this);
+        /* Get list of UAVCAN nodes (names with IDs) */
+        ros_node.getParam("/uavcan_nodes", this->uavcan_nodes);
 
-        /* Intiialise ROS publishers (feedback stream) */
-        this->motor_position_pub = ros_node.advertise<std_msgs::Float32>("feedback/position", 10);
-        this->motor_velocity_pub = ros_node.advertise<std_msgs::Float32>("feedback/velocity", 10);
+        /* For each node, initialise publishers and subscribers needed */
+        for (const auto& elem : this->uavcan_nodes) {
+            /* Intiialise ROS subscribers (setpoint sending) */
+            this->velocity_sub[elem.second] = ros_node.subscribe(
+                elem.first + "/setpoint/velocity", 10,
+                &UavcanRosMotorController::velocity_setpoint_cb, this);
+
+            /* Intiialise ROS publishers (feedback stream) */
+            this->motor_position_pub[elem.second] =
+                ros_node.advertise<std_msgs::Float32>(elem.first + "/feedback/position", 10);
+            this->motor_velocity_pub[elem.second] =
+                ros_node.advertise<std_msgs::Float32>(elem.first + "/feedback/velocity", 10);
+        }
     }
 
     void velocity_setpoint_cb(const cvra_msgs::MotorControlVelocity::ConstPtr& msg)
@@ -91,13 +102,18 @@ public:
     virtual void motor_position_sub_cb(
         const uavcan::ReceivedDataStructure<cvra::motor::feedback::MotorPosition>& msg)
     {
-        ROS_INFO("Got motor position and velocity feedback");
+        int motor_id = msg.getSrcNodeID().get();
 
-        this->motor_position_msg.data = msg.position;
-        this->motor_velocity_msg.data = msg.velocity;
+        /* Check that the source node has an associated publisher */
+        if (motor_position_pub.count(motor_id) && motor_velocity_pub.count(motor_id)) {
+            ROS_INFO("Got motor position and velocity feedback");
 
-        this->motor_position_pub.publish(this->motor_position_msg);
-        this->motor_velocity_pub.publish(this->motor_velocity_msg);
+            this->motor_position_msg.data = msg.position;
+            this->motor_velocity_msg.data = msg.velocity;
+
+            this->motor_position_pub[motor_id].publish(this->motor_position_msg);
+            this->motor_velocity_pub[motor_id].publish(this->motor_velocity_msg);
+        }
     }
 };
 
