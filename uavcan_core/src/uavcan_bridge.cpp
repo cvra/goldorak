@@ -25,61 +25,61 @@ typedef uavcan::Node<NodeMemoryPoolSize> Node;
 
 class UavcanMotorController {
 public:
-    uavcan::Publisher<cvra::motor::control::Velocity> velocity_pub;
+    uavcan::Publisher<cvra::motor::control::Velocity> velocity_setpt_pub;
 
-    uavcan::Subscriber<cvra::motor::feedback::MotorPosition> motor_position_sub;
-    uavcan::Subscriber<cvra::motor::feedback::MotorTorque> motor_torque_sub;
-    uavcan::Subscriber<cvra::motor::feedback::MotorEncoderPosition> motor_encoder_sub;
-    uavcan::Subscriber<cvra::motor::feedback::Index> motor_index_sub;
-    uavcan::Subscriber<cvra::motor::feedback::CurrentPID> motor_current_pid_sub;
+    uavcan::Subscriber<cvra::motor::feedback::MotorPosition> position_sub;
+    uavcan::Subscriber<cvra::motor::feedback::MotorTorque> torque_sub;
+    uavcan::Subscriber<cvra::motor::feedback::MotorEncoderPosition> encoder_sub;
+    uavcan::Subscriber<cvra::motor::feedback::Index> index_sub;
+    uavcan::Subscriber<cvra::motor::feedback::CurrentPID> current_pid_sub;
 
     cvra::motor::control::Velocity velocity_msg;
 
     UavcanMotorController(Node& uavcan_node):
-        velocity_pub(uavcan_node),
-        motor_position_sub(uavcan_node),
-        motor_torque_sub(uavcan_node),
-        motor_encoder_sub(uavcan_node),
-        motor_index_sub(uavcan_node),
-        motor_current_pid_sub(uavcan_node)
+        velocity_setpt_pub(uavcan_node),
+        position_sub(uavcan_node),
+        torque_sub(uavcan_node),
+        encoder_sub(uavcan_node),
+        index_sub(uavcan_node),
+        current_pid_sub(uavcan_node)
     {
         /* Initialise UAVCAN publishers (setpoint sending) */
         const int vel_pub_init_res = this->velocity_pub.init();
         if (vel_pub_init_res < 0) {
             throw std::runtime_error("Failed to start the publisher");
         }
-        this->velocity_pub.setTxTimeout(uavcan::MonotonicDuration::fromMSec(1000));
-        this->velocity_pub.setPriority(uavcan::TransferPriority::MiddleLower);
+        this->velocity_setpt_pub.setTxTimeout(uavcan::MonotonicDuration::fromMSec(1000));
+        this->velocity_setpt_pub.setPriority(uavcan::TransferPriority::MiddleLower);
 
         /* Intiialise UAVCAN subscribers (feedback stream) */
-        this->motor_position_sub.start(
+        this->position_sub.start(
             [&](const uavcan::ReceivedDataStructure<cvra::motor::feedback::MotorPosition>& msg)
             {
-                this->motor_position_sub_cb(msg);
+                this->position_sub_cb(msg);
             }
         );
-        this->motor_torque_sub.start(
+        this->torque_sub.start(
             [&](const uavcan::ReceivedDataStructure<cvra::motor::feedback::MotorTorque>& msg)
             {
-                this->motor_torque_sub_cb(msg);
+                this->torque_sub_cb(msg);
             }
         );
-        this->motor_encoder_sub.start(
+        this->encoder_sub.start(
             [&](const uavcan::ReceivedDataStructure<cvra::motor::feedback::MotorEncoderPosition>& msg)
             {
-                this->motor_encoder_sub_cb(msg);
+                this->encoder_sub_cb(msg);
             }
         );
-        this->motor_index_sub.start(
+        this->index_sub.start(
             [&](const uavcan::ReceivedDataStructure<cvra::motor::feedback::Index>& msg)
             {
-                this->motor_index_sub_cb(msg);
+                this->index_sub_cb(msg);
             }
         );
-        this->motor_current_pid_sub.start(
+        this->current_pid_sub.start(
             [&](const uavcan::ReceivedDataStructure<cvra::motor::feedback::CurrentPID>& msg)
             {
-                this->motor_current_pid_sub_cb(msg);
+                this->current_pid_sub_cb(msg);
             }
         );
     }
@@ -89,18 +89,18 @@ public:
         this->velocity_msg.velocity = velocity;
         this->velocity_msg.node_id = node_id;
 
-        this->velocity_pub.broadcast(this->velocity_msg);
+        this->velocity_setpt_pub.broadcast(this->velocity_msg);
     }
 
-    virtual void motor_position_sub_cb(
+    virtual void position_sub_cb(
         const uavcan::ReceivedDataStructure<cvra::motor::feedback::MotorPosition>& msg) = 0;
-    virtual void motor_torque_sub_cb(
+    virtual void torque_sub_cb(
         const uavcan::ReceivedDataStructure<cvra::motor::feedback::MotorTorque>& msg) = 0;
-    virtual void motor_encoder_sub_cb(
+    virtual void encoder_sub_cb(
         const uavcan::ReceivedDataStructure<cvra::motor::feedback::MotorEncoderPosition>& msg) = 0;
-    virtual void motor_index_sub_cb(
+    virtual void index_sub_cb(
         const uavcan::ReceivedDataStructure<cvra::motor::feedback::Index>& msg) = 0;
-    virtual void motor_current_pid_sub_cb(
+    virtual void current_pid_sub_cb(
         const uavcan::ReceivedDataStructure<cvra::motor::feedback::CurrentPID>& msg) = 0;
 };
 
@@ -108,21 +108,21 @@ class UavcanRosMotorController : public UavcanMotorController {
 public:
     std::map<std::string, int> uavcan_nodes;
 
-    std::map<int, ros::Subscriber> velocity_sub;
+    std::map<int, ros::Subscriber> velocity_setpt_sub;
 
-    std::map<int, ros::Publisher> motor_position_pub;
-    std::map<int, ros::Publisher> motor_velocity_pub;
-    std::map<int, ros::Publisher> motor_torque_pub;
-    std::map<int, ros::Publisher> motor_encoder_pub;
-    std::map<int, ros::Publisher> motor_index_pub;
-    std::map<int, ros::Publisher> motor_current_pid_pub;
+    std::map<int, ros::Publisher> position_pub;
+    std::map<int, ros::Publisher> velocity_pub;
+    std::map<int, ros::Publisher> torque_pub;
+    std::map<int, ros::Publisher> encoder_pub;
+    std::map<int, ros::Publisher> index_pub;
+    std::map<int, ros::Publisher> current_pid_pub;
 
-    std_msgs::Float32 motor_position_msg;
-    std_msgs::Float32 motor_velocity_msg;
-    std_msgs::Float32 motor_torque_msg;
-    std_msgs::Float32 motor_encoder_msg;
-    std_msgs::Float32 motor_index_msg;
-    cvra_msgs::MotorFeedbackPID motor_current_pid_msg;
+    std_msgs::Float32 position_msg;
+    std_msgs::Float32 velocity_msg;
+    std_msgs::Float32 torque_msg;
+    std_msgs::Float32 encoder_msg;
+    std_msgs::Float32 index_msg;
+    cvra_msgs::MotorFeedbackPID current_pid_msg;
 
     UavcanRosMotorController(Node& uavcan_node, ros::NodeHandle& ros_node):
         UavcanMotorController(uavcan_node)
@@ -133,22 +133,22 @@ public:
         /* For each node, initialise publishers and subscribers needed */
         for (const auto& elem : this->uavcan_nodes) {
             /* Intiialise ROS subscribers (setpoint sending) */
-            this->velocity_sub[elem.second] = ros_node.subscribe(
+            this->velocity_setpt_sub[elem.second] = ros_node.subscribe(
                 elem.first + "/setpoint/velocity", 10,
                 &UavcanRosMotorController::velocity_setpoint_cb, this);
 
             /* Intiialise ROS publishers (feedback stream) */
-            this->motor_position_pub[elem.second] =
+            this->position_pub[elem.second] =
                 ros_node.advertise<std_msgs::Float32>(elem.first + "/feedback/position", 10);
-            this->motor_velocity_pub[elem.second] =
+            this->velocity_pub[elem.second] =
                 ros_node.advertise<std_msgs::Float32>(elem.first + "/feedback/velocity", 10);
-            this->motor_torque_pub[elem.second] =
+            this->torque_pub[elem.second] =
                 ros_node.advertise<std_msgs::Float32>(elem.first + "/feedback/torque", 10);
-            this->motor_encoder_pub[elem.second] =
+            this->encoder_pub[elem.second] =
                 ros_node.advertise<std_msgs::Float32>(elem.first + "/feedback/encoder_raw", 10);
-            this->motor_index_pub[elem.second] =
+            this->index_pub[elem.second] =
                 ros_node.advertise<std_msgs::Float32>(elem.first + "/feedback/index", 10);
-            this->motor_current_pid_pub[elem.second] =
+            this->current_pid_pub[elem.second] =
                 ros_node.advertise<cvra_msgs::MotorFeedbackPID>(elem.first + "/feedback_pid/current", 10);
         }
     }
@@ -160,73 +160,73 @@ public:
         this->send_velocity_setpoint(msg->node_id, msg->velocity);
     }
 
-    virtual void motor_position_sub_cb(
+    virtual void position_sub_cb(
         const uavcan::ReceivedDataStructure<cvra::motor::feedback::MotorPosition>& msg)
     {
-        int motor_id = msg.getSrcNodeID().get();
+        int id = msg.getSrcNodeID().get();
 
         /* Check that the source node has an associated publisher */
-        if (motor_position_pub.count(motor_id) && motor_velocity_pub.count(motor_id)) {
+        if (position_pub.count(id) && velocity_pub.count(id)) {
             ROS_INFO("Got motor position and velocity feedback");
 
-            this->motor_position_msg.data = msg.position;
-            this->motor_velocity_msg.data = msg.velocity;
+            this->position_msg.data = msg.position;
+            this->velocity_msg.data = msg.velocity;
 
-            this->motor_position_pub[motor_id].publish(this->motor_position_msg);
-            this->motor_velocity_pub[motor_id].publish(this->motor_velocity_msg);
+            this->position_pub[id].publish(this->position_msg);
+            this->velocity_pub[id].publish(this->velocity_msg);
         }
     }
 
-    virtual void motor_torque_sub_cb(
+    virtual void torque_sub_cb(
         const uavcan::ReceivedDataStructure<cvra::motor::feedback::MotorTorque>& msg)
     {
-        int motor_id = msg.getSrcNodeID().get();
+        int id = msg.getSrcNodeID().get();
 
         /* Check that the source node has an associated publisher */
-        if (motor_torque_pub.count(motor_id)) {
+        if (torque_pub.count(id)) {
             ROS_INFO("Got motor torque feedback");
-            this->motor_torque_msg.data = msg.torque;
-            this->motor_torque_pub[motor_id].publish(this->motor_torque_msg);
+            this->torque_msg.data = msg.torque;
+            this->torque_pub[id].publish(this->torque_msg);
         }
     }
 
-    virtual void motor_encoder_sub_cb(
+    virtual void encoder_sub_cb(
         const uavcan::ReceivedDataStructure<cvra::motor::feedback::MotorEncoderPosition>& msg)
     {
-        int motor_id = msg.getSrcNodeID().get();
+        int id = msg.getSrcNodeID().get();
 
         /* Check that the source node has an associated publisher */
-        if (motor_encoder_pub.count(motor_id)) {
+        if (encoder_pub.count(id)) {
             ROS_INFO("Got motor raw encoder feedback");
-            this->motor_encoder_msg.data = msg.raw_encoder_position;
-            this->motor_encoder_pub[motor_id].publish(this->motor_encoder_msg);
+            this->encoder_msg.data = msg.raw_encoder_position;
+            this->encoder_pub[id].publish(this->encoder_msg);
         }
     }
 
-    virtual void motor_index_sub_cb(
+    virtual void index_sub_cb(
         const uavcan::ReceivedDataStructure<cvra::motor::feedback::Index>& msg)
     {
-        int motor_id = msg.getSrcNodeID().get();
+        int id = msg.getSrcNodeID().get();
 
         /* Check that the source node has an associated publisher */
-        if (motor_index_pub.count(motor_id)) {
+        if (index_pub.count(id)) {
             ROS_INFO("Got motor index feedback");
-            this->motor_index_msg.data = msg.position;
-            this->motor_index_pub[motor_id].publish(this->motor_index_msg);
+            this->index_msg.data = msg.position;
+            this->index_pub[id].publish(this->index_msg);
         }
     }
 
-    virtual void motor_current_pid_sub_cb(
+    virtual void current_pid_sub_cb(
         const uavcan::ReceivedDataStructure<cvra::motor::feedback::CurrentPID>& msg)
     {
-        int motor_id = msg.getSrcNodeID().get();
+        int id = msg.getSrcNodeID().get();
 
         /* Check that the source node has an associated publisher */
-        if (motor_current_pid_pub.count(motor_id)) {
+        if (current_pid_pub.count(id)) {
             ROS_INFO("Got motor raw encoder feedback");
-            this->motor_current_pid_msg.setpoint = msg.current_setpoint;
-            this->motor_current_pid_msg.measured = msg.current;
-            this->motor_current_pid_pub[motor_id].publish(this->motor_current_pid_msg);
+            this->current_pid_msg.setpoint = msg.current_setpoint;
+            this->current_pid_msg.measured = msg.current;
+            this->current_pid_pub[id].publish(this->current_pid_msg);
         }
     }
 };
