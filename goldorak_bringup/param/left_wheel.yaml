@@ -2,41 +2,41 @@ motor_control_config:
     enable:
         enable: false
     parameters:
-        acceleration_limit: 1.0
-        low_batt_th: 0.0
-        max_temperature: 0.0
-        mode: 3
+        mode: 2
         motor_encoder_steps_per_revolution: 4096
-        potentiometer_gain: 0.0
         second_encoder_steps_per_revolution: 16384
-        thermal_capacity: 0.0
-        thermal_current_gain: 0.0
-        thermal_resistance: 0.0
-        torque_constant: 0.0
-        torque_limit: 1.0
-        transmission_ratio_p: 10
-        transmission_ratio_q: 20
-        velocity_limit: 1.0
+        transmission_ratio_p: 49
+        transmission_ratio_q: 676
+        low_batt_th: 5.
+        acceleration_limit: 100.
+        velocity_limit: 50.
+        torque_limit: 14.
+        torque_constant: 1.
+        potentiometer_gain: 0.
+        max_temperature: 100.
+        thermal_capacity: 0.
+        thermal_resistance: 0.
+        thermal_current_gain: 0.
     pid_current:
-        d: 0.0
-        i: 0.0
-        i_limit: 0.0
-        p: 0.0
+        d: 0.
+        i: 0.
+        i_limit: 0.
+        p: 0.
     pid_position:
-        d: 0.0
-        i: 0.0
-        i_limit: 0.0
-        p: 0.0
+        d: 0.
+        i: 0.
+        i_limit: 0.
+        p: 0.
     pid_velocity:
-        d: 0.0
-        i: 0.0
-        i_limit: 0.0
-        p: 0.0
+        d: 0.
+        i: 0.
+        i_limit: 0.
+        p: 0.
     stream:
-        current_pid: 0
-        index: 0
-        motor_encoder: 20
+        motor_encoder: 100
         motor_position: 20
         motor_torque: 0
-        position_pid: 0
+        index: 0
+        current_pid: 0
         velocity_pid: 0
+        position_pid: 0
