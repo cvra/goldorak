@@ -4,7 +4,10 @@
 
 #include <uavcan/uavcan.hpp>
 #include <uavcan/protocol/debug/LogMessage.hpp>
+
 #include <cvra/motor/control/Velocity.hpp>
+#include <cvra/motor/control/Torque.hpp>
+
 #include <cvra/motor/feedback/MotorPosition.hpp>
 #include <cvra/motor/feedback/MotorTorque.hpp>
 #include <cvra/motor/feedback/MotorEncoderPosition.hpp>
@@ -28,6 +31,7 @@ typedef uavcan::Node<NodeMemoryPoolSize> Node;
 class UavcanMotorController {
 public:
     uavcan::Publisher<cvra::motor::control::Velocity> velocity_setpt_pub;
+    uavcan::Publisher<cvra::motor::control::Torque> torque_setpt_pub;
 
     uavcan::Subscriber<cvra::motor::feedback::MotorPosition> position_sub;
     uavcan::Subscriber<cvra::motor::feedback::MotorTorque> torque_sub;
@@ -38,9 +42,11 @@ public:
     uavcan::Subscriber<cvra::motor::feedback::VelocityPID> velocity_pid_sub;
 
     cvra::motor::control::Velocity velocity_msg;
+    cvra::motor::control::Torque torque_msg;
 
     UavcanMotorController(Node& uavcan_node):
         velocity_setpt_pub(uavcan_node),
+        torque_setpt_pub(uavcan_node),
         position_sub(uavcan_node),
         torque_sub(uavcan_node),
         encoder_sub(uavcan_node),
@@ -56,6 +62,13 @@ public:
         }
         this->velocity_setpt_pub.setTxTimeout(uavcan::MonotonicDuration::fromMSec(1000));
         this->velocity_setpt_pub.setPriority(uavcan::TransferPriority::MiddleLower);
+
+        const int trq_pub_init_res = this->torque_setpt_pub.init();
+        if (trq_pub_init_res < 0) {
+            throw std::runtime_error("Failed to start the torque setpoint publisher");
+        }
+        this->torque_setpt_pub.setTxTimeout(uavcan::MonotonicDuration::fromMSec(1000));
+        this->torque_setpt_pub.setPriority(uavcan::TransferPriority::MiddleLower);
 
         /* Intiialise UAVCAN subscribers (feedback stream) */
         this->position_sub.start(
@@ -108,6 +121,14 @@ public:
         this->velocity_msg.node_id = node_id;
 
         this->velocity_setpt_pub.broadcast(this->velocity_msg);
+    }
+
+    void send_torque_setpoint(int node_id, float torque)
+    {
+        this->torque_msg.torque = torque;
+        this->torque_msg.node_id = node_id;
+
+        this->torque_setpt_pub.broadcast(this->torque_msg);
     }
 
     virtual void position_sub_cb(
@@ -192,6 +213,9 @@ public:
             switch (msg->mode) {
                 case cvra_msgs::MotorControlSetpoint::MODE_CONTROL_VELOCITY: {
                     this->send_velocity_setpoint(id, msg->velocity);
+                } break;
+                case cvra_msgs::MotorControlSetpoint::MODE_CONTROL_TORQUE: {
+                    this->send_torque_setpoint(id, msg->torque);
                 } break;
             }
         } else {
