@@ -6,6 +6,7 @@
 #include <cvra/motor/control/Velocity.hpp>
 #include <cvra/motor/feedback/MotorPosition.hpp>
 #include <cvra/motor/feedback/MotorTorque.hpp>
+#include <cvra/motor/feedback/MotorEncoderPosition.hpp>
 #include <uavcan/protocol/debug/LogMessage.hpp>
 
 #include "ros/ros.h"
@@ -25,13 +26,15 @@ public:
 
     uavcan::Subscriber<cvra::motor::feedback::MotorPosition> motor_position_sub;
     uavcan::Subscriber<cvra::motor::feedback::MotorTorque> motor_torque_sub;
+    uavcan::Subscriber<cvra::motor::feedback::MotorEncoderPosition> motor_encoder_sub;
 
     cvra::motor::control::Velocity velocity_msg;
 
     UavcanMotorController(Node& uavcan_node):
         velocity_pub(uavcan_node),
         motor_position_sub(uavcan_node),
-        motor_torque_sub(uavcan_node)
+        motor_torque_sub(uavcan_node),
+        motor_encoder_sub(uavcan_node)
     {
         /* Initialise UAVCAN publishers (setpoint sending) */
         const int vel_pub_init_res = this->velocity_pub.init();
@@ -54,6 +57,12 @@ public:
                 this->motor_torque_sub_cb(msg);
             }
         );
+        this->motor_encoder_sub.start(
+            [&](const uavcan::ReceivedDataStructure<cvra::motor::feedback::MotorEncoderPosition>& msg)
+            {
+                this->motor_encoder_sub_cb(msg);
+            }
+        );
     }
 
     void send_velocity_setpoint(int node_id, float velocity)
@@ -68,6 +77,8 @@ public:
         const uavcan::ReceivedDataStructure<cvra::motor::feedback::MotorPosition>& msg) = 0;
     virtual void motor_torque_sub_cb(
         const uavcan::ReceivedDataStructure<cvra::motor::feedback::MotorTorque>& msg) = 0;
+    virtual void motor_encoder_sub_cb(
+        const uavcan::ReceivedDataStructure<cvra::motor::feedback::MotorEncoderPosition>& msg) = 0;
 };
 
 class UavcanRosMotorController : public UavcanMotorController {
@@ -79,10 +90,12 @@ public:
     std::map<int, ros::Publisher> motor_position_pub;
     std::map<int, ros::Publisher> motor_velocity_pub;
     std::map<int, ros::Publisher> motor_torque_pub;
+    std::map<int, ros::Publisher> motor_encoder_pub;
 
     std_msgs::Float32 motor_position_msg;
     std_msgs::Float32 motor_velocity_msg;
     std_msgs::Float32 motor_torque_msg;
+    std_msgs::Float32 motor_encoder_msg;
 
     UavcanRosMotorController(Node& uavcan_node, ros::NodeHandle& ros_node):
         UavcanMotorController(uavcan_node)
@@ -104,6 +117,8 @@ public:
                 ros_node.advertise<std_msgs::Float32>(elem.first + "/feedback/velocity", 10);
             this->motor_torque_pub[elem.second] =
                 ros_node.advertise<std_msgs::Float32>(elem.first + "/feedback/torque", 10);
+            this->motor_encoder_pub[elem.second] =
+                ros_node.advertise<std_msgs::Float32>(elem.first + "/feedback/encoder_raw", 10);
         }
     }
 
@@ -139,10 +154,21 @@ public:
         /* Check that the source node has an associated publisher */
         if (motor_torque_pub.count(motor_id)) {
             ROS_INFO("Got motor torque feedback");
-
             this->motor_torque_msg.data = msg.torque;
-
             this->motor_torque_pub[motor_id].publish(this->motor_torque_msg);
+        }
+    }
+
+    virtual void motor_encoder_sub_cb(
+        const uavcan::ReceivedDataStructure<cvra::motor::feedback::MotorEncoderPosition>& msg)
+    {
+        int motor_id = msg.getSrcNodeID().get();
+
+        /* Check that the source node has an associated publisher */
+        if (motor_encoder_pub.count(motor_id)) {
+            ROS_INFO("Got motor raw encoder feedback");
+            this->motor_encoder_msg.data = msg.raw_encoder_position;
+            this->motor_encoder_pub[motor_id].publish(this->motor_encoder_msg);
         }
     }
 };
