@@ -5,8 +5,11 @@
 #include <uavcan/uavcan.hpp>
 #include <uavcan/protocol/debug/LogMessage.hpp>
 
+#include <cvra/motor/control/Trajectory.hpp>
+#include <cvra/motor/control/Position.hpp>
 #include <cvra/motor/control/Velocity.hpp>
 #include <cvra/motor/control/Torque.hpp>
+#include <cvra/motor/control/Voltage.hpp>
 
 #include <cvra/motor/feedback/MotorPosition.hpp>
 #include <cvra/motor/feedback/MotorTorque.hpp>
@@ -30,8 +33,11 @@ typedef uavcan::Node<NodeMemoryPoolSize> Node;
 
 class UavcanMotorController {
 public:
+    uavcan::Publisher<cvra::motor::control::Trajectory> trajectory_setpt_pub;
+    uavcan::Publisher<cvra::motor::control::Position> position_setpt_pub;
     uavcan::Publisher<cvra::motor::control::Velocity> velocity_setpt_pub;
     uavcan::Publisher<cvra::motor::control::Torque> torque_setpt_pub;
+    uavcan::Publisher<cvra::motor::control::Voltage> voltage_setpt_pub;
 
     uavcan::Subscriber<cvra::motor::feedback::MotorPosition> position_sub;
     uavcan::Subscriber<cvra::motor::feedback::MotorTorque> torque_sub;
@@ -41,12 +47,18 @@ public:
     uavcan::Subscriber<cvra::motor::feedback::PositionPID> position_pid_sub;
     uavcan::Subscriber<cvra::motor::feedback::VelocityPID> velocity_pid_sub;
 
+    cvra::motor::control::Trajectory trajectory_msg;
+    cvra::motor::control::Position position_msg;
     cvra::motor::control::Velocity velocity_msg;
     cvra::motor::control::Torque torque_msg;
+    cvra::motor::control::Voltage voltage_msg;
 
     UavcanMotorController(Node& uavcan_node):
+        trajectory_setpt_pub(uavcan_node),
+        position_setpt_pub(uavcan_node),
         velocity_setpt_pub(uavcan_node),
         torque_setpt_pub(uavcan_node),
+        voltage_setpt_pub(uavcan_node),
         position_sub(uavcan_node),
         torque_sub(uavcan_node),
         encoder_sub(uavcan_node),
@@ -56,6 +68,20 @@ public:
         velocity_pid_sub(uavcan_node)
     {
         /* Initialise UAVCAN publishers (setpoint sending) */
+        const int traj_pub_init_res = this->trajectory_setpt_pub.init();
+        if (traj_pub_init_res < 0) {
+            throw std::runtime_error("Failed to start the trajectory setpoint publisher");
+        }
+        this->trajectory_setpt_pub.setTxTimeout(uavcan::MonotonicDuration::fromMSec(1000));
+        this->trajectory_setpt_pub.setPriority(uavcan::TransferPriority::MiddleLower);
+
+        const int pos_pub_init_res = this->position_setpt_pub.init();
+        if (pos_pub_init_res < 0) {
+            throw std::runtime_error("Failed to start the position setpoint publisher");
+        }
+        this->position_setpt_pub.setTxTimeout(uavcan::MonotonicDuration::fromMSec(1000));
+        this->position_setpt_pub.setPriority(uavcan::TransferPriority::MiddleLower);
+
         const int vel_pub_init_res = this->velocity_setpt_pub.init();
         if (vel_pub_init_res < 0) {
             throw std::runtime_error("Failed to start the velocity setpoint publisher");
@@ -69,6 +95,13 @@ public:
         }
         this->torque_setpt_pub.setTxTimeout(uavcan::MonotonicDuration::fromMSec(1000));
         this->torque_setpt_pub.setPriority(uavcan::TransferPriority::MiddleLower);
+
+        const int volt_pub_init_res = this->voltage_setpt_pub.init();
+        if (volt_pub_init_res < 0) {
+            throw std::runtime_error("Failed to start the voltage setpoint publisher");
+        }
+        this->voltage_setpt_pub.setTxTimeout(uavcan::MonotonicDuration::fromMSec(1000));
+        this->voltage_setpt_pub.setPriority(uavcan::TransferPriority::MiddleLower);
 
         /* Intiialise UAVCAN subscribers (feedback stream) */
         this->position_sub.start(
@@ -115,20 +148,51 @@ public:
         );
     }
 
+    void send_trajectory_setpoint(int node_id,
+                                  float position,
+                                  float velocity,
+                                  float acceleration,
+                                  float torque)
+    {
+        this->trajectory_msg.node_id = node_id;
+        this->trajectory_msg.position = position;
+        this->trajectory_msg.velocity = velocity;
+        this->trajectory_msg.acceleration = acceleration;
+        this->trajectory_msg.torque = torque;
+
+        this->trajectory_setpt_pub.broadcast(this->trajectory_msg);
+    }
+
+    void send_position_setpoint(int node_id, float position)
+    {
+        this->position_msg.node_id = node_id;
+        this->position_msg.position = position;
+
+        this->position_setpt_pub.broadcast(this->position_msg);
+    }
+
     void send_velocity_setpoint(int node_id, float velocity)
     {
-        this->velocity_msg.velocity = velocity;
         this->velocity_msg.node_id = node_id;
+        this->velocity_msg.velocity = velocity;
 
         this->velocity_setpt_pub.broadcast(this->velocity_msg);
     }
 
     void send_torque_setpoint(int node_id, float torque)
     {
-        this->torque_msg.torque = torque;
         this->torque_msg.node_id = node_id;
+        this->torque_msg.torque = torque;
 
         this->torque_setpt_pub.broadcast(this->torque_msg);
+    }
+
+    void send_voltage_setpoint(int node_id, float voltage)
+    {
+        this->voltage_msg.node_id = node_id;
+        this->voltage_msg.voltage = voltage;
+
+        this->voltage_setpt_pub.broadcast(this->voltage_msg);
     }
 
     virtual void position_sub_cb(
@@ -208,18 +272,38 @@ public:
     {
         if (uavcan_nodes.count(msg->node_name)) {
             static int id = uavcan_nodes[msg->node_name];
-            ROS_INFO("Sending setpoint to node %d", id);
 
             switch (msg->mode) {
+                case cvra_msgs::MotorControlSetpoint::MODE_CONTROL_TRAJECTORY: {
+                    ROS_INFO("Sending trajectory setpoint to node %d", id);
+                    this->send_trajectory_setpoint(id,
+                                                   msg->position,
+                                                   msg->velocity,
+                                                   msg->acceleration,
+                                                   msg->torque);
+                } break;
+                case cvra_msgs::MotorControlSetpoint::MODE_CONTROL_POSITION: {
+                    ROS_INFO("Sending position setpoint to node %d", id);
+                    this->send_position_setpoint(id, msg->position);
+                } break;
                 case cvra_msgs::MotorControlSetpoint::MODE_CONTROL_VELOCITY: {
+                    ROS_INFO("Sending velocity setpoint to node %d", id);
                     this->send_velocity_setpoint(id, msg->velocity);
                 } break;
                 case cvra_msgs::MotorControlSetpoint::MODE_CONTROL_TORQUE: {
+                    ROS_INFO("Sending torque setpoint to node %d", id);
                     this->send_torque_setpoint(id, msg->torque);
                 } break;
+                case cvra_msgs::MotorControlSetpoint::MODE_CONTROL_VOLTAGE: {
+                    ROS_INFO("Sending voltage setpoint to node %d", id);
+                    this->send_voltage_setpoint(id, msg->voltage);
+                } break;
+                default: {
+                    ROS_INFO("Unable to send setpoint: invalid mode selected");
+                }
             }
         } else {
-            ROS_INFO("Unable to send setpoint, node doesn't have an associated ID");
+            ROS_INFO("Unable to send setpoint: node doesn't have an associated ID");
         }
     }
 
