@@ -3,6 +3,7 @@
 #include <unistd.h>
 
 #include <uavcan/uavcan.hpp>
+#include <uavcan/protocol/debug/LogMessage.hpp>
 #include <cvra/motor/control/Velocity.hpp>
 #include <cvra/motor/feedback/MotorPosition.hpp>
 #include <cvra/motor/feedback/MotorTorque.hpp>
@@ -11,10 +12,9 @@
 #include <cvra/motor/feedback/CurrentPID.hpp>
 #include <cvra/motor/feedback/PositionPID.hpp>
 #include <cvra/motor/feedback/VelocityPID.hpp>
-#include <uavcan/protocol/debug/LogMessage.hpp>
 
 #include "ros/ros.h"
-#include "cvra_msgs/MotorControlVelocity.h"
+#include "cvra_msgs/MotorControlSetpoint.h"
 #include "cvra_msgs/MotorFeedbackPID.h"
 #include "std_msgs/Float32.h"
 
@@ -52,7 +52,7 @@ public:
         /* Initialise UAVCAN publishers (setpoint sending) */
         const int vel_pub_init_res = this->velocity_setpt_pub.init();
         if (vel_pub_init_res < 0) {
-            throw std::runtime_error("Failed to start the publisher");
+            throw std::runtime_error("Failed to start the velocity setpoint publisher");
         }
         this->velocity_setpt_pub.setTxTimeout(uavcan::MonotonicDuration::fromMSec(1000));
         this->velocity_setpt_pub.setPriority(uavcan::TransferPriority::MiddleLower);
@@ -130,7 +130,7 @@ class UavcanRosMotorController : public UavcanMotorController {
 public:
     std::map<std::string, int> uavcan_nodes;
 
-    std::map<int, ros::Subscriber> velocity_setpt_sub;
+    std::map<int, ros::Subscriber> setpoint_sub;
 
     std::map<int, ros::Publisher> position_pub;
     std::map<int, ros::Publisher> velocity_pub;
@@ -159,9 +159,9 @@ public:
         /* For each node, initialise publishers and subscribers needed */
         for (const auto& elem : this->uavcan_nodes) {
             /* Intiialise ROS subscribers (setpoint sending) */
-            this->velocity_setpt_sub[elem.second] = ros_node.subscribe(
-                elem.first + "/setpoint/velocity", 10,
-                &UavcanRosMotorController::velocity_setpoint_cb, this);
+            this->setpoint_sub[elem.second] = ros_node.subscribe(
+                elem.first + "/setpoint", 10,
+                &UavcanRosMotorController::setpoint_cb, this);
 
             /* Intiialise ROS publishers (feedback stream) */
             this->position_pub[elem.second] =
@@ -183,21 +183,30 @@ public:
         }
     }
 
-    void velocity_setpoint_cb(const cvra_msgs::MotorControlVelocity::ConstPtr& msg)
+    void setpoint_cb(const cvra_msgs::MotorControlSetpoint::ConstPtr& msg)
     {
-        ROS_INFO("Sending velocity setpoint %.3f to node %d", msg->velocity, msg->node_id);
+        if (uavcan_nodes.count(msg->node_name)) {
+            static int id = uavcan_nodes[msg->node_name];
+            ROS_INFO("Sending setpoint to node %d", id);
 
-        this->send_velocity_setpoint(msg->node_id, msg->velocity);
+            switch (msg->mode) {
+                case cvra_msgs::MotorControlSetpoint::MODE_CONTROL_VELOCITY: {
+                    this->send_velocity_setpoint(id, msg->velocity);
+                } break;
+            }
+        } else {
+            ROS_INFO("Unable to send setpoint, node doesn't have an associated ID");
+        }
     }
 
     virtual void position_sub_cb(
         const uavcan::ReceivedDataStructure<cvra::motor::feedback::MotorPosition>& msg)
     {
-        int id = msg.getSrcNodeID().get();
+        static int id = msg.getSrcNodeID().get();
 
         /* Check that the source node has an associated publisher */
         if (position_pub.count(id) && velocity_pub.count(id)) {
-            ROS_INFO("Got motor position and velocity feedback");
+            ROS_INFO("Got motor position and velocity feedback from node %d", id);
 
             this->position_msg.data = msg.position;
             this->velocity_msg.data = msg.velocity;
@@ -210,11 +219,11 @@ public:
     virtual void torque_sub_cb(
         const uavcan::ReceivedDataStructure<cvra::motor::feedback::MotorTorque>& msg)
     {
-        int id = msg.getSrcNodeID().get();
+        static int id = msg.getSrcNodeID().get();
 
         /* Check that the source node has an associated publisher */
         if (torque_pub.count(id)) {
-            ROS_INFO("Got motor torque feedback");
+            ROS_INFO("Got motor torque feedback from node %d", id);
             this->torque_msg.data = msg.torque;
             this->torque_pub[id].publish(this->torque_msg);
         }
@@ -223,11 +232,11 @@ public:
     virtual void encoder_sub_cb(
         const uavcan::ReceivedDataStructure<cvra::motor::feedback::MotorEncoderPosition>& msg)
     {
-        int id = msg.getSrcNodeID().get();
+        static int id = msg.getSrcNodeID().get();
 
         /* Check that the source node has an associated publisher */
         if (encoder_pub.count(id)) {
-            ROS_INFO("Got motor raw encoder feedback");
+            ROS_INFO("Got motor raw encoder feedback from node %d", id);
             this->encoder_msg.data = msg.raw_encoder_position;
             this->encoder_pub[id].publish(this->encoder_msg);
         }
@@ -236,11 +245,11 @@ public:
     virtual void index_sub_cb(
         const uavcan::ReceivedDataStructure<cvra::motor::feedback::Index>& msg)
     {
-        int id = msg.getSrcNodeID().get();
+        static int id = msg.getSrcNodeID().get();
 
         /* Check that the source node has an associated publisher */
         if (index_pub.count(id)) {
-            ROS_INFO("Got motor index feedback");
+            ROS_INFO("Got motor index feedback from node %d", id);
             this->index_msg.data = msg.position;
             this->index_pub[id].publish(this->index_msg);
         }
@@ -249,11 +258,11 @@ public:
     virtual void current_pid_sub_cb(
         const uavcan::ReceivedDataStructure<cvra::motor::feedback::CurrentPID>& msg)
     {
-        int id = msg.getSrcNodeID().get();
+        static int id = msg.getSrcNodeID().get();
 
         /* Check that the source node has an associated publisher */
         if (current_pid_pub.count(id)) {
-            ROS_INFO("Got motor raw encoder feedback");
+            ROS_INFO("Got motor raw encoder feedback from node %d", id);
             this->current_pid_msg.setpoint = msg.current_setpoint;
             this->current_pid_msg.measured = msg.current;
             this->current_pid_pub[id].publish(this->current_pid_msg);
@@ -263,11 +272,11 @@ public:
     virtual void velocity_pid_sub_cb(
         const uavcan::ReceivedDataStructure<cvra::motor::feedback::VelocityPID>& msg)
     {
-        int id = msg.getSrcNodeID().get();
+        static int id = msg.getSrcNodeID().get();
 
         /* Check that the source node has an associated publisher */
         if (velocity_pid_pub.count(id)) {
-            ROS_INFO("Got motor raw encoder feedback");
+            ROS_INFO("Got motor raw encoder feedback from node %d", id);
             this->velocity_pid_msg.setpoint = msg.velocity_setpoint;
             this->velocity_pid_msg.measured = msg.velocity;
             this->velocity_pid_pub[id].publish(this->velocity_pid_msg);
@@ -277,11 +286,11 @@ public:
     virtual void position_pid_sub_cb(
         const uavcan::ReceivedDataStructure<cvra::motor::feedback::PositionPID>& msg)
     {
-        int id = msg.getSrcNodeID().get();
+        static int id = msg.getSrcNodeID().get();
 
         /* Check that the source node has an associated publisher */
         if (position_pid_pub.count(id)) {
-            ROS_INFO("Got motor raw encoder feedback");
+            ROS_INFO("Got motor raw encoder feedback from node %d", id);
             this->position_pid_msg.setpoint = msg.position_setpoint;
             this->position_pid_msg.measured = msg.position;
             this->position_pid_pub[id].publish(this->position_pid_msg);
@@ -313,7 +322,7 @@ public:
 
         const int node_start_res = uavcan_node.start();
         if (node_start_res < 0) {
-            throw std::runtime_error("Failed to start the node");
+            throw std::runtime_error("Failed to start the UAVCAN bridge node");
         }
 
         this->uavcan_log_sub.start(
@@ -332,7 +341,7 @@ public:
             ros::spinOnce();
             const int res = this->uavcan_node.spin(uavcan::MonotonicDuration::fromMSec(1));
             if (res < 0) {
-                std::cerr << "Transient failure: " << res << std::endl;
+                std::cerr << "Transient failure in UAVCAN bridge: " << res << std::endl;
             }
         }
     }
