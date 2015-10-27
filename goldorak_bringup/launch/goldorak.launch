@@ -6,7 +6,8 @@
     <node name="uavcan_bridge"
           pkg="uavcan_core"
           type="uavcan_bridge"
-          args="10" />
+          args="10"
+          ns="$(arg robot_ns)"/>
 
     <!-- Right wheel -->
     <include file="$(find uavcan_core)/launch/motor.launch" ns="$(arg robot_ns)">
@@ -21,6 +22,6 @@
         <arg name="motor_ns" value="left_wheel" />
         <arg name="node_uavcan_id" value="12" />
         <arg name="motor_uavcan_id" value="41" />
-         <arg name="default_params" value="$(find goldorak_bringup)/param/left_wheel.yaml" />
+        <arg name="default_params" value="$(find goldorak_bringup)/param/left_wheel.yaml" />
     </include>
 </launch>
