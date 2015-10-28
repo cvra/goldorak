@@ -222,6 +222,7 @@ public:
     std::map<int, ros::Publisher> torque_pub;
     std::map<int, ros::Publisher> encoder_pub;
     std::map<int, ros::Publisher> index_pub;
+    std::map<int, ros::Publisher> voltage_pub;
     std::map<int, ros::Publisher> current_pid_pub;
     std::map<int, ros::Publisher> position_pid_pub;
     std::map<int, ros::Publisher> velocity_pid_pub;
@@ -231,6 +232,7 @@ public:
     std_msgs::Float32 torque_msg;
     std_msgs::Float32 encoder_msg;
     std_msgs::Float32 index_msg;
+    std_msgs::Float32 voltage_msg;
     cvra_msgs::MotorFeedbackPID current_pid_msg;
     cvra_msgs::MotorFeedbackPID velocity_pid_msg;
     cvra_msgs::MotorFeedbackPID position_pid_msg;
@@ -259,6 +261,8 @@ public:
                 ros_node.advertise<std_msgs::Float32>(elem.first + "/feedback/encoder_raw", 10);
             this->index_pub[elem.second] =
                 ros_node.advertise<std_msgs::Float32>(elem.first + "/feedback/index", 10);
+            this->voltage_pub[elem.second] =
+                ros_node.advertise<std_msgs::Float32>(elem.first + "/feedback/voltage", 10);
             this->current_pid_pub[elem.second] =
                 ros_node.advertise<cvra_msgs::MotorFeedbackPID>(elem.first + "/feedback_pid/current", 10);
             this->velocity_pid_pub[elem.second] =
@@ -371,9 +375,13 @@ public:
         /* Check that the source node has an associated publisher */
         if (current_pid_pub.count(id)) {
             ROS_INFO("Got motor raw encoder feedback from node %d", id);
+
             this->current_pid_msg.setpoint = msg.current_setpoint;
             this->current_pid_msg.measured = msg.current;
+            this->voltage_msg.data = msg.motor_voltage;
+
             this->current_pid_pub[id].publish(this->current_pid_msg);
+            this->voltage_pub[id].publish(this->voltage_msg);
         }
     }
 
