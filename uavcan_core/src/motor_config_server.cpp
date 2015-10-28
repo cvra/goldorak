@@ -24,7 +24,7 @@ class UavcanMotorConfig
     void config_client_cb(const uavcan::ServiceCallResult<cvra::motor::config::LoadConfiguration>& res) const
     {
         if (!res.isSuccessful()) {
-            std::cerr << "Service call to node has failed" << std::endl;
+            std::cerr << "Config service call to node has failed" << std::endl;
         }
     }
 
@@ -34,7 +34,7 @@ class UavcanMotorConfig
     void enable_client_cb(const uavcan::ServiceCallResult<cvra::motor::config::EnableMotor>& res) const
     {
         if (!res.isSuccessful()) {
-            std::cerr << "Service call to node has failed" << std::endl;
+            std::cerr << "Enable service call to node has failed" << std::endl;
         }
     }
 
@@ -44,7 +44,7 @@ class UavcanMotorConfig
     void stream_client_cb(const uavcan::ServiceCallResult<cvra::motor::config::FeedbackStream>& res) const
     {
         if (!res.isSuccessful()) {
-            std::cerr << "Service call to node has failed" << std::endl;
+            std::cerr << "Stream service call to node has failed" << std::endl;
         }
     }
 
@@ -74,7 +74,7 @@ public:
     {
         const int call_res = this->config_client.call(server_node_id, config);
         if (call_res < 0) {
-            throw std::runtime_error("Unable to perform service call: " + std::to_string(call_res));
+            throw std::runtime_error("Unable to perform config service call: " + std::to_string(call_res));
         }
     }
 
@@ -82,7 +82,7 @@ public:
     {
         const int call_res = this->enable_client.call(server_node_id, config);
         if (call_res < 0) {
-            throw std::runtime_error("Unable to perform service call: " + std::to_string(call_res));
+            throw std::runtime_error("Unable to perform enable service call: " + std::to_string(call_res));
         }
     }
 
@@ -90,7 +90,7 @@ public:
     {
         const int call_res = stream_client.call(server_node_id, config);
         if (call_res < 0) {
-            throw std::runtime_error("Unable to perform service call: " + std::to_string(call_res));
+            throw std::runtime_error("Unable to perform stream service call: " + std::to_string(call_res));
         }
     }
 
@@ -169,7 +169,7 @@ public:
 
     bool position_pid_cb(uavcan_core::PIDConfig &config, uint32_t level)
     {
-        ROS_INFO("Updating position PID gains");
+        ROS_INFO("Updating position PID gains to node %d", this->target_id);
 
         this->config_msg.position_pid.kp = config.p;
         this->config_msg.position_pid.ki = config.i;
@@ -181,7 +181,7 @@ public:
 
     bool velocity_pid_cb(uavcan_core::PIDConfig &config, uint32_t level)
     {
-        ROS_INFO("Updating velocity PID gains");
+        ROS_INFO("Updating velocity PID gains to node %d", this->target_id);
 
         this->config_msg.velocity_pid.kp = config.p;
         this->config_msg.velocity_pid.ki = config.i;
@@ -193,7 +193,7 @@ public:
 
     bool current_pid_cb(uavcan_core::PIDConfig &config, uint32_t level)
     {
-        ROS_INFO("Updating current PID gains");
+        ROS_INFO("Updating current PID gains to node %d", this->target_id);
 
         this->config_msg.current_pid.kp = config.p;
         this->config_msg.current_pid.ki = config.i;
@@ -205,7 +205,7 @@ public:
 
     bool parameters_cb(uavcan_core::MotorBoardConfig &config, uint32_t level)
     {
-        ROS_INFO("Updating motor parameters");
+        ROS_INFO("Updating motor parameters to node %d", this->target_id);
 
         this->config_msg.torque_limit = config.torque_limit;
         this->config_msg.velocity_limit = config.velocity_limit;
@@ -240,7 +240,7 @@ public:
 
     bool enable_cb(uavcan_core::EnableMotorConfig &config, uint32_t level)
     {
-        ROS_INFO("Updating motor control enable");
+        ROS_INFO("Updating motor control enable to node %d", this->target_id);
 
         this->enable_msg.enable = config.enable;
 
@@ -249,7 +249,7 @@ public:
 
     bool stream_cb(uavcan_core::FeedbackStreamConfig &config, uint32_t level)
     {
-        ROS_INFO("Updating feedback stream parameters");
+        ROS_INFO("Updating feedback stream parameters to node %d", this->target_id);
 
         using cvra::motor::config::FeedbackStream;
 
