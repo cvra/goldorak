@@ -271,7 +271,7 @@ public:
     void setpoint_cb(const cvra_msgs::MotorControlSetpoint::ConstPtr& msg)
     {
         if (uavcan_nodes.count(msg->node_name)) {
-            static int id = uavcan_nodes[msg->node_name];
+            int id = uavcan_nodes[msg->node_name];
 
             switch (msg->mode) {
                 case cvra_msgs::MotorControlSetpoint::MODE_CONTROL_TRAJECTORY: {
@@ -310,7 +310,7 @@ public:
     virtual void position_sub_cb(
         const uavcan::ReceivedDataStructure<cvra::motor::feedback::MotorPosition>& msg)
     {
-        static int id = msg.getSrcNodeID().get();
+        int id = msg.getSrcNodeID().get();
 
         /* Check that the source node has an associated publisher */
         if (position_pub.count(id) && velocity_pub.count(id)) {
@@ -327,7 +327,7 @@ public:
     virtual void torque_sub_cb(
         const uavcan::ReceivedDataStructure<cvra::motor::feedback::MotorTorque>& msg)
     {
-        static int id = msg.getSrcNodeID().get();
+        int id = msg.getSrcNodeID().get();
 
         /* Check that the source node has an associated publisher */
         if (torque_pub.count(id)) {
@@ -340,7 +340,7 @@ public:
     virtual void encoder_sub_cb(
         const uavcan::ReceivedDataStructure<cvra::motor::feedback::MotorEncoderPosition>& msg)
     {
-        static int id = msg.getSrcNodeID().get();
+        int id = msg.getSrcNodeID().get();
 
         /* Check that the source node has an associated publisher */
         if (encoder_pub.count(id)) {
@@ -353,7 +353,7 @@ public:
     virtual void index_sub_cb(
         const uavcan::ReceivedDataStructure<cvra::motor::feedback::Index>& msg)
     {
-        static int id = msg.getSrcNodeID().get();
+        int id = msg.getSrcNodeID().get();
 
         /* Check that the source node has an associated publisher */
         if (index_pub.count(id)) {
@@ -366,7 +366,7 @@ public:
     virtual void current_pid_sub_cb(
         const uavcan::ReceivedDataStructure<cvra::motor::feedback::CurrentPID>& msg)
     {
-        static int id = msg.getSrcNodeID().get();
+        int id = msg.getSrcNodeID().get();
 
         /* Check that the source node has an associated publisher */
         if (current_pid_pub.count(id)) {
@@ -380,7 +380,7 @@ public:
     virtual void velocity_pid_sub_cb(
         const uavcan::ReceivedDataStructure<cvra::motor::feedback::VelocityPID>& msg)
     {
-        static int id = msg.getSrcNodeID().get();
+        int id = msg.getSrcNodeID().get();
 
         /* Check that the source node has an associated publisher */
         if (velocity_pid_pub.count(id)) {
@@ -394,7 +394,7 @@ public:
     virtual void position_pid_sub_cb(
         const uavcan::ReceivedDataStructure<cvra::motor::feedback::PositionPID>& msg)
     {
-        static int id = msg.getSrcNodeID().get();
+        int id = msg.getSrcNodeID().get();
 
         /* Check that the source node has an associated publisher */
         if (position_pid_pub.count(id)) {
