@@ -5,7 +5,6 @@
 #include <stdbool.h>
 #include <math.h>
 
-#include "timestamp/timestamp.h"
 #include "odometry.h"
 
 #define MINIMUM_DELTA_T 1e-7 // To avoid dividing by zero in derivative
@@ -22,15 +21,15 @@ static void wheel_update(
 
 static uint16_t wheel_predict(
         odometry_wheel_t *wheel,
-        const timestamp_t time_now);
+        const uint32_t time_now);
 
 static int16_t wheel_get_delta_tick(
         odometry_wheel_t *wheel,
-        const timestamp_t time_now);
+        const uint32_t time_now);
 
 static float wheel_get_delta_meter(
         odometry_wheel_t *wheel,
-        const timestamp_t time_now);
+        const uint32_t time_now);
 
 static float wheel_get_radius(
         odometry_wheel_t *wheel);
@@ -38,6 +37,10 @@ static float wheel_get_radius(
 static void wheel_set_radius(
         odometry_wheel_t *wheel,
         const float new_radius);
+
+static float timestamp_duration_s(
+        uint32_t t1,
+        uint32_t t2);
 
 
 void odometry_base_init(
@@ -48,7 +51,7 @@ void odometry_base_init(
         const int right_wheel_direction,
         const int left_wheel_direction,
         const float wheelbase,
-        const timestamp_t time_now)
+        const uint32_t time_now)
 {
     robot->pose.x = init_pose.x;
     robot->pose.y = init_pose.y;
@@ -87,7 +90,7 @@ void odometry_base_update(
     wheel_update(&robot->left_wheel, left_wheel_sample);
 
     // Choose wheel with most recent timestamp as reference
-    timestamp_t time_now;
+    uint32_t time_now;
     if (0.0f >= timestamp_duration_s(right_wheel_sample.timestamp,
                                      left_wheel_sample.timestamp)) {
         time_now = right_wheel_sample.timestamp;
@@ -123,7 +126,7 @@ void odometry_base_update(
 void odometry_state_override(
         odometry_differential_base_t *robot,
         const struct robot_base_pose_2d_s new_state,
-        const timestamp_t time_now)
+        const uint32_t time_now)
 {
     robot->pose.x = new_state.x;
     robot->pose.y = new_state.y;
@@ -216,7 +219,7 @@ static void wheel_update(
 
 static uint16_t wheel_predict(
         odometry_wheel_t *wheel,
-        const timestamp_t time_now)
+        const uint32_t time_now)
 {
     if (wheel->samples[2].timestamp != time_now) {
         float acc, vel, pos, tau1, tau2, dt1, dt2, dt;
@@ -258,7 +261,7 @@ static uint16_t wheel_predict(
 
 static int16_t wheel_get_delta_tick(
         odometry_wheel_t *wheel,
-        const timestamp_t time_now)
+        const uint32_t time_now)
 {
     int16_t delta;
     delta = wheel->delta_pos_accumulator;
@@ -270,7 +273,7 @@ static int16_t wheel_get_delta_tick(
 
 static float wheel_get_delta_meter(
         odometry_wheel_t *wheel,
-        const timestamp_t time_now)
+        const uint32_t time_now)
 {
     int16_t delta;
     delta = wheel_get_delta_tick(wheel, time_now);
@@ -293,9 +296,15 @@ static void wheel_set_radius(
 
 void odometry_encoder_record_sample(
         odometry_encoder_sample_t *sample,
-        const timestamp_t timestamp,
+        const uint32_t timestamp,
         const uint32_t value)
 {
     sample->timestamp = timestamp;
     sample->value = value;
+}
+
+static float timestamp_duration_s(uint32_t t1, uint32_t t2)
+{
+    int32_t delta_us = t2 - t1;
+    return (float)(delta_us / 1000000.f);
 }

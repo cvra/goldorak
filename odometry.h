@@ -5,13 +5,12 @@
 extern "C" {
 #endif
 
-#include "timestamp/timestamp.h"
 #include "robot_base.h"
 
 
 /** Encoder sample */
 typedef struct {
-    timestamp_t timestamp;
+    uint32_t timestamp;
     uint16_t value;
 } odometry_encoder_sample_t;
 
@@ -39,7 +38,7 @@ typedef struct {
     odometry_wheel_t right_wheel;
     odometry_wheel_t left_wheel;
     float wheelbase;
-    timestamp_t time_last_estim;
+    uint32_t time_last_estim;
 } odometry_differential_base_t;
 
 
@@ -51,7 +50,7 @@ void odometry_base_init(
         const int right_wheel_direction, // 1 or -1
         const int left_wheel_direction, // 1 or -1
         const float wheelbase,
-        const timestamp_t time_now);
+        const uint32_t time_now);
 
 void odometry_base_update(
         odometry_differential_base_t *robot,
@@ -61,7 +60,7 @@ void odometry_base_update(
 void odometry_state_override(
         odometry_differential_base_t *robot,
         const struct robot_base_pose_2d_s new_state,
-        const timestamp_t time_now);
+        const uint32_t time_now);
 
 void odometry_base_get_pose(
         odometry_differential_base_t *robot,
@@ -85,7 +84,7 @@ void odometry_base_set_parameters(
 
 void odometry_encoder_record_sample(
         odometry_encoder_sample_t *sample,
-        const timestamp_t timestamp,
+        const uint32_t timestamp,
         const uint32_t value);
 
 #ifdef __cplusplus

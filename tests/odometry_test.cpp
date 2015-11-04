@@ -305,7 +305,7 @@ TEST(Base, BaseOverrideState)
     new_state.y = 0.5f;
     new_state.theta = 1.57f;
 
-    timestamp_t now = 1000;
+    uint32_t now = 1000;
 
     odometry_state_override(&robot, new_state, now);
 

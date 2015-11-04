@@ -1,7 +1,5 @@
 depends:
     - test-runner
-    - timestamp:
-        fork: Stapelzeiger
 
 target.arm:
     - odometry.c
