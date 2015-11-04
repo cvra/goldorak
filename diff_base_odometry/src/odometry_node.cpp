@@ -6,12 +6,12 @@
 #include "odometry/odometry.h"
 #include "odometry/robot_base.h"
 
-tf::TransformBroadcaster odom_broadcaster;
+tf::TransformBroadcaster *odom_broadcaster;
 geometry_msgs::Quaternion odom_quat;
 geometry_msgs::TransformStamped odom_trans;
 nav_msgs::Odometry odom;
 
-ros::Publisher odom_pub;
+ros::Publisher *odom_pub;
 
 odometry_differential_base_t robot;
 odometry_encoder_sample_t right_wheel_encoder;
@@ -64,7 +64,7 @@ void left_wheel_cb(const std_msgs::UInt16::ConstPtr& msg)
     odom_trans.transform.rotation = odom_quat;
 
     // Send the transform
-    odom_broadcaster.sendTransform(odom_trans);
+    odom_broadcaster->sendTransform(odom_trans);
 
     // Next, we'll publish the odometry message over ROS
     odom.header.stamp = current_time;
@@ -83,7 +83,7 @@ void left_wheel_cb(const std_msgs::UInt16::ConstPtr& msg)
     odom.twist.twist.angular.z = robot_vel.omega;
 
     // Publish the message
-    odom_pub.publish(odom);
+    odom_pub->publish(odom);
 }
 
 int main(int argc, char **argv)
@@ -106,12 +106,18 @@ int main(int argc, char **argv)
                        0.194f,
                        (uint32_t)(ros::Time::now().toNSec() / 1000.f));
 
-    ros::Subscriber right_wheel_sub = node.subscribe(
-        "right_wheel/feedback/encoder_raw", 10, right_wheel_cb);
-    ros::Subscriber left_wheel_sub = node.subscribe(
-        "left_wheel/feedback/encoder_raw", 10, left_wheel_cb);
+    ros::Publisher pub = node.advertise<nav_msgs::Odometry>("odom", 10);
+    odom_pub = &pub;
 
-    odom_pub = node.advertise<nav_msgs::Odometry>("odom", 10);
+    odom_broadcaster = new tf::TransformBroadcaster();
+
+    ros::Subscriber right_wheel_sub = node.subscribe(
+        "right_wheel/feedback/encoder_raw",
+        10, right_wheel_cb);
+    ros::Subscriber left_wheel_sub = node.subscribe(
+        "left_wheel/feedback/encoder_raw",
+        10, left_wheel_cb);
+
 
     ros::spin();
 
