@@ -10,6 +10,8 @@ find_package(catkin REQUIRED COMPONENTS
     cvra_msgs
     roscpp
     std_msgs
+    nav_msgs
+    tf
 )
 
 catkin_package()

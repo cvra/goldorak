@@ -1,8 +1,17 @@
 #include "ros/ros.h"
+#include "tf/transform_broadcaster.h"
 #include "std_msgs/UInt16.h"
+#include "nav_msgs/Odometry.h"
 
 #include "odometry/odometry.h"
 #include "odometry/robot_base.h"
+
+tf::TransformBroadcaster odom_broadcaster;
+geometry_msgs::Quaternion odom_quat;
+geometry_msgs::TransformStamped odom_trans;
+nav_msgs::Odometry odom;
+
+ros::Publisher odom_pub;
 
 odometry_differential_base_t robot;
 odometry_encoder_sample_t right_wheel_encoder;
@@ -24,9 +33,11 @@ void left_wheel_cb(const std_msgs::UInt16::ConstPtr& msg)
 {
     ROS_INFO("I heard the left wheel encoder: [%d]", msg->data);
 
+    ros::Time current_time = ros::Time::now();
+
     odometry_encoder_sample_t sample;
     odometry_encoder_record_sample(&left_wheel_encoder,
-                                   (uint32_t)(ros::Time::now().toNSec() / 1000.f),
+                                   (uint32_t)(current_time.toNSec() / 1000.f),
                                    msg->data);
 
     odometry_base_update(&robot, right_wheel_encoder, left_wheel_encoder);
@@ -38,6 +49,41 @@ void left_wheel_cb(const std_msgs::UInt16::ConstPtr& msg)
         robot_pose.x, robot_pose.y, robot_pose.theta);
     ROS_INFO("Wheelbase velocity is: x = %.3f, y = %.3f, omega = %.3f",
         robot_vel.x, robot_vel.y, robot_vel.omega);
+
+    // Since all odometry is 6DOF we'll need a quaternion created from yaw
+    odom_quat = tf::createQuaternionMsgFromYaw(robot_pose.theta);
+
+    // First, we'll publish the transform over tf
+    odom_trans.header.stamp = current_time;
+    odom_trans.header.frame_id = "odom";
+    odom_trans.child_frame_id = "base_link";
+
+    odom_trans.transform.translation.x = robot_pose.x;
+    odom_trans.transform.translation.y = robot_pose.y;
+    odom_trans.transform.translation.z = 0.0;
+    odom_trans.transform.rotation = odom_quat;
+
+    // Send the transform
+    odom_broadcaster.sendTransform(odom_trans);
+
+    // Next, we'll publish the odometry message over ROS
+    odom.header.stamp = current_time;
+    odom.header.frame_id = "odom";
+
+    // Set the position
+    odom.pose.pose.position.x = robot_pose.x;
+    odom.pose.pose.position.y = robot_pose.y;
+    odom.pose.pose.position.z = 0.0;
+    odom.pose.pose.orientation = odom_quat;
+
+    // Set the velocity
+    odom.child_frame_id = "base_link";
+    odom.twist.twist.linear.x = robot_vel.x;
+    odom.twist.twist.linear.y = robot_vel.y;
+    odom.twist.twist.angular.z = robot_vel.omega;
+
+    // Publish the message
+    odom_pub.publish(odom);
 }
 
 int main(int argc, char **argv)
@@ -64,6 +110,8 @@ int main(int argc, char **argv)
         "right_wheel/feedback/encoder_raw", 10, right_wheel_cb);
     ros::Subscriber left_wheel_sub = node.subscribe(
         "left_wheel/feedback/encoder_raw", 10, left_wheel_cb);
+
+    odom_pub = node.advertise<nav_msgs::Odometry>("odom", 10);
 
     ros::spin();
 
