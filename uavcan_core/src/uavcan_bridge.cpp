@@ -375,7 +375,7 @@ public:
 
         /* Check that the source node has an associated publisher */
         if (current_pid_pub.count(id)) {
-            ROS_DEBUG("Got motor raw encoder feedback from node %d", id);
+            ROS_DEBUG("Got motor current PID feedback from node %d", id);
 
             this->current_pid_msg.setpoint = msg.current_setpoint;
             this->current_pid_msg.measured = msg.current;
@@ -393,7 +393,7 @@ public:
 
         /* Check that the source node has an associated publisher */
         if (velocity_pid_pub.count(id)) {
-            ROS_DEBUG("Got motor raw encoder feedback from node %d", id);
+            ROS_DEBUG("Got motor velocity PID feedback from node %d", id);
             this->velocity_pid_msg.setpoint = msg.velocity_setpoint;
             this->velocity_pid_msg.measured = msg.velocity;
             this->velocity_pid_pub[id].publish(this->velocity_pid_msg);
@@ -407,7 +407,7 @@ public:
 
         /* Check that the source node has an associated publisher */
         if (position_pid_pub.count(id)) {
-            ROS_DEBUG("Got motor raw encoder feedback from node %d", id);
+            ROS_DEBUG("Got motor position PID feedback from node %d", id);
             this->position_pid_msg.setpoint = msg.position_setpoint;
             this->position_pid_msg.measured = msg.position;
             this->position_pid_pub[id].publish(this->position_pid_msg);
