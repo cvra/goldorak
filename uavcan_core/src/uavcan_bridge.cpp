@@ -23,6 +23,7 @@
 #include "cvra_msgs/MotorControlSetpoint.h"
 #include "cvra_msgs/MotorFeedbackPID.h"
 #include "std_msgs/Float32.h"
+#include "std_msgs/UInt16.h"
 
 extern uavcan::ICanDriver& getCanDriver();
 extern uavcan::ISystemClock& getSystemClock();
@@ -230,7 +231,7 @@ public:
     std_msgs::Float32 position_msg;
     std_msgs::Float32 velocity_msg;
     std_msgs::Float32 torque_msg;
-    std_msgs::Float32 encoder_msg;
+    std_msgs::UInt16 encoder_msg;
     std_msgs::Float32 index_msg;
     std_msgs::Float32 voltage_msg;
     cvra_msgs::MotorFeedbackPID current_pid_msg;
@@ -258,7 +259,7 @@ public:
             this->torque_pub[elem.second] =
                 ros_node.advertise<std_msgs::Float32>(elem.first + "/feedback/torque", 10);
             this->encoder_pub[elem.second] =
-                ros_node.advertise<std_msgs::Float32>(elem.first + "/feedback/encoder_raw", 10);
+                ros_node.advertise<std_msgs::UInt16>(elem.first + "/feedback/encoder_raw", 10);
             this->index_pub[elem.second] =
                 ros_node.advertise<std_msgs::Float32>(elem.first + "/feedback/index", 10);
             this->voltage_pub[elem.second] =
