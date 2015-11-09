@@ -1,5 +1,6 @@
 #include <uavcan/uavcan.hpp>
 #include <cvra/motor/config/LoadConfiguration.hpp>
+#include <cvra/motor/config/CurrentPID.hpp>
 #include <cvra/motor/config/EnableMotor.hpp>
 #include <cvra/motor/config/FeedbackStream.hpp>
 
@@ -32,6 +33,19 @@ class UavcanMotorConfig
     }
 
     typedef uavcan::MethodBinder<UavcanMotorConfig*, void (UavcanMotorConfig::*)
+        (const uavcan::ServiceCallResult<cvra::motor::config::CurrentPID>&) const>
+        current_pid_client_cb_binder;
+    uavcan::ServiceClient<cvra::motor::config::CurrentPID, current_pid_client_cb_binder>
+        current_pid_client;
+    void current_pid_client_cb(
+        const uavcan::ServiceCallResult<cvra::motor::config::CurrentPID>& res) const
+    {
+        if (!res.isSuccessful()) {
+            std::cerr << "Current PID service call to node has failed" << std::endl;
+        }
+    }
+
+    typedef uavcan::MethodBinder<UavcanMotorConfig*, void (UavcanMotorConfig::*)
         (const uavcan::ServiceCallResult<cvra::motor::config::EnableMotor>&) const>
         enable_client_cb_binder;
     uavcan::ServiceClient<cvra::motor::config::EnableMotor, enable_client_cb_binder> enable_client;
@@ -60,6 +74,7 @@ public:
     UavcanMotorConfig(uavcan::NodeID id) :
         node(getCanDriver(), getSystemClock()),
         config_client(this->node),
+        current_pid_client(this->node),
         enable_client(this->node),
         stream_client(this->node)
     {
@@ -73,6 +88,8 @@ public:
 
         this->config_client.setCallback(config_client_cb_binder(this,
             &UavcanMotorConfig::config_client_cb));
+        this->current_pid_client.setCallback(current_pid_client_cb_binder(this,
+            &UavcanMotorConfig::current_pid_client_cb));
         this->enable_client.setCallback(enable_client_cb_binder(this,
             &UavcanMotorConfig::enable_client_cb));
         this->stream_client.setCallback(stream_client_cb_binder(this,
@@ -87,6 +104,16 @@ public:
         const int call_res = this->config_client.call(server_node_id, config);
         if (call_res < 0) {
             throw std::runtime_error("Unable to perform config service call: "
+                                     + std::to_string(call_res));
+        }
+    }
+
+    void send_current_pid_config(uavcan::NodeID server_node_id,
+        cvra::motor::config::CurrentPID::Request config)
+    {
+        const int call_res = this->current_pid_client.call(server_node_id, config);
+        if (call_res < 0) {
+            throw std::runtime_error("Unable to perform current PID service call: "
                                      + std::to_string(call_res));
         }
     }
@@ -125,6 +152,7 @@ public:
     int node_id;
     int target_id;
 
+    cvra::motor::config::CurrentPID::Request current_pid_msg;
     cvra::motor::config::LoadConfiguration::Request config_msg;
     cvra::motor::config::EnableMotor::Request enable_msg;
     cvra::motor::config::FeedbackStream::Request stream_msg;
@@ -217,7 +245,12 @@ public:
         this->config_msg.current_pid.kd = config.d;
         this->config_msg.current_pid.ilimit = config.i_limit;
 
-        this->send_config(this->target_id, this->config_msg);
+        this->current_pid_msg.pid.kp = config.p;
+        this->current_pid_msg.pid.ki = config.i;
+        this->current_pid_msg.pid.kd = config.d;
+        this->current_pid_msg.pid.ilimit = config.i_limit;
+
+        this->send_current_pid_config(this->target_id, this->current_pid_msg);
     }
 
     bool parameters_cb(uavcan_core::MotorBoardConfig &config, uint32_t level)
