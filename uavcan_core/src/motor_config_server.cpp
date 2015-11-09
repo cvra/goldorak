@@ -18,30 +18,38 @@ class UavcanMotorConfig
     static const unsigned NodeMemoryPoolSize = 16384;
     uavcan::Node<NodeMemoryPoolSize> node;
 
-    typedef uavcan::MethodBinder<UavcanMotorConfig*, void (UavcanMotorConfig::*)(const uavcan::ServiceCallResult<cvra::motor::config::LoadConfiguration>&) const>
+    typedef uavcan::MethodBinder<UavcanMotorConfig*, void (UavcanMotorConfig::*)
+        (const uavcan::ServiceCallResult<cvra::motor::config::LoadConfiguration>&) const>
         config_client_cb_binder;
-    uavcan::ServiceClient<cvra::motor::config::LoadConfiguration, config_client_cb_binder> config_client;
-    void config_client_cb(const uavcan::ServiceCallResult<cvra::motor::config::LoadConfiguration>& res) const
+    uavcan::ServiceClient<cvra::motor::config::LoadConfiguration, config_client_cb_binder>
+        config_client;
+    void config_client_cb(
+        const uavcan::ServiceCallResult<cvra::motor::config::LoadConfiguration>& res) const
     {
         if (!res.isSuccessful()) {
             std::cerr << "Config service call to node has failed" << std::endl;
         }
     }
 
-    typedef uavcan::MethodBinder<UavcanMotorConfig*, void (UavcanMotorConfig::*)(const uavcan::ServiceCallResult<cvra::motor::config::EnableMotor>&) const>
+    typedef uavcan::MethodBinder<UavcanMotorConfig*, void (UavcanMotorConfig::*)
+        (const uavcan::ServiceCallResult<cvra::motor::config::EnableMotor>&) const>
         enable_client_cb_binder;
     uavcan::ServiceClient<cvra::motor::config::EnableMotor, enable_client_cb_binder> enable_client;
-    void enable_client_cb(const uavcan::ServiceCallResult<cvra::motor::config::EnableMotor>& res) const
+    void enable_client_cb(
+        const uavcan::ServiceCallResult<cvra::motor::config::EnableMotor>& res) const
     {
         if (!res.isSuccessful()) {
             std::cerr << "Enable service call to node has failed" << std::endl;
         }
     }
 
-    typedef uavcan::MethodBinder<UavcanMotorConfig*, void (UavcanMotorConfig::*)(const uavcan::ServiceCallResult<cvra::motor::config::FeedbackStream>&) const>
+    typedef uavcan::MethodBinder<UavcanMotorConfig*, void (UavcanMotorConfig::*)
+        (const uavcan::ServiceCallResult<cvra::motor::config::FeedbackStream>&) const>
         stream_client_cb_binder;
-    uavcan::ServiceClient<cvra::motor::config::FeedbackStream, stream_client_cb_binder> stream_client;
-    void stream_client_cb(const uavcan::ServiceCallResult<cvra::motor::config::FeedbackStream>& res) const
+    uavcan::ServiceClient<cvra::motor::config::FeedbackStream, stream_client_cb_binder>
+        stream_client;
+    void stream_client_cb(
+        const uavcan::ServiceCallResult<cvra::motor::config::FeedbackStream>& res) const
     {
         if (!res.isSuccessful()) {
             std::cerr << "Stream service call to node has failed" << std::endl;
@@ -63,34 +71,43 @@ public:
             throw std::runtime_error("Failed to start the node: " + std::to_string(start_res));
         }
 
-        this->config_client.setCallback(config_client_cb_binder(this, &UavcanMotorConfig::config_client_cb));
-        this->enable_client.setCallback(enable_client_cb_binder(this, &UavcanMotorConfig::enable_client_cb));
-        this->stream_client.setCallback(stream_client_cb_binder(this, &UavcanMotorConfig::stream_client_cb));
+        this->config_client.setCallback(config_client_cb_binder(this,
+            &UavcanMotorConfig::config_client_cb));
+        this->enable_client.setCallback(enable_client_cb_binder(this,
+            &UavcanMotorConfig::enable_client_cb));
+        this->stream_client.setCallback(stream_client_cb_binder(this,
+            &UavcanMotorConfig::stream_client_cb));
 
         this->node.setModeOperational();
     }
 
-    void send_config(uavcan::NodeID server_node_id, cvra::motor::config::LoadConfiguration::Request config)
+    void send_config(uavcan::NodeID server_node_id,
+        cvra::motor::config::LoadConfiguration::Request config)
     {
         const int call_res = this->config_client.call(server_node_id, config);
         if (call_res < 0) {
-            throw std::runtime_error("Unable to perform config service call: " + std::to_string(call_res));
+            throw std::runtime_error("Unable to perform config service call: "
+                                     + std::to_string(call_res));
         }
     }
 
-    void send_enable(uavcan::NodeID server_node_id, cvra::motor::config::EnableMotor::Request config)
+    void send_enable(uavcan::NodeID server_node_id,
+        cvra::motor::config::EnableMotor::Request config)
     {
         const int call_res = this->enable_client.call(server_node_id, config);
         if (call_res < 0) {
-            throw std::runtime_error("Unable to perform enable service call: " + std::to_string(call_res));
+            throw std::runtime_error("Unable to perform enable service call: "
+                                     + std::to_string(call_res));
         }
     }
 
-    void send_stream_config(uavcan::NodeID server_node_id, cvra::motor::config::FeedbackStream::Request config)
+    void send_stream_config(uavcan::NodeID server_node_id,
+        cvra::motor::config::FeedbackStream::Request config)
     {
         const int call_res = stream_client.call(server_node_id, config);
         if (call_res < 0) {
-            throw std::runtime_error("Unable to perform stream service call: " + std::to_string(call_res));
+            throw std::runtime_error("Unable to perform stream service call: "
+                                     + std::to_string(call_res));
         }
     }
 
@@ -221,8 +238,10 @@ public:
 
         this->config_msg.transmission_ratio_p = config.transmission_ratio_p;
         this->config_msg.transmission_ratio_q = config.transmission_ratio_q;
-        this->config_msg.motor_encoder_steps_per_revolution = config.motor_encoder_steps_per_revolution;
-        this->config_msg.second_encoder_steps_per_revolution = config.second_encoder_steps_per_revolution;
+        this->config_msg.motor_encoder_steps_per_revolution =
+            config.motor_encoder_steps_per_revolution;
+        this->config_msg.second_encoder_steps_per_revolution =
+            config.second_encoder_steps_per_revolution;
         this->config_msg.potentiometer_gain = config.potentiometer_gain;
 
         using cvra::motor::config::LoadConfiguration;
