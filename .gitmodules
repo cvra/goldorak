@@ -4,3 +4,6 @@
 [submodule "cvra_msgs/uavcan/cvra/motor"]
 	path = cvra_msgs/uavcan/cvra/motor
 	url = https://github.com/cvra/motor-control-uavcan-dsdl
+[submodule "diff_base_odometry/src/odometry"]
+	path = diff_base_odometry/src/odometry
+	url = https://github.com/cvra/odometry.git
