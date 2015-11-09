@@ -12,9 +12,8 @@ find_package(catkin REQUIRED COMPONENTS
 ## Generate messages in the 'msg' folder
 add_message_files(
     FILES
-    MotorControlVelocity.msg
-    MotorFeedbackEncoderPosition.msg
-    MotorFeedbackMotorPosition.msg
+    MotorControlSetpoint.msg
+    MotorFeedbackPID.msg
 )
 generate_messages()
 
