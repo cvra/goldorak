@@ -345,15 +345,7 @@ public:
             config.second_encoder_steps_per_revolution;
         this->config_msg.potentiometer_gain = config.potentiometer_gain;
 
-        using cvra::motor::config::LoadConfiguration;
-        switch(config.mode) {
-            case 0: this->config_msg.mode = LoadConfiguration::Request::MODE_OPEN_LOOP; break;
-            case 1: this->config_msg.mode = LoadConfiguration::Request::MODE_INDEX; break;
-            case 2: this->config_msg.mode = LoadConfiguration::Request::MODE_ENC_PERIODIC; break;
-            case 3: this->config_msg.mode = LoadConfiguration::Request::MODE_ENC_BOUNDED; break;
-            case 4: this->config_msg.mode = LoadConfiguration::Request::MODE_2_ENC_PERIODIC; break;
-            case 5: this->config_msg.mode = LoadConfiguration::Request::MODE_MOTOR_POT; break;
-        }
+        this->config_msg.mode = config.mode;
 
         this->send_config(this->target_id, this->config_msg);
     }
