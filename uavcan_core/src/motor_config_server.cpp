@@ -1,5 +1,6 @@
 #include <uavcan/uavcan.hpp>
 #include <cvra/motor/config/LoadConfiguration.hpp>
+#include <cvra/motor/config/VelocityPID.hpp>
 #include <cvra/motor/config/CurrentPID.hpp>
 #include <cvra/motor/config/EnableMotor.hpp>
 #include <cvra/motor/config/FeedbackStream.hpp>
@@ -29,6 +30,19 @@ class UavcanMotorConfig
     {
         if (!res.isSuccessful()) {
             std::cerr << "Config service call to node has failed" << std::endl;
+        }
+    }
+
+    typedef uavcan::MethodBinder<UavcanMotorConfig*, void (UavcanMotorConfig::*)
+        (const uavcan::ServiceCallResult<cvra::motor::config::VelocityPID>&) const>
+        velocity_pid_client_cb_binder;
+    uavcan::ServiceClient<cvra::motor::config::VelocityPID, velocity_pid_client_cb_binder>
+        velocity_pid_client;
+    void velocity_pid_client_cb(
+        const uavcan::ServiceCallResult<cvra::motor::config::VelocityPID>& res) const
+    {
+        if (!res.isSuccessful()) {
+            std::cerr << "Velocity PID service call to node has failed" << std::endl;
         }
     }
 
@@ -74,6 +88,7 @@ public:
     UavcanMotorConfig(uavcan::NodeID id) :
         node(getCanDriver(), getSystemClock()),
         config_client(this->node),
+        velocity_pid_client(this->node),
         current_pid_client(this->node),
         enable_client(this->node),
         stream_client(this->node)
@@ -88,8 +103,12 @@ public:
 
         this->config_client.setCallback(config_client_cb_binder(this,
             &UavcanMotorConfig::config_client_cb));
+
+        this->velocity_pid_client.setCallback(velocity_pid_client_cb_binder(this,
+            &UavcanMotorConfig::velocity_pid_client_cb));
         this->current_pid_client.setCallback(current_pid_client_cb_binder(this,
             &UavcanMotorConfig::current_pid_client_cb));
+
         this->enable_client.setCallback(enable_client_cb_binder(this,
             &UavcanMotorConfig::enable_client_cb));
         this->stream_client.setCallback(stream_client_cb_binder(this,
@@ -104,6 +123,16 @@ public:
         const int call_res = this->config_client.call(server_node_id, config);
         if (call_res < 0) {
             throw std::runtime_error("Unable to perform config service call: "
+                                     + std::to_string(call_res));
+        }
+    }
+
+    void send_velocity_pid_config(uavcan::NodeID server_node_id,
+        cvra::motor::config::VelocityPID::Request config)
+    {
+        const int call_res = this->velocity_pid_client.call(server_node_id, config);
+        if (call_res < 0) {
+            throw std::runtime_error("Unable to perform velocity PID service call: "
                                      + std::to_string(call_res));
         }
     }
@@ -152,6 +181,7 @@ public:
     int node_id;
     int target_id;
 
+    cvra::motor::config::VelocityPID::Request velocity_pid_msg;
     cvra::motor::config::CurrentPID::Request current_pid_msg;
     cvra::motor::config::LoadConfiguration::Request config_msg;
     cvra::motor::config::EnableMotor::Request enable_msg;
@@ -233,7 +263,12 @@ public:
         this->config_msg.velocity_pid.kd = config.d;
         this->config_msg.velocity_pid.ilimit = config.i_limit;
 
-        this->send_config(this->target_id, this->config_msg);
+        this->velocity_pid_msg.pid.kp = config.p;
+        this->velocity_pid_msg.pid.ki = config.i;
+        this->velocity_pid_msg.pid.kd = config.d;
+        this->velocity_pid_msg.pid.ilimit = config.i_limit;
+
+        this->send_velocity_pid_config(this->target_id, this->velocity_pid_msg);
     }
 
     bool current_pid_cb(uavcan_core::PIDConfig &config, uint32_t level)
