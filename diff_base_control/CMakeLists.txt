@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(diff_base_odometry)
+project(diff_base_control)
 
 include_directories(
     src/

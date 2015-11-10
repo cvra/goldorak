@@ -23,6 +23,6 @@ popd
 popd # exit uavcan_core
 
 pushd ../..
-catkin build cvra_msgs uavcan_core goldorak_bringup diff_base_odometry
+catkin build cvra_msgs uavcan_core goldorak_bringup diff_base_control
 source devel/setup.bash
 popd
