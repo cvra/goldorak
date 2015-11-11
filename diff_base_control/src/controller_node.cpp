@@ -15,7 +15,7 @@ float left_wheel_radius;
 
 void cmdvel_cb(const geometry_msgs::Twist::ConstPtr& msg)
 {
-    ROS_INFO("I heard velocity commands: [%d] [%d]", msg->linear.x, msg->angular.z);
+    ROS_INFO("I heard velocity commands: [%f] [%f]", msg->linear.x, msg->angular.z);
 
     ros::Time current_time = ros::Time::now();
 
