@@ -5,12 +5,12 @@ motor_control_config:
         mode: 3
         motor_encoder_steps_per_revolution: 4096
         second_encoder_steps_per_revolution: 16384
-        transmission_ratio_p: 49
-        transmission_ratio_q: 676
+        transmission_ratio_p: 120
+        transmission_ratio_q: 100
         low_batt_th: 5.
         acceleration_limit: 100.
         velocity_limit: 50.
-        torque_limit: 10.
+        torque_limit: 8.
         torque_constant: 100.
         potentiometer_gain: 0.
         max_temperature: 100.
@@ -28,10 +28,10 @@ motor_control_config:
         d: 0.
         i_limit: 0.
     pid_velocity:
-        p: 0.
-        i: 0.
+        p: 100.
+        i: 100.
         d: 0.
-        i_limit: 0.
+        i_limit: 1000.
     stream:
         motor_encoder: 100
         motor_position: 20
