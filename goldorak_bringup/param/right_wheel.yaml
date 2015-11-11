@@ -10,18 +10,18 @@ motor_control_config:
         low_batt_th: 5.
         acceleration_limit: 100.
         velocity_limit: 50.
-        torque_limit: 14.
-        torque_constant: 1.
+        torque_limit: 10.
+        torque_constant: 100.
         potentiometer_gain: 0.
         max_temperature: 100.
         thermal_capacity: 0.
         thermal_resistance: 0.
         thermal_current_gain: 0.
     pid_current:
-        p: 0.
-        i: 0.
+        p: 1.
+        i: 500.
         d: 0.
-        i_limit: 0.
+        i_limit: 20.
     pid_position:
         p: 0.
         i: 0.
