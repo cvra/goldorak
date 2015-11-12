@@ -22,6 +22,8 @@ vcan
 Append the following to `/etc/network/interfaces`:
 
 ```
+allow-hotplug can1
+
 auto can1
 iface can1 can static
 	pre-up /usr/bin/env config-pin overlay cape-universaln
