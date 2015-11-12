@@ -1,5 +1,5 @@
 #include <uavcan_linux/uavcan_linux.hpp>
-#include <ros/ros.h>
+#include <ros/console.h>
 
 uavcan::ISystemClock& getSystemClock()
 {
@@ -15,7 +15,7 @@ uavcan::ICanDriver& getCanDriver()
         if (driver.addIface("can1") >= 0) {
             ROS_INFO("Listening on CAN interface.");
         } else if (driver.addIface("vcan0") >= 0) {
-            ROS_WARNING("Listening on virtual CAN interface.");
+            ROS_WARN("Listening on virtual CAN interface.");
         } else {
             throw std::runtime_error("Failed to add iface");
         }

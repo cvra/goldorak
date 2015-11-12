@@ -46,7 +46,7 @@ add_executable(
     ${SRC}/uc_publisher.cpp
     ${SRC}/platform_linux.cpp
     )
-target_link_libraries(uc_publisher ${UAVCAN_LIB} rt)
+target_link_libraries(uc_publisher ${UAVCAN_LIB} rt ${catkin_LIBRARIES})
 
 add_executable(
     motor_config_server
@@ -61,4 +61,4 @@ add_executable(
     ${SRC}/uc_config_server.cpp
     ${SRC}/platform_linux.cpp
     )
-target_link_libraries(uc_config_server ${UAVCAN_LIB} rt)
+target_link_libraries(uc_config_server ${UAVCAN_LIB} rt ${catkin_LIBRARIES})
