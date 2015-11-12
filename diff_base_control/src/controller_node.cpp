@@ -9,13 +9,13 @@ cvra_msgs::MotorControlSetpoint left_setpt_msg;
 ros::Publisher *right_setpt_pub;
 ros::Publisher *left_setpt_pub;
 
-float wheelbase;
-float right_wheel_radius;
-float left_wheel_radius;
-
 void cmdvel_cb(const geometry_msgs::Twist::ConstPtr& msg)
 {
     ROS_INFO("I heard velocity commands: [%f] [%f]", msg->linear.x, msg->angular.z);
+
+    static float wheelbase = 0.194;
+    static float right_wheel_radius = 0.016;
+    static float left_wheel_radius = 0.016;
 
     ros::Time current_time = ros::Time::now();
 
@@ -35,6 +35,9 @@ void cmdvel_cb(const geometry_msgs::Twist::ConstPtr& msg)
     right_setpt_msg.velocity /= right_wheel_radius;
     left_setpt_msg.velocity /= left_wheel_radius;
 
+    ROS_INFO("Params [%f] [%f] [%f]", wheelbase, right_wheel_radius, left_wheel_radius);
+    ROS_INFO("Vels [%f] [%f]", right_setpt_msg.velocity, left_setpt_msg.velocity);
+
     // Publish the setpoints
     right_setpt_pub->publish(right_setpt_msg);
     left_setpt_pub->publish(left_setpt_msg);
@@ -45,15 +48,6 @@ int main(int argc, char **argv)
     ros::init(argc, argv, "diff_base_controller");
 
     ros::NodeHandle node;
-
-    std::string wheelbase_param, right_wheel_radius_param, left_wheel_radius_param;
-    node.getParam("diff_base/wheelbase", wheelbase_param);
-    node.getParam("diff_base/right_wheel/radius", right_wheel_radius_param);
-    node.getParam("diff_base/left_wheel/radius", left_wheel_radius_param);
-
-    wheelbase = std::atof(wheelbase_param.c_str());
-    right_wheel_radius = std::atof(right_wheel_radius_param.c_str());
-    left_wheel_radius = std::atof(left_wheel_radius_param.c_str());
 
     ros::Publisher rpub = node.advertise
         <cvra_msgs::MotorControlSetpoint>("right_wheel/setpoint", 10);
