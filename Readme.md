@@ -11,9 +11,25 @@ You'll need to create a virtual CAN interface to simulate the CAN interface on t
 
 ### On the robot / the BBB
 
-You'll need to setup the CAN interface on the BBB of the robot
-```sh
-./sysops/goldorak_overlay.sh
+Append the following to `/etc/modules`:
+
+```
+can
+can_raw
+vcan
+```
+
+Append the following to `/etc/network/interfaces`:
+
+```
+auto can1
+iface can1 can static
+	pre-up /usr/bin/env config-pin overlay cape-universaln
+	pre-up /usr/bin/env config-pin P9.24 can
+	pre-up /usr/bin/env config-pin P9.26 can
+
+    bitrate 1000000
+    samplepoint 0.875
 ```
 
 ## Build & Run
