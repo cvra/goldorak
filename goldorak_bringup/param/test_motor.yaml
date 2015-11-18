@@ -18,20 +18,20 @@ motor_control_config:
         thermal_resistance: 0.
         thermal_current_gain: 0.
     pid_current:
-        p: 4.
-        i: 1500.
+        p: 10.
+        i: 2000.
         d: 0.
-        i_limit: 50.
+        i_limit: 20.
     pid_position:
         p: 0.1
         i: 0.5
         d: 0.
         i_limit: 10000.
     pid_velocity:
-        p: 14.
-        i: 110.
+        p: 1.
+        i: 0.
         d: 0.
-        i_limit: 1400.
+        i_limit: 0.
     stream:
         motor_encoder: 100
         motor_position: 20
