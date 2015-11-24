@@ -12,8 +12,8 @@ goldorak_diff_drive_controller:
   type: "diff_drive_controller/DiffDriveController"
   publish_rate: 50
 
-  left_wheel: ['left_front_wheel_joint', 'left_back_wheel_joint']
-  right_wheel: ['right_front_wheel_joint', 'right_back_wheel_joint']
+  left_wheel: 'left_wheel_joint'
+  right_wheel: 'right_wheel_joint'
 
   wheel_separation: 0.44
 
@@ -39,14 +39,3 @@ goldorak_diff_drive_controller:
       max_velocity           : 2.0   # rad/s
       has_acceleration_limits: true
       max_acceleration       : 6.0   # rad/s^2
-
-goldorak_head_controller:
-  type: "position_controllers/JointPositionController"
-  joint: head_swivel
-
-goldorak_gripper_controller:
-  type: "position_controllers/JointGroupPositionController"
-  joints:
-    - gripper_extension
-    - left_gripper_joint
-    - right_gripper_joint
