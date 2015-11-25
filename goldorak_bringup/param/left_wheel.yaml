@@ -3,8 +3,8 @@ motor_control_config:
         enable: false
     parameters:
         mode: 3
-        motor_encoder_steps_per_revolution: 16384
-        second_encoder_steps_per_revolution: 16384
+        motor_encoder_steps_per_revolution: 229376
+        second_encoder_steps_per_revolution: 229376
         transmission_ratio_p: 1
         transmission_ratio_q: 14
         low_batt_th: 10.
