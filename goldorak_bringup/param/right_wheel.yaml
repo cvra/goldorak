@@ -6,7 +6,7 @@ motor_control_config:
         motor_encoder_steps_per_revolution: 16384
         second_encoder_steps_per_revolution: 16384
         transmission_ratio_p: 1
-        transmission_ratio_q: 1
+        transmission_ratio_q: 14
         low_batt_th: 10.
         acceleration_limit: 100.
         velocity_limit: 50.
