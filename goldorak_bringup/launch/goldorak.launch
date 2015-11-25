@@ -26,12 +26,12 @@
     </include>
 
     <node name="diffbase_odometry"
-          pkg="diff_base_control"
+          pkg="goldorak_diffbase"
           type="diffbase_odometry"
           ns="$(arg robot_ns)"/>
 
     <node name="diffbase_controller"
-          pkg="diff_base_control"
+          pkg="goldorak_diffbase"
           type="diffbase_controller"
           ns="$(arg robot_ns)"/>
 </launch>
