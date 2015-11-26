@@ -7,7 +7,7 @@ pushd uavcan_core
 # Build UAVCAN
 mkdir uavcan/libuavcan/build
 pushd uavcan/libuavcan/build
-cmake ..
+cmake -D CMAKE_TOOLCHAIN_FILE=../../../../toolchain.cmake ..
 make
 popd
 
@@ -23,6 +23,6 @@ popd
 popd # exit uavcan_core
 
 pushd ../..
-catkin build cvra_msgs uavcan_core goldorak_bringup
+catkin build --cmake-args -DCMAKE_TOOLCHAIN_FILE=~/catkin_ws/src/goldorak/toolchain.cmake -- cvra_msgs uavcan_core goldorak_bringup
 source devel/setup.bash
 popd
