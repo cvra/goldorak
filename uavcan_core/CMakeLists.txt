@@ -57,6 +57,13 @@ target_link_libraries(motor_config_server ${UAVCAN_LIB} rt ${catkin_LIBRARIES})
 add_dependencies(motor_config_server ${PROJECT_NAME}_gencfg)
 
 add_executable(
+    motor_config_send_once
+    ${SRC}/motor_config_send_once.cpp
+    ${SRC}/platform_linux.cpp
+)
+target_link_libraries(motor_config_send_once ${UAVCAN_LIB} rt ${catkin_LIBRARIES})
+
+add_executable(
     uc_config_server
     ${SRC}/uc_config_server.cpp
     ${SRC}/platform_linux.cpp
