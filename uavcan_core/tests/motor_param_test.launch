@@ -3,5 +3,6 @@
 
     <test test-name="motor_param_test"
           pkg="uavcan_core"
-          type="motor_param_test" />
+          type="motor_param_test"
+          ns="robot/motor" />
 </launch>

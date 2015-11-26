@@ -15,6 +15,11 @@ int main(int argc, char **argv)
     ros::NodeHandle nh;
     UavcanMotorConfig uc_motor_config(node_id);
 
+    /* Send control config (parameters and PID gains) */
+    cvra::motor::config::LoadConfiguration::Request config_msg;
+    get_config_param(nh, config_msg);
+    uc_motor_config.send_config(target_id, config_msg);
+
     /* Send control enable */
     cvra::motor::config::EnableMotor::Request enable_msg;
     get_enable_param(nh, enable_msg);
