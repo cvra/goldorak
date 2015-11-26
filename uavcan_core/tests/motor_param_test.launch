@@ -1,0 +1,7 @@
+<launch>
+    <rosparam command="load" file="$(find uavcan_core)/tests/test_config.yaml" />
+
+    <test test-name="motor_param_test"
+          pkg="uavcan_core"
+          type="motor_param_test" />
+</launch>

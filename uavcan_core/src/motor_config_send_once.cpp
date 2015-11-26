@@ -1,14 +1,5 @@
-#include <uavcan/uavcan.hpp>
-#include <cvra/motor/config/LoadConfiguration.hpp>
-#include <cvra/motor/config/PositionPID.hpp>
-#include <cvra/motor/config/VelocityPID.hpp>
-#include <cvra/motor/config/CurrentPID.hpp>
-#include <cvra/motor/config/EnableMotor.hpp>
-#include <cvra/motor/config/FeedbackStream.hpp>
-
-#include <ros/ros.h>
-
-#include "motor_config_common.cpp"
+#include "UavcanMotorConfig.hpp"
+#include "motor_param.hpp"
 
 int main(int argc, char **argv)
 {
@@ -19,7 +10,6 @@ int main(int argc, char **argv)
 
     const int node_id = std::stoi(argv[1]);
     const int target_id = std::stoi(argv[2]);
-    std::string param_name;
 
     ros::init(argc, argv, "motor_send_config_once");
     ros::NodeHandle nh;
@@ -27,8 +17,7 @@ int main(int argc, char **argv)
 
     /* Send control enable */
     cvra::motor::config::EnableMotor::Request enable_msg;
-    nh.searchParam("motor_control_config/enable/enable", param_name);
-    nh.getParam(param_name, enable_msg.enable);
+    get_enable_param(nh, enable_msg);
     uc_motor_config.send_enable(target_id, enable_msg);
 
     return 0;
