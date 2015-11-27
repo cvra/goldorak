@@ -38,9 +38,9 @@ robot:
                 motor_encoder: 100
                 motor_position: 20
                 motor_torque: 0
-                index: 0
-                current_pid: 0
-                velocity_pid: 0
-                position_pid: 0
+                index: 40
+                current_pid: 50
+                velocity_pid: 60
+                position_pid: 70
 uavcan_nodes:
     motor: 42

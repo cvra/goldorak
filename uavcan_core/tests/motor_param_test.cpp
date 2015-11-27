@@ -3,7 +3,7 @@
 #include <iostream>
 #include <stdint.h>
 
-TEST(MotorConfigSendOnceTestSuite, canGetEnable)
+TEST(MotorParamTestSuite, canGetEnable)
 {
     ros::NodeHandle nh;
 
@@ -13,14 +13,13 @@ TEST(MotorConfigSendOnceTestSuite, canGetEnable)
     EXPECT_FALSE(msg.enable);
 }
 
-TEST(MotorConfigSendOnceTestSuite, canGetParameters)
+TEST(MotorParamTestSuite, canGetParameters)
 {
     ros::NodeHandle nh;
 
     cvra::motor::config::LoadConfiguration::Request msg;
     get_config_param(nh, msg);
 
-    std::cout << msg << std::endl;
     EXPECT_EQ(3, msg.mode);
     EXPECT_EQ(4096, msg.motor_encoder_steps_per_revolution);
     EXPECT_EQ(16384, msg.second_encoder_steps_per_revolution);
@@ -53,6 +52,90 @@ TEST(MotorConfigSendOnceTestSuite, canGetParameters)
     EXPECT_FLOAT_EQ(0.5f, msg.position_pid.ki);
     EXPECT_FLOAT_EQ(0.f, msg.position_pid.kd);
     EXPECT_FLOAT_EQ(10000.f, msg.position_pid.ilimit);
+}
+
+TEST(MotorParamTestSuite, canGetStreamCurrentPID)
+{
+    ros::NodeHandle nh;
+
+    cvra::motor::config::FeedbackStream::Request msg;
+    get_stream_param(nh, msg, CURRENT_PID_STREAM);
+
+    EXPECT_EQ(CURRENT_PID_STREAM, msg.stream);
+    EXPECT_EQ(1, msg.enabled);
+    EXPECT_EQ(50, msg.frequency);
+}
+
+TEST(MotorParamTestSuite, canGetStreamVelocityPID)
+{
+    ros::NodeHandle nh;
+
+    cvra::motor::config::FeedbackStream::Request msg;
+    get_stream_param(nh, msg, VELOCITY_PID_STREAM);
+
+    EXPECT_EQ(VELOCITY_PID_STREAM, msg.stream);
+    EXPECT_EQ(1, msg.enabled);
+    EXPECT_EQ(60, msg.frequency);
+}
+
+TEST(MotorParamTestSuite, canGetStreamPositionPID)
+{
+    ros::NodeHandle nh;
+
+    cvra::motor::config::FeedbackStream::Request msg;
+    get_stream_param(nh, msg, POSITION_PID_STREAM);
+
+    EXPECT_EQ(POSITION_PID_STREAM, msg.stream);
+    EXPECT_EQ(1, msg.enabled);
+    EXPECT_EQ(70, msg.frequency);
+}
+
+TEST(MotorParamTestSuite, canGetStreamIndex)
+{
+    ros::NodeHandle nh;
+
+    cvra::motor::config::FeedbackStream::Request msg;
+    get_stream_param(nh, msg, INDEX_STREAM);
+
+    EXPECT_EQ(INDEX_STREAM, msg.stream);
+    EXPECT_EQ(1, msg.enabled);
+    EXPECT_EQ(40, msg.frequency);
+}
+
+TEST(MotorParamTestSuite, canGetStreamMotorEncoder)
+{
+    ros::NodeHandle nh;
+
+    cvra::motor::config::FeedbackStream::Request msg;
+    get_stream_param(nh, msg, MOTOR_ENCODER_STREAM);
+
+    EXPECT_EQ(MOTOR_ENCODER_STREAM, msg.stream);
+    EXPECT_EQ(1, msg.enabled);
+    EXPECT_EQ(100, msg.frequency);
+}
+
+TEST(MotorParamTestSuite, canGetStreamMotorPosition)
+{
+    ros::NodeHandle nh;
+
+    cvra::motor::config::FeedbackStream::Request msg;
+    get_stream_param(nh, msg, MOTOR_POSITION_STREAM);
+
+    EXPECT_EQ(MOTOR_POSITION_STREAM, msg.stream);
+    EXPECT_EQ(1, msg.enabled);
+    EXPECT_EQ(20, msg.frequency);
+}
+
+TEST(MotorParamTestSuite, canGetStreamMotorTorque)
+{
+    ros::NodeHandle nh;
+
+    cvra::motor::config::FeedbackStream::Request msg;
+    get_stream_param(nh, msg, MOTOR_TORQUE_STREAM);
+
+    EXPECT_EQ(MOTOR_TORQUE_STREAM, msg.stream);
+    EXPECT_EQ(0, msg.enabled);
+    EXPECT_EQ(0, msg.frequency);
 }
 
 int main(int argc, char **argv)

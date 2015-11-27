@@ -7,6 +7,13 @@
 #include <cvra/motor/config/FeedbackStream.hpp>
 #include <cvra/motor/config/EnableMotor.hpp>
 
+#define CURRENT_PID_STREAM      1
+#define VELOCITY_PID_STREAM     2
+#define POSITION_PID_STREAM     3
+#define INDEX_STREAM            4
+#define MOTOR_ENCODER_STREAM    5
+#define MOTOR_POSITION_STREAM   6
+#define MOTOR_TORQUE_STREAM     7
 
 void get_enable_param(
     ros::NodeHandle &nh,
@@ -60,6 +67,34 @@ void get_config_param(
     nh.getParam("motor_control_config/pid_position/i", msg.position_pid.ki);
     nh.getParam("motor_control_config/pid_position/d", msg.position_pid.kd);
     nh.getParam("motor_control_config/pid_position/i_limit", msg.position_pid.ilimit);
+}
+
+void get_stream_param(
+    ros::NodeHandle &nh,
+    cvra::motor::config::FeedbackStream::Request &msg,
+    int stream_mode)
+{
+    int freq = 0;
+    std::string param_name;
+    param_name = "motor_control_config/stream/";
+
+    switch (stream_mode) {
+        case CURRENT_PID_STREAM: param_name += "current_pid"; break;
+        case VELOCITY_PID_STREAM: param_name += "velocity_pid"; break;
+        case POSITION_PID_STREAM: param_name += "position_pid"; break;
+        case INDEX_STREAM: param_name += "index"; break;
+        case MOTOR_ENCODER_STREAM: param_name += "motor_encoder"; break;
+        case MOTOR_POSITION_STREAM: param_name += "motor_position"; break;
+        case MOTOR_TORQUE_STREAM: param_name += "motor_torque"; break;
+    }
+
+    nh.getParam(param_name, freq);
+
+    msg.stream = stream_mode;
+    if (freq > 0) {
+        msg.enabled = 1;
+        msg.frequency = freq;
+    }
 }
 
 #endif /* MOTOR_PARAM_HPP */
