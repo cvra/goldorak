@@ -16,6 +16,8 @@ void cmdvel_cb(const geometry_msgs::Twist::ConstPtr& msg)
     static float wheelbase = 0.194;
     static float right_wheel_radius = 0.016;
     static float left_wheel_radius = 0.016;
+    static int right_wheel_direction = 1;
+    static int left_wheel_direction = -1;
 
     ros::Time current_time = ros::Time::now();
 
@@ -34,6 +36,11 @@ void cmdvel_cb(const geometry_msgs::Twist::ConstPtr& msg)
     // Convert velocity to rad/s
     right_setpt_msg.velocity /= right_wheel_radius;
     left_setpt_msg.velocity /= left_wheel_radius;
+
+    // Fix wheel direction
+    right_setpt_msg.velocity *= right_wheel_direction;
+    left_setpt_msg.velocity *= left_wheel_direction;
+
 
     ROS_INFO("Params [%f] [%f] [%f]", wheelbase, right_wheel_radius, left_wheel_radius);
     ROS_INFO("Vels [%f] [%f]", right_setpt_msg.velocity, left_setpt_msg.velocity);
