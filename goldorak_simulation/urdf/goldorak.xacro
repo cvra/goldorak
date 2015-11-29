@@ -5,7 +5,7 @@
   <xacro:property name="body_height" value="0.1" />
   <xacro:property name="wheelbase" value="0.3" />
   <xacro:property name="wheel_diameter" value="0.1" />
-  <xacro:property name="wheel_thickness" value="0.1" />
+  <xacro:property name="wheel_thickness" value="0.01" />
   <xacro:property name="wheel_offset" value="0.05" />
   <xacro:property name="pi" value="3.1415" />
 
@@ -49,7 +49,7 @@
       <visual>
         <origin xyz="0 0 0" rpy="${pi/2} 0 0" />
         <geometry>
-          <cylinder radius="${wheel_diameter/2}" length="0.01"/>
+          <cylinder radius="${wheel_diameter/2}" length="${wheel_thickness}"/>
         </geometry>
         <material name="black"/>
         <origin xyz="0 0 0" rpy="0 0 0" />
@@ -64,7 +64,7 @@
       <xacro:default_inertial mass="1"/>
     </link>
     <joint name="${prefix}_wheel_joint" type="continuous">
-      <axis xyz="0 1 0" rpy="0 0 0" />
+      <axis xyz="0 ${reflect} 0" rpy="0 0 0" />
       <parent link="base_link"/>
       <child link="${prefix}_wheel"/>
       <origin xyz="0

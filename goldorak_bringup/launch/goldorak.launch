@@ -4,6 +4,17 @@
     <rosparam command="load" file="$(find goldorak_bringup)/param/uavcan_nodes.yaml"/>
     <rosparam command="load" file="$(find goldorak_bringup)/param/robot.yaml" ns="$(arg robot_ns)"/>
 
+    <arg name="model" default="$(find goldorak_simulation)/urdf/goldorak.xacro"/>
+    <param name="robot_description" command="$(find xacro)/xacro.py $(arg model)" />
+
+    <node name="robot_state_publisher"
+          pkg="robot_state_publisher"
+          type="state_publisher" />
+
+    <node name="state_publisher"
+          pkg="goldorak_state_publisher"
+          type="real_state_publisher" />
+
     <node name="uavcan_bridge"
           pkg="uavcan_core"
           type="uavcan_bridge"
