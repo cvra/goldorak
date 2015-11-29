@@ -22,7 +22,7 @@ robot_base_vel_2d_s robot_vel;
 
 void right_wheel_cb(const std_msgs::UInt16::ConstPtr& msg)
 {
-    ROS_INFO("I heard the right wheel encoder: [%d]", msg->data);
+    ROS_DEBUG("I heard the right wheel encoder: [%d]", msg->data);
 
     odometry_encoder_record_sample(&right_wheel_encoder,
                                    (uint32_t)(ros::Time::now().toNSec() / 1000.f),
@@ -31,7 +31,7 @@ void right_wheel_cb(const std_msgs::UInt16::ConstPtr& msg)
 
 void left_wheel_cb(const std_msgs::UInt16::ConstPtr& msg)
 {
-    ROS_INFO("I heard the left wheel encoder: [%d]", msg->data);
+    ROS_DEBUG("I heard the left wheel encoder: [%d]", msg->data);
 
     ros::Time current_time = ros::Time::now();
 
@@ -45,9 +45,9 @@ void left_wheel_cb(const std_msgs::UInt16::ConstPtr& msg)
     odometry_base_get_pose(&robot, &robot_pose);
     odometry_base_get_vel(&robot, &robot_vel);
 
-    ROS_INFO("Wheelbase pose is: x = %.3f, y = %.3f, theta = %.3f",
+    ROS_DEBUG("Wheelbase pose is: x = %.3f, y = %.3f, theta = %.3f",
         robot_pose.x, robot_pose.y, robot_pose.theta);
-    ROS_INFO("Wheelbase velocity is: x = %.3f, y = %.3f, omega = %.3f",
+    ROS_DEBUG("Wheelbase velocity is: x = %.3f, y = %.3f, omega = %.3f",
         robot_vel.x, robot_vel.y, robot_vel.omega);
 
     // Since all odometry is 6DOF we'll need a quaternion created from yaw

@@ -39,8 +39,8 @@ void cmdvel_cb(const geometry_msgs::Twist::ConstPtr& msg)
     left_setpt_msg.velocity *= left_wheel_direction;
 
 
-    ROS_INFO("Params [%f] [%f] [%f]", wheelbase, right_wheel_radius, left_wheel_radius);
-    ROS_INFO("Vels [%f] [%f]", right_setpt_msg.velocity, left_setpt_msg.velocity);
+    ROS_DEBUG("Parameters [%f] [%f] [%f]", wheelbase, right_wheel_radius, left_wheel_radius);
+    ROS_DEBUG("Velocities [%f] [%f]", right_setpt_msg.velocity, left_setpt_msg.velocity);
 
     // Publish the setpoints
     right_setpt_pub->publish(right_setpt_msg);
