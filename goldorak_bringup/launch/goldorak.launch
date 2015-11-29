@@ -2,6 +2,7 @@
     <arg name="robot_ns" default="goldorak" />
 
     <rosparam command="load" file="$(find goldorak_bringup)/param/uavcan_nodes.yaml"/>
+    <rosparam command="load" file="$(find goldorak_bringup)/param/robot.yaml" ns="$(arg robot_ns)"/>
 
     <node name="uavcan_bridge"
           pkg="uavcan_core"
@@ -24,4 +25,14 @@
         <arg name="motor_uavcan_id" value="41" />
         <arg name="default_params" value="$(find goldorak_bringup)/param/left_wheel.yaml" />
     </include>
+
+    <node name="diffbase_odometry"
+          pkg="goldorak_diffbase"
+          type="diffbase_odometry"
+          ns="$(arg robot_ns)"/>
+
+    <node name="diffbase_controller"
+          pkg="goldorak_diffbase"
+          type="diffbase_controller"
+          ns="$(arg robot_ns)"/>
 </launch>

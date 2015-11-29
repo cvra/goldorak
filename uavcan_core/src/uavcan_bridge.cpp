@@ -23,6 +23,7 @@
 #include "cvra_msgs/MotorControlSetpoint.h"
 #include "cvra_msgs/MotorFeedbackPID.h"
 #include "std_msgs/Float32.h"
+#include "std_msgs/UInt16.h"
 
 extern uavcan::ICanDriver& getCanDriver();
 extern uavcan::ISystemClock& getSystemClock();
@@ -230,7 +231,7 @@ public:
     std_msgs::Float32 position_msg;
     std_msgs::Float32 velocity_msg;
     std_msgs::Float32 torque_msg;
-    std_msgs::Float32 encoder_msg;
+    std_msgs::UInt16 encoder_msg;
     std_msgs::Float32 index_msg;
     std_msgs::Float32 voltage_msg;
     cvra_msgs::MotorFeedbackPID current_pid_msg;
@@ -258,7 +259,7 @@ public:
             this->torque_pub[elem.second] =
                 ros_node.advertise<std_msgs::Float32>(elem.first + "/feedback/torque", 10);
             this->encoder_pub[elem.second] =
-                ros_node.advertise<std_msgs::Float32>(elem.first + "/feedback/encoder_raw", 10);
+                ros_node.advertise<std_msgs::UInt16>(elem.first + "/feedback/encoder_raw", 10);
             this->index_pub[elem.second] =
                 ros_node.advertise<std_msgs::Float32>(elem.first + "/feedback/index", 10);
             this->voltage_pub[elem.second] =
@@ -374,7 +375,7 @@ public:
 
         /* Check that the source node has an associated publisher */
         if (current_pid_pub.count(id)) {
-            ROS_DEBUG("Got motor raw encoder feedback from node %d", id);
+            ROS_DEBUG("Got motor current PID feedback from node %d", id);
 
             this->current_pid_msg.setpoint = msg.current_setpoint;
             this->current_pid_msg.measured = msg.current;
@@ -392,7 +393,7 @@ public:
 
         /* Check that the source node has an associated publisher */
         if (velocity_pid_pub.count(id)) {
-            ROS_DEBUG("Got motor raw encoder feedback from node %d", id);
+            ROS_DEBUG("Got motor velocity PID feedback from node %d", id);
             this->velocity_pid_msg.setpoint = msg.velocity_setpoint;
             this->velocity_pid_msg.measured = msg.velocity;
             this->velocity_pid_pub[id].publish(this->velocity_pid_msg);
@@ -406,7 +407,7 @@ public:
 
         /* Check that the source node has an associated publisher */
         if (position_pid_pub.count(id)) {
-            ROS_DEBUG("Got motor raw encoder feedback from node %d", id);
+            ROS_DEBUG("Got motor position PID feedback from node %d", id);
             this->position_pid_msg.setpoint = msg.position_setpoint;
             this->position_pid_msg.measured = msg.position;
             this->position_pid_pub[id].publish(this->position_pid_msg);

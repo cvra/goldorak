@@ -30,7 +30,7 @@ class UavcanMotorConfig
         const uavcan::ServiceCallResult<cvra::motor::config::LoadConfiguration>& res) const
     {
         if (!res.isSuccessful()) {
-            std::cerr << "Config service call to node has failed" << std::endl;
+            std::cerr << "Config service call to node has failed" << res << std::endl;
         }
     }
 
@@ -81,7 +81,7 @@ class UavcanMotorConfig
         const uavcan::ServiceCallResult<cvra::motor::config::EnableMotor>& res) const
     {
         if (!res.isSuccessful()) {
-            std::cerr << "Enable service call to node has failed" << std::endl;
+            std::cerr << "Enable service call to node has failed" << res << std::endl;
         }
     }
 
@@ -94,7 +94,7 @@ class UavcanMotorConfig
         const uavcan::ServiceCallResult<cvra::motor::config::FeedbackStream>& res) const
     {
         if (!res.isSuccessful()) {
-            std::cerr << "Stream service call to node has failed" << std::endl;
+            std::cerr << "Stream service call to node has failed" << res << std::endl;
         }
     }
 

@@ -1,0 +1,8 @@
+depends:
+    - test-runner
+
+target.arm:
+    - odometry.c
+
+tests:
+    - tests/odometry_test.cpp

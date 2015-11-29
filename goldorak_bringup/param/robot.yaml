@@ -1,0 +1,8 @@
+diffbase:
+    wheelbase: 0.194
+    right_wheel:
+        radius: 0.016
+        direction: 1
+    left_wheel:
+        radius: 0.016
+        direction: -1
