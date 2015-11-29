@@ -9,15 +9,12 @@ cvra_msgs::MotorControlSetpoint left_setpt_msg;
 ros::Publisher *right_setpt_pub;
 ros::Publisher *left_setpt_pub;
 
+float wheelbase, right_wheel_radius, left_wheel_radius;
+int right_wheel_direction, left_wheel_direction;
+
 void cmdvel_cb(const geometry_msgs::Twist::ConstPtr& msg)
 {
-    ROS_INFO("I heard velocity commands: [%f] [%f]", msg->linear.x, msg->angular.z);
-
-    static float wheelbase = 0.194;
-    static float right_wheel_radius = 0.016;
-    static float left_wheel_radius = 0.016;
-    static int right_wheel_direction = 1;
-    static int left_wheel_direction = -1;
+    ROS_DEBUG("I heard velocity commands: [%f] [%f]", msg->linear.x, msg->angular.z);
 
     ros::Time current_time = ros::Time::now();
 
@@ -52,18 +49,37 @@ void cmdvel_cb(const geometry_msgs::Twist::ConstPtr& msg)
 
 int main(int argc, char **argv)
 {
-    ros::init(argc, argv, "diff_base_controller");
+    ros::init(argc, argv, "diffbase/controller");
 
-    ros::NodeHandle node;
+    ros::NodeHandle nh;
 
-    ros::Publisher rpub = node.advertise
+    /* Get differential base parameters */
+    std::string param_key;
+
+    nh.searchParam("diffbase/wheelbase", param_key);
+    nh.getParam(param_key, wheelbase);
+
+    nh.searchParam("diffbase/right_wheel/radius", param_key);
+    nh.getParam(param_key, right_wheel_radius);
+
+    nh.searchParam("diffbase/left_wheel/radius", param_key);
+    nh.getParam(param_key, left_wheel_radius);
+
+    nh.searchParam("diffbase/right_wheel/direction", param_key);
+    nh.getParam(param_key, right_wheel_direction);
+
+    nh.searchParam("diffbase/left_wheel/direction", param_key);
+    nh.getParam(param_key, left_wheel_direction);
+
+    /* Initialise controller */
+    ros::Publisher rpub = nh.advertise
         <cvra_msgs::MotorControlSetpoint>("right_wheel/setpoint", 10);
-    ros::Publisher lpub = node.advertise
+    ros::Publisher lpub = nh.advertise
         <cvra_msgs::MotorControlSetpoint>("left_wheel/setpoint", 10);
     right_setpt_pub = &rpub;
     left_setpt_pub = &lpub;
 
-    ros::Subscriber cmdvel_sub = node.subscribe("cmd_vel", 10, cmdvel_cb);
+    ros::Subscriber cmdvel_sub = nh.subscribe("cmd_vel", 10, cmdvel_cb);
 
     ros::spin();
 

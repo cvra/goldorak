@@ -2,6 +2,7 @@
     <arg name="robot_ns" default="goldorak" />
 
     <rosparam command="load" file="$(find goldorak_bringup)/param/uavcan_nodes.yaml"/>
+    <rosparam command="load" file="$(find goldorak_bringup)/param/robot.yaml" ns="$(arg robot_ns)"/>
 
     <node name="uavcan_bridge"
           pkg="uavcan_core"

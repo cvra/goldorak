@@ -88,33 +88,56 @@ void left_wheel_cb(const std_msgs::UInt16::ConstPtr& msg)
 
 int main(int argc, char **argv)
 {
-    ros::init(argc, argv, "diff_base_odometry");
+    ros::init(argc, argv, "diffbase/odometry");
 
-    ros::NodeHandle node;
+    ros::NodeHandle nh;
 
+    /* Initialise differential base parameters */
     robot_base_pose_2d_s init_pose;
     init_pose.x = 0.0f;
     init_pose.y = 0.0f;
     init_pose.theta = 0.0f;
 
+    float wheelbase, right_wheel_radius, left_wheel_radius;
+    int right_wheel_direction, left_wheel_direction;
+    std::string param_key;
+
+    nh.searchParam("diffbase/wheelbase", param_key);
+    nh.getParam(param_key, wheelbase);
+
+    nh.searchParam("diffbase/right_wheel/radius", param_key);
+    nh.getParam(param_key, right_wheel_radius);
+
+    nh.searchParam("diffbase/left_wheel/radius", param_key);
+    nh.getParam(param_key, left_wheel_radius);
+
+    nh.searchParam("diffbase/right_wheel/direction", param_key);
+    nh.getParam(param_key, right_wheel_direction);
+
+    nh.searchParam("diffbase/left_wheel/direction", param_key);
+    nh.getParam(param_key, left_wheel_direction);
+
+    ROS_DEBUG("Params [%f] [%f] [%f]", wheelbase, right_wheel_radius, left_wheel_radius);
+
+    /* Initialise odometry */
     odometry_base_init(&robot,
                        init_pose,
-                       0.016f,
-                       0.016f,
-                       1,
-                       -1,
-                       0.194f,
+                       right_wheel_radius,
+                       left_wheel_radius,
+                       right_wheel_direction,
+                       left_wheel_direction,
+                       wheelbase,
                        (uint32_t)(ros::Time::now().toNSec() / 1000.f));
 
-    ros::Publisher pub = node.advertise<nav_msgs::Odometry>("odom", 10);
+    ros::Publisher pub = nh.advertise<nav_msgs::Odometry>("odom", 10);
     odom_pub = &pub;
 
     odom_broadcaster = new tf::TransformBroadcaster();
 
-    ros::Subscriber right_wheel_sub = node.subscribe(
+    ros::Subscriber right_wheel_sub = nh.subscribe(
         "right_wheel/feedback/encoder_raw",
         10, right_wheel_cb);
-    ros::Subscriber left_wheel_sub = node.subscribe(
+    ros::Subscriber left_wheel_sub = nh.subscribe(
         "left_wheel/feedback/encoder_raw",
         10, left_wheel_cb);
 
