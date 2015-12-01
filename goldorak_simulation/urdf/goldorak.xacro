@@ -1,12 +1,15 @@
 <?xml version="1.0"?>
 <robot name="goldorak" xmlns:xacro="http://ros.org/wiki/xacro">
 
-  <xacro:property name="body_width" value="0.2" />
-  <xacro:property name="body_height" value="0.1" />
-  <xacro:property name="wheelbase" value="0.3" />
-  <xacro:property name="wheel_diameter" value="0.1" />
+  <xacro:property name="body_radius" value="0.12" />
+  <xacro:property name="body_height" value="0.5" />
+  <xacro:property name="wheelbase" value="0.194" />
+  <xacro:property name="wheel_radius" value="0.029" />
   <xacro:property name="wheel_thickness" value="0.01" />
-  <xacro:property name="wheel_offset" value="0.05" />
+  <xacro:property name="wheel_offset" value="-0.20" />
+  <xacro:property name="casterbase" value="0.194" />
+  <xacro:property name="caster_radius" value="0.01" />
+  <xacro:property name="caster_offset" value="-0.24" />
   <xacro:property name="pi" value="3.1415" />
 
   <material name="blue">
@@ -24,23 +27,31 @@
   <xacro:macro name="default_inertial" params="mass">
     <inertial>
       <mass value="${mass}" />
-      <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0" />
+      <inertia ixx="1.0" ixy="0.0" ixz="0.0"
+               iyy="1.0" iyz="0.0"
+               izz="1.0" />
     </inertial>
   </xacro:macro>
 
   <link name="base_link">
     <visual>
       <geometry>
-        <cylinder radius="${body_width}" length="${body_height}"/>
+        <cylinder radius="${body_radius}" length="${body_height}"/>
       </geometry>
       <material name="white"/>
     </visual>
     <collision>
       <geometry>
-        <cylinder radius="${body_width}" length="${body_height}"/>
+        <cylinder radius="${body_radius}" length="${body_height}"/>
       </geometry>
     </collision>
-    <xacro:default_inertial mass="10"/>
+    <inertial>
+      <mass value="2" />
+      <origin xyz="0 0 0.0" />
+      <inertia ixx="0.01" ixy="0.0" ixz="0.0"
+               iyy="0.01" iyz="0.0"
+               izz="0.5" />
+    </inertial>
   </link>
 
   <xacro:macro name="wheel" params="prefix reflect">
@@ -49,7 +60,7 @@
       <visual>
         <origin xyz="0 0 0" rpy="${pi/2} 0 0" />
         <geometry>
-          <cylinder radius="${wheel_diameter/2}" length="${wheel_thickness}"/>
+          <cylinder radius="${wheel_radius}" length="${wheel_thickness}"/>
         </geometry>
         <material name="black"/>
         <origin xyz="0 0 0" rpy="0 0 0" />
@@ -57,29 +68,35 @@
       <collision>
         <origin xyz="0 0 0" rpy="${pi/2} 0 0" />
         <geometry>
-          <cylinder radius="${wheel_diameter/2}" length="${wheel_thickness}"/>
+          <cylinder radius="${wheel_radius}" length="${wheel_thickness}"/>
         </geometry>
         <origin xyz="0 0 0" rpy="0 0 0" />
       </collision>
-      <xacro:default_inertial mass="1"/>
+      <inertial>
+          <origin xyz="0 0 0"/>
+          <mass value="0.01" />
+          <inertia ixx="0.001" ixy="0.0" ixz="0.0"
+                   iyy="0.001" iyz="0.0"
+                   izz="0.001" />
+        </inertial>
     </link>
     <joint name="${prefix}_wheel_joint" type="continuous">
-      <axis xyz="0 ${reflect} 0" rpy="0 0 0" />
+      <axis xyz="0 1 0" rpy="0 0 0" />
       <parent link="base_link"/>
       <child link="${prefix}_wheel"/>
       <origin xyz="0
                    ${(wheelbase + wheel_thickness) * reflect / 2}
-                   -${wheel_diameter / 2 - wheel_offset}"
+                   ${wheel_offset - wheel_radius}"
               rpy="0 0 0"/>
     </joint>
 
     <!-- This block provides the simulator (Gazebo) with information on a few additional
     physical properties. See http://gazebosim.org/tutorials/?tut=ros_urdf for more-->
     <gazebo reference="${prefix}_wheel">
-      <mu1 value="200.0"/>
-      <mu2 value="100.0"/>
-      <kp value="10000000.0" />
-      <kd value="1.0" />
+      <mu1>1.0</mu1>
+      <mu2>1.0</mu2>
+      <kp>1000000.0</kp>
+      <kd>100.0</kd>
       <material>Gazebo/Grey</material>
     </gazebo>
 
@@ -100,10 +117,61 @@
   <xacro:wheel prefix="right" reflect="1"/>
   <xacro:wheel prefix="left" reflect="-1"/>
 
+  <xacro:macro name="caster" params="prefix reflect">
+
+    <link name="${prefix}_caster">
+      <visual>
+        <origin xyz="0 0 0" rpy="${pi/2} 0 0" />
+        <geometry>
+          <sphere radius="${caster_radius}" />
+        </geometry>
+        <material name="black"/>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="${pi/2} 0 0" />
+        <geometry>
+          <sphere radius="${caster_radius}" />
+        </geometry>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+      </collision>
+      <inertial>
+        <origin xyz="0 0 0" />
+        <mass value="0.01" />
+        <inertia ixx="0.001" ixy="0.0" ixz="0.0"
+                 iyy="0.001" iyz="0.0"
+                 izz="0.001" />
+        </inertial>
+    </link>
+    <joint name="${prefix}_caster_joint" type="fixed">
+      <axis xyz="0 1 0" rpy="0 0 0" />
+      <parent link="base_link"/>
+      <child link="${prefix}_caster"/>
+      <origin xyz="${(casterbase + caster_radius) * reflect / 2}
+                   0
+                   ${caster_offset - caster_radius}"
+              rpy="0 0 0"/>
+    </joint>
+
+    <gazebo reference="${prefix}_caster">
+      <mu1>0.0</mu1>
+      <mu2>0.0</mu2>
+      <kp>1000000.0</kp>
+      <kd>100.0</kd>
+      <minDepth>0.001</minDepth>
+      <maxVel>1.0</maxVel>
+      <material>Gazebo/Grey</material>
+    </gazebo>
+
+  </xacro:macro>
+
+  <xacro:caster prefix="front" reflect="1"/>
+  <xacro:caster prefix="rear" reflect="-1"/>
+
   <!-- Laser scanner 1D -->
   <joint name="laser_joint" type="fixed">
     <axis xyz="0 1 0" />
-    <origin xyz="0 0 ${body_height}" rpy="0 0 0"/>
+    <origin xyz="0 0 ${body_height / 2}" rpy="0 0 0"/>
     <parent link="base_link"/>
     <child link="laser_link"/>
   </joint>
@@ -112,21 +180,23 @@
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <cylinder radius="0.05" length="0.1"/>
+        <cylinder radius="0.02" length="0.02"/>
       </geometry>
     </collision>
 
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <cylinder radius="0.05" length="0.1"/>
+        <cylinder radius="0.02" length="0.02"/>
       </geometry>
     </visual>
 
     <inertial>
       <mass value="1e-5" />
       <origin xyz="0 0 0" rpy="0 0 0"/>
-      <inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6" />
+      <inertia ixx="1e-6" ixy="0" ixz="0"
+               iyy="1e-6" iyz="0"
+               izz="1e-6" />
     </inertial>
   </link>
 

@@ -15,7 +15,7 @@ goldorak_diff_drive_controller:
   left_wheel: 'left_wheel_joint'
   right_wheel: 'right_wheel_joint'
 
-  wheel_separation: 0.44
+  wheel_separation: 0.194
 
   # Odometry covariances for the encoder output of the robot. These values should
   # be tuned to your robot's sample odometry data, but these values are a good place
@@ -30,12 +30,12 @@ goldorak_diff_drive_controller:
   linear:
     x:
       has_velocity_limits    : true
-      max_velocity           : 0.2   # m/s
+      max_velocity           : 2.0   # m/s
       has_acceleration_limits: true
-      max_acceleration       : 0.6   # m/s^2
+      max_acceleration       : 5.0   # m/s^2
   angular:
     z:
       has_velocity_limits    : true
-      max_velocity           : 2.0   # rad/s
+      max_velocity           : 10.0   # rad/s
       has_acceleration_limits: true
-      max_acceleration       : 6.0   # rad/s^2
+      max_acceleration       : 20.0   # rad/s^2
