@@ -9,7 +9,7 @@
     <node name="map_tf_broadcaster"
           pkg="tf"
           type="static_transform_publisher"
-          args="1 0 0 0 0 0 1 map odom 100" />
+          args="0 0 0 0 0 0 1 map odom 100" />
 
     <include file="$(find goldorak_simulation)/launch/control.launch">
     </include>
