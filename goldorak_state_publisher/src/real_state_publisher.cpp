@@ -47,9 +47,9 @@ int main(int argc, char** argv)
 
     ros::NodeHandle n;
     ros::Subscriber right_wheel_sub = n.subscribe(
-        "/goldorak/right_wheel/feedback/position", 1, right_wheel_cb);
+        "right_wheel/feedback/position", 1, right_wheel_cb);
     ros::Subscriber left_wheel_sub = n.subscribe(
-        "/goldorak/left_wheel/feedback/position", 1, left_wheel_cb);
+        "left_wheel/feedback/position", 1, left_wheel_cb);
 
     ros::Publisher pub = n.advertise<sensor_msgs::JointState>("joint_states", 1);
     joint_pub = &pub;

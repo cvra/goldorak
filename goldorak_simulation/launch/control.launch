@@ -1,6 +1,6 @@
 <launch>
 
-  <arg name="model" default="$(find goldorak_simulation)/urdf/goldorak.xacro"/>
+  <arg name="model" default="$(find goldorak_description)/urdf/goldorak.xacro"/>
   <arg name="rvizconfig" default="$(find goldorak_simulation)/rviz/nav.rviz" />
 
   <include file="$(find goldorak_simulation)/launch/gazebo.launch">
