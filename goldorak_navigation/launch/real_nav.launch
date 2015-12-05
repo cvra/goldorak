@@ -1,11 +1,5 @@
 <launch>
-    <arg name="map_file" default="$(find goldorak_navigation)/map/test_map.yaml" />
-    <arg name="model" default="$(find goldorak_simulation)/urdf/goldorak.xacro"/>
-    <param name="robot_description" command="$(find xacro)/xacro.py $(arg model)" />
-
-    <node pkg="robot_state_publisher" type="robot_state_publisher"  name="robot_state_publisher">
-      <param name="publish_frequency" type="double" value="30.0" />
-    </node>
+    <arg name="map_file" default="$(find goldorak_navigation)/map/test_map.yaml"/>
 
     <node name="map_server"
           pkg="map_server"
@@ -17,15 +11,15 @@
           type="static_transform_publisher"
           args="0 0 0 0 0 0 1 map odom 100" />
 
-    <include file="$(find goldorak_bringup)/launch/goldorak.launch">
-    </include>
+<!--     <include file="$(find goldorak_bringup)/launch/goldorak.launch">
+    </include> -->
 
     <node name="move_base"
           pkg="move_base"
           type="move_base"
           respawn="false"
           output="screen">
-        <remap from="/cmd_vel" to="/goldorak_diff_drive_controller/cmd_vel"/>
+        <remap from="/cmd_vel" to="/cmd_vel"/>
         <rosparam file="$(find goldorak_navigation)/param/costmap_common_params.yaml"
                   command="load" ns="global_costmap" />
         <rosparam file="$(find goldorak_navigation)/param/costmap_common_params.yaml"

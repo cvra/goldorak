@@ -34,6 +34,7 @@
         <arg name="default_params" value="$(find goldorak_bringup)/param/left_wheel.yaml" />
     </include>
 
+    <!-- Differential base controller and odometry -->
     <node name="diffbase_odometry"
           pkg="goldorak_diffbase"
           type="diffbase_odometry"/>
