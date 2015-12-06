@@ -56,20 +56,35 @@ int main(int argc, char **argv)
     /* Get differential base parameters */
     std::string param_key;
 
-    nh.searchParam("diffbase/wheelbase", param_key);
-    nh.getParam(param_key, wheelbase);
+    if (nh.searchParam("diffbase/wheelbase", param_key)) {
+        nh.getParam(param_key, wheelbase);
+    } else {
+        wheelbase = 0.194f;
+    }
 
-    nh.searchParam("diffbase/right_wheel/radius", param_key);
-    nh.getParam(param_key, right_wheel_radius);
+    if (nh.searchParam("diffbase/right_wheel/radius", param_key)) {
+        nh.getParam(param_key, right_wheel_radius);
+    } else {
+        right_wheel_radius = 0.016f;
+    }
 
-    nh.searchParam("diffbase/left_wheel/radius", param_key);
-    nh.getParam(param_key, left_wheel_radius);
+    if (nh.searchParam("diffbase/left_wheel/radius", param_key)) {
+        nh.getParam(param_key, left_wheel_radius);
+    } else {
+        left_wheel_radius = 0.016f;
+    }
 
-    nh.searchParam("diffbase/right_wheel/direction", param_key);
-    nh.getParam(param_key, right_wheel_direction);
+    if (nh.searchParam("diffbase/right_wheel/direction", param_key)) {
+        nh.getParam(param_key, right_wheel_direction);
+    } else {
+        right_wheel_direction = 1;
+    }
 
-    nh.searchParam("diffbase/left_wheel/direction", param_key);
-    nh.getParam(param_key, left_wheel_direction);
+    if (nh.searchParam("diffbase/left_wheel/direction", param_key)) {
+        nh.getParam(param_key, left_wheel_direction);
+    } else {
+        left_wheel_direction = 1;
+    }
 
     /* Initialise controller */
     ros::Publisher rpub = nh.advertise
