@@ -127,6 +127,7 @@ echo "export DISTRIB_DESCRIPTION="Ubuntu 14.04"" >> ~/.bashrc
 
 sudo apt-get install python-rosinstall python-catkin-tools
 sudo apt-get install ros-indigo-navigation ros-indigo-xacro ros-indigo-robot-state-publisher
+sudo apt-get upgrade
 ```
 
 ### Catkin workspace setup
