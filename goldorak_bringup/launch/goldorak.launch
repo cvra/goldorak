@@ -1,10 +1,14 @@
 <launch>
+    <arg name="simulated_motors" default="false"/>
+    <arg name="map_file" default="$(find goldorak_navigation)/map/test_map.yaml"/>
+
     <rosparam command="load" file="$(find goldorak_bringup)/param/uavcan_nodes.yaml"/>
     <rosparam command="load" file="$(find goldorak_bringup)/param/robot.yaml"/>
 
     <arg name="model" default="$(find goldorak_description)/urdf/goldorak.xacro"/>
     <param name="robot_description" command="$(find xacro)/xacro.py $(arg model)" />
 
+    <!-- TF setup -->
     <node name="robot_state_publisher"
           pkg="robot_state_publisher"
           type="state_publisher" />
@@ -13,26 +17,56 @@
           pkg="goldorak_state_publisher"
           type="real_state_publisher" />
 
-    <node name="uavcan_bridge"
-          pkg="uavcan_core"
-          type="uavcan_bridge"
-          args="10"/>
+    <!-- Map setup -->
+    <node name="map_server"
+          pkg="map_server"
+          type="map_server"
+          args="$(arg map_file)" />
 
-    <!-- Right wheel -->
-    <include file="$(find uavcan_core)/launch/motor.launch">
-        <arg name="motor_ns" value="right_wheel" />
-        <arg name="node_uavcan_id" value="11" />
-        <arg name="motor_uavcan_id" value="50" />
-        <arg name="default_params" value="$(find goldorak_bringup)/param/right_wheel.yaml" />
-    </include>
+    <node name="map_tf_broadcaster"
+          pkg="tf"
+          type="static_transform_publisher"
+          args="0 0 0 0 0 0 1 map odom 100" />
 
-    <!-- Left wheel -->
-    <include file="$(find uavcan_core)/launch/motor.launch">
-        <arg name="motor_ns" value="left_wheel" />
-        <arg name="node_uavcan_id" value="12" />
-        <arg name="motor_uavcan_id" value="41" />
-        <arg name="default_params" value="$(find goldorak_bringup)/param/left_wheel.yaml" />
-    </include>
+    <!-- Simulate motors -->
+    <group if="$(arg simulated_motors)">
+        <!-- Right wheel -->
+        <node name="right_wheel_motor_sim"
+              pkg="uavcan_core"
+              type="motor_board_sim.py"
+              args="right_wheel"/>
+
+        <!-- Left wheel -->
+        <node name="left_wheel_motor_sim"
+              pkg="uavcan_core"
+              type="motor_board_sim.py"
+              args="left_wheel"/>
+    </group>
+
+    <!-- Use the real stuff -->
+    <group unless="$(arg simulated_motors)">
+        <!-- UAVCAN bridge -->
+        <node name="uavcan_bridge"
+              pkg="uavcan_core"
+              type="uavcan_bridge"
+              args="10"/>
+
+        <!-- Right wheel config server and parameters -->
+        <include file="$(find uavcan_core)/launch/motor.launch">
+            <arg name="motor_ns" value="right_wheel" />
+            <arg name="node_uavcan_id" value="11" />
+            <arg name="motor_uavcan_id" value="50" />
+            <arg name="default_params" value="$(find goldorak_bringup)/param/right_wheel.yaml" />
+        </include>
+
+        <!-- Left wheel config server and parameters -->
+        <include file="$(find uavcan_core)/launch/motor.launch">
+            <arg name="motor_ns" value="left_wheel" />
+            <arg name="node_uavcan_id" value="12" />
+            <arg name="motor_uavcan_id" value="41" />
+            <arg name="default_params" value="$(find goldorak_bringup)/param/left_wheel.yaml" />
+        </include>
+    </group>
 
     <!-- Differential base controller and odometry -->
     <node name="diffbase_odometry"
@@ -42,4 +76,23 @@
     <node name="diffbase_controller"
           pkg="goldorak_diffbase"
           type="diffbase_controller"/>
+
+    <!-- Move base -->
+    <node name="move_base"
+          pkg="move_base"
+          type="move_base"
+          respawn="false"
+          output="screen">
+        <remap from="/cmd_vel" to="/cmd_vel"/>
+        <rosparam file="$(find goldorak_navigation)/param/costmap_common_params.yaml"
+                  command="load" ns="global_costmap" />
+        <rosparam file="$(find goldorak_navigation)/param/costmap_common_params.yaml"
+                  command="load" ns="local_costmap" />
+        <rosparam file="$(find goldorak_navigation)/param/local_costmap_params.yaml"
+                  command="load" />
+        <rosparam file="$(find goldorak_navigation)/param/global_costmap_params.yaml"
+                  command="load" />
+        <rosparam file="$(find goldorak_navigation)/param/base_local_planner_params.yaml"
+                  command="load" />
+    </node>
 </launch>

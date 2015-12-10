@@ -11,8 +11,7 @@
           type="static_transform_publisher"
           args="0 0 0 0 0 0 1 map odom 100" />
 
-<!--     <include file="$(find goldorak_bringup)/launch/goldorak.launch">
-    </include> -->
+    <!-- Launch robot here -->
 
     <node name="move_base"
           pkg="move_base"
