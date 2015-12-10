@@ -33,6 +33,7 @@
     </inertial>
   </xacro:macro>
 
+  <!-- Base link -->
   <link name="base_link">
     <visual>
       <geometry>
@@ -54,6 +55,7 @@
     </inertial>
   </link>
 
+  <!-- Wheel link xacro -->
   <xacro:macro name="wheel" params="prefix reflect">
 
     <link name="${prefix}_wheel">
@@ -168,7 +170,7 @@
   <xacro:caster prefix="front" reflect="1"/>
   <xacro:caster prefix="rear" reflect="-1"/>
 
-  <!-- Laser scanner 1D -->
+  <!-- Laser scanner 1D link -->
   <joint name="laser_joint" type="fixed">
     <axis xyz="0 1 0" />
     <origin xyz="0 0 ${body_height / 2}" rpy="0 0 0"/>

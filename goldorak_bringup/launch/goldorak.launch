@@ -4,20 +4,17 @@
 
     <rosparam command="load" file="$(find goldorak_bringup)/param/uavcan_nodes.yaml"/>
     <rosparam command="load" file="$(find goldorak_bringup)/param/robot.yaml"/>
+    <param name="use_sim_time" value="false"/>
 
     <arg name="model" default="$(find goldorak_description)/urdf/goldorak.xacro"/>
     <param name="robot_description" command="$(find xacro)/xacro.py $(arg model)" />
 
     <!-- Map setup -->
-    <node name="map_server"
-          pkg="map_server"
-          type="map_server"
+    <node name="map_server" pkg="map_server" type="map_server"
           args="$(arg map_file)" />
 
-    <node name="map_tf_broadcaster"
-          pkg="tf"
-          type="static_transform_publisher"
-          args="0 0 0 0 0 0 1 map odom 100" />
+    <node name="map_tf_broadcaster" pkg="tf" type="static_transform_publisher"
+          args="0 0 0 0 0 0 1 map odom 50" />
 
     <!-- TF setup -->
     <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
@@ -26,24 +23,18 @@
     <!-- Simulate motors ... -->
     <group if="$(arg simulated_motors)">
         <!-- Right wheel -->
-        <node name="right_wheel_motor_sim"
-              pkg="uavcan_core"
-              type="motor_board_sim.py"
+        <node name="right_wheel_motor_sim" pkg="uavcan_core" type="motor_board_sim.py"
               args="right_wheel"/>
 
         <!-- Left wheel -->
-        <node name="left_wheel_motor_sim"
-              pkg="uavcan_core"
-              type="motor_board_sim.py"
+        <node name="left_wheel_motor_sim" pkg="uavcan_core" type="motor_board_sim.py"
               args="left_wheel"/>
     </group>
 
-    <!-- Use the real stuff -->
+    <!-- ... or use the real stuff -->
     <group unless="$(arg simulated_motors)">
         <!-- UAVCAN bridge -->
-        <node name="uavcan_bridge"
-              pkg="uavcan_core"
-              type="uavcan_bridge"
+        <node name="uavcan_bridge" pkg="uavcan_core" type="uavcan_bridge"
               args="10"/>
 
         <!-- Right wheel config server and parameters -->
@@ -64,18 +55,11 @@
     </group>
 
     <!-- Differential base controller and odometry -->
-    <node name="diffbase_odometry"
-          pkg="goldorak_diffbase"
-          type="diffbase_odometry"/>
-
-    <node name="diffbase_controller"
-          pkg="goldorak_diffbase"
-          type="diffbase_controller"/>
+    <node name="diffbase_odometry" pkg="goldorak_diffbase" type="diffbase_odometry"/>
+    <node name="diffbase_controller" pkg="goldorak_diffbase" type="diffbase_controller"/>
 
     <!-- Move base -->
-    <node name="move_base"
-          pkg="move_base"
-          type="move_base"
+    <node name="move_base" pkg="move_base" type="move_base"
           respawn="false"
           output="screen">
         <remap from="/cmd_vel" to="/cmd_vel"/>
