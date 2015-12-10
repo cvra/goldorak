@@ -154,7 +154,7 @@ int main(int argc, char **argv)
         "left_wheel/feedback/encoder_raw",
         10, left_wheel_cb);
 
-
+    ROS_INFO("Odometry publisher node ready.");
     ros::spin();
 
     return 0;

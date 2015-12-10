@@ -96,6 +96,7 @@ int main(int argc, char **argv)
 
     ros::Subscriber cmdvel_sub = nh.subscribe("cmd_vel", 10, cmdvel_cb);
 
+    ROS_INFO("Diffbase controller node ready.");
     ros::spin();
 
     return 0;
