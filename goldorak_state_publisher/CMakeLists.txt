@@ -16,7 +16,7 @@ include_directories(
 )
 
 add_executable(
-    real_state_publisher
-    src/real_state_publisher.cpp
+    joint_state_publisher
+    src/joint_state_publisher.cpp
 )
-target_link_libraries(real_state_publisher ${catkin_LIBRARIES})
+target_link_libraries(joint_state_publisher ${catkin_LIBRARIES})

@@ -8,15 +8,6 @@
     <arg name="model" default="$(find goldorak_description)/urdf/goldorak.xacro"/>
     <param name="robot_description" command="$(find xacro)/xacro.py $(arg model)" />
 
-    <!-- TF setup -->
-    <node name="robot_state_publisher"
-          pkg="robot_state_publisher"
-          type="state_publisher" />
-
-    <node name="state_publisher"
-          pkg="goldorak_state_publisher"
-          type="real_state_publisher" />
-
     <!-- Map setup -->
     <node name="map_server"
           pkg="map_server"
@@ -28,7 +19,11 @@
           type="static_transform_publisher"
           args="0 0 0 0 0 0 1 map odom 100" />
 
-    <!-- Simulate motors -->
+    <!-- TF setup -->
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
+    <node name="joint_state_publisher"  pkg="goldorak_state_publisher" type="joint_state_publisher" />
+
+    <!-- Simulate motors ... -->
     <group if="$(arg simulated_motors)">
         <!-- Right wheel -->
         <node name="right_wheel_motor_sim"

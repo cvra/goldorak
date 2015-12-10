@@ -12,13 +12,13 @@ float right_wheel_pos, left_wheel_pos;
 void right_wheel_cb(const std_msgs::Float32ConstPtr& msg)
 {
     right_wheel_pos = msg->data;
-    ROS_INFO("Got right wheel %f", right_wheel_pos);
+    ROS_DEBUG("Got right wheel %f", right_wheel_pos);
 }
 
 void left_wheel_cb(const std_msgs::Float32ConstPtr& msg)
 {
     left_wheel_pos = msg->data;
-    ROS_INFO("Got left wheel %f", left_wheel_pos);
+    ROS_DEBUG("Got left wheel %f", left_wheel_pos);
 
     sensor_msgs::JointState joint_state;
     const double degree = M_PI / 180;
@@ -39,7 +39,7 @@ void left_wheel_cb(const std_msgs::Float32ConstPtr& msg)
 
 int main(int argc, char** argv)
 {
-    ros::init(argc, argv, "state_publisher");
+    ros::init(argc, argv, "joint_state_publisher");
 
     ros::NodeHandle n;
     ros::Subscriber right_wheel_sub = n.subscribe(
@@ -50,6 +50,7 @@ int main(int argc, char** argv)
     ros::Publisher pub = n.advertise<sensor_msgs::JointState>("joint_states", 1);
     joint_pub = &pub;
 
+    ROS_INFO("Joint state publisher node ready.");
     ros::spin();
 
     return 0;
