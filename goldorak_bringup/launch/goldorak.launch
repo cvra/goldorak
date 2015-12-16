@@ -1,6 +1,6 @@
 <launch>
     <arg name="simulated_motors" default="false"/>
-    <arg name="map_file" default="$(find goldorak_navigation)/map/test_map.yaml"/>
+    <arg name="map_file" default="$(find goldorak_navigation)/map/eurobot.yaml"/>
 
     <rosparam command="load" file="$(find goldorak_bringup)/param/uavcan_nodes.yaml"/>
     <rosparam command="load" file="$(find goldorak_bringup)/param/robot.yaml"/>
