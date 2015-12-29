@@ -22,8 +22,8 @@
 #include "ros/ros.h"
 #include "cvra_msgs/MotorControlSetpoint.h"
 #include "cvra_msgs/MotorFeedbackPID.h"
+#include "cvra_msgs/MotorEncoderStamped.h"
 #include "std_msgs/Float32.h"
-#include "std_msgs/UInt16.h"
 
 extern uavcan::ICanDriver& getCanDriver();
 extern uavcan::ISystemClock& getSystemClock();
@@ -231,9 +231,9 @@ public:
     std_msgs::Float32 position_msg;
     std_msgs::Float32 velocity_msg;
     std_msgs::Float32 torque_msg;
-    std_msgs::UInt16 encoder_msg;
     std_msgs::Float32 index_msg;
     std_msgs::Float32 voltage_msg;
+    cvra_msgs::MotorEncoderStamped encoder_msg;
     cvra_msgs::MotorFeedbackPID current_pid_msg;
     cvra_msgs::MotorFeedbackPID velocity_pid_msg;
     cvra_msgs::MotorFeedbackPID position_pid_msg;
@@ -259,7 +259,7 @@ public:
             this->torque_pub[elem.second] =
                 ros_node.advertise<std_msgs::Float32>(elem.first + "/feedback/torque", 10);
             this->encoder_pub[elem.second] =
-                ros_node.advertise<std_msgs::UInt16>(elem.first + "/feedback/encoder_raw", 10);
+                ros_node.advertise<cvra_msgs::MotorEncoderStamped>(elem.first + "/feedback/encoder", 10);
             this->index_pub[elem.second] =
                 ros_node.advertise<std_msgs::Float32>(elem.first + "/feedback/index", 10);
             this->voltage_pub[elem.second] =
@@ -345,12 +345,14 @@ public:
     virtual void encoder_sub_cb(
         const uavcan::ReceivedDataStructure<cvra::motor::feedback::MotorEncoderPosition>& msg)
     {
+        ros::Time now = ros::Time::now();
         int id = msg.getSrcNodeID().get();
 
         /* Check that the source node has an associated publisher */
         if (encoder_pub.count(id)) {
             ROS_DEBUG("Got motor raw encoder feedback from node %d", id);
-            this->encoder_msg.data = msg.raw_encoder_position;
+            this->encoder_msg.timestamp = now;
+            this->encoder_msg.sample = msg.raw_encoder_position;
             this->encoder_pub[id].publish(this->encoder_msg);
         }
     }
