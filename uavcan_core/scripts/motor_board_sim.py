@@ -3,8 +3,8 @@ from __future__ import division
 import sys
 import math
 import rospy
-from std_msgs.msg import Float32, UInt16
-from cvra_msgs.msg import MotorControlSetpoint
+from std_msgs.msg import Float32
+from cvra_msgs.msg import MotorControlSetpoint, MotorEncoderStamped
 
 ENCODER_RESOLUTION = 2**16
 REFRESH_RATE = 50
@@ -18,9 +18,10 @@ class MotorBoardSim:
         self.vel = 0
         self.pos = 0
         self.enc = 0
-        self.vel_pub = rospy.Publisher(motor_name + '/feedback/velocity', Float32, queue_size=10)
-        self.pos_pub = rospy.Publisher(motor_name + '/feedback/position', Float32, queue_size=10)
-        self.enc_pub = rospy.Publisher(motor_name + '/feedback/encoder_raw', UInt16, queue_size=10)
+
+        self.vel_pub = rospy.Publisher(motor_name + '/feedback/velocity', Float32, queue_size=1)
+        self.pos_pub = rospy.Publisher(motor_name + '/feedback/position', Float32, queue_size=1)
+        self.enc_pub = rospy.Publisher(motor_name + '/feedback/encoder_raw', MotorEncoderStamped, queue_size=1)
 
         rospy.Subscriber(motor_name + '/setpoint', MotorControlSetpoint, self.callback)
 
@@ -34,7 +35,7 @@ class MotorBoardSim:
 
         self.vel_pub.publish(self.vel)
         self.pos_pub.publish(self.pos)
-        self.enc_pub.publish(self.enc)
+        self.enc_pub.publish(MotorEncoderStamped(rospy.get_rostime(), self.enc))
 
     def run(self):
         while not rospy.is_shutdown():
