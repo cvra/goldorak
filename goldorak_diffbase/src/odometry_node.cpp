@@ -1,6 +1,6 @@
 #include "ros/ros.h"
 #include "tf/transform_broadcaster.h"
-#include "std_msgs/UInt16.h"
+#include "cvra_msgs/MotorEncoderStamped.h"
 #include "nav_msgs/Odometry.h"
 
 #include "odometry/odometry.h"
@@ -20,25 +20,23 @@ odometry_encoder_sample_t left_wheel_encoder;
 robot_base_pose_2d_s robot_pose;
 robot_base_vel_2d_s robot_vel;
 
-void right_wheel_cb(const std_msgs::UInt16::ConstPtr& msg)
+void right_wheel_cb(const cvra_msgs::MotorEncoderStamped::ConstPtr& msg)
 {
-    ROS_DEBUG("I heard the right wheel encoder: [%d]", msg->data);
+    ROS_DEBUG("I heard the right wheel encoder: [%d]", msg->sample);
 
     odometry_encoder_record_sample(&right_wheel_encoder,
-                                   (uint32_t)(ros::Time::now().toNSec() / 1000.f),
-                                   msg->data);
+                                   (uint32_t)(msg->timestamp.toNSec() / 1000.f),
+                                   msg->sample);
 }
 
-void left_wheel_cb(const std_msgs::UInt16::ConstPtr& msg)
+void left_wheel_cb(const cvra_msgs::MotorEncoderStamped::ConstPtr& msg)
 {
-    ROS_DEBUG("I heard the left wheel encoder: [%d]", msg->data);
-
-    ros::Time current_time = ros::Time::now();
+    ROS_DEBUG("I heard the left wheel encoder: [%d]", msg->sample);
 
     odometry_encoder_sample_t sample;
     odometry_encoder_record_sample(&left_wheel_encoder,
-                                   (uint32_t)(current_time.toNSec() / 1000.f),
-                                   msg->data);
+                                   (uint32_t)(msg->timestamp.toNSec() / 1000.f),
+                                   msg->sample);
 
     odometry_base_update(&robot, right_wheel_encoder, left_wheel_encoder);
 
@@ -54,7 +52,7 @@ void left_wheel_cb(const std_msgs::UInt16::ConstPtr& msg)
     odom_quat = tf::createQuaternionMsgFromYaw(robot_pose.theta);
 
     // First, we'll publish the transform over tf
-    odom_trans.header.stamp = current_time;
+    odom_trans.header.stamp = msg->timestamp;
     odom_trans.header.frame_id = "odom";
     odom_trans.child_frame_id = "base_link";
 
@@ -67,7 +65,7 @@ void left_wheel_cb(const std_msgs::UInt16::ConstPtr& msg)
     odom_broadcaster->sendTransform(odom_trans);
 
     // Next, we'll publish the odometry message over ROS
-    odom.header.stamp = current_time;
+    odom.header.stamp = msg->timestamp;
     odom.header.frame_id = "odom";
 
     // Set the position
