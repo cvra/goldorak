@@ -266,6 +266,8 @@ class FishApproachState(State):
         client.send_goal(goal)
         client.wait_for_result()
 
+        move_base_override.move(0.05, duration=1.0)
+
         return Transitions.SUCCESS
 
 
@@ -274,8 +276,8 @@ def create_fish_sequence():
                    connector_outcome=Transitions.SUCCESS)
 
     approach = (
-        ('approach', mirror_point(0.65, 0.3), -90),
-        ('approach2', mirror_point(0.65, 0.15), -90),
+        ('approach', mirror_point(0.60, 0.3), -90),
+        ('approach2', mirror_point(0.60, 0.15), -90),
     )
 
     drop = (
