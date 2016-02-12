@@ -202,9 +202,9 @@ class FishAndHoldState(State):
         rospy.sleep(5)
 
         if TEAM == Team.GREEN: 
-            move_base_override.move(0.15, duration=2.0)
+            move_base_override.move(0.10, duration=2.0)
         else:
-            move_base_override.move(-0.15, duration=2.0)
+            move_base_override.move(-0.10, duration=2.0)
 
         rospy.loginfo("Fishing...")
 
@@ -252,8 +252,8 @@ class FishApproachState(State):
         move_base_override.move_speed(0.1, duration=2.0)
         rospy.sleep(0.3)
         reset_pose.reset(robot_pose.position.x, 0.08, radians(-90))
+        rospy.sleep(0.2) # wait for reset pose
         move_base_override.move(-0.02, duration=1.0)
-
 
         goal = MoveBaseGoal()
         goal.target_pose.header.frame_id = 'odom'
@@ -274,8 +274,8 @@ def create_fish_sequence():
                    connector_outcome=Transitions.SUCCESS)
 
     approach = (
-        ('approach', mirror_point(0.6, 0.3), -90),
-        ('approach2', mirror_point(0.6, 0.15), -90),
+        ('approach', mirror_point(0.65, 0.3), -90),
+        ('approach2', mirror_point(0.65, 0.15), -90),
     )
 
     drop = (
