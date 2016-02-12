@@ -36,8 +36,17 @@ iface can1 can static
 
 ## Build & Run
 
-Build the UAVCAN stack, DSDL messages, ROS package and run it
+Build the nodes and run with simulated motors
 ```sh
 ./build.sh
-rosrun uavcan_core uavcan_bridge 10 # UAVCAN node ID 10
+roslaunch goldorak_bringup goldorak.launch simulated_motors:=true
 ```
+
+Then, you can give target points to the robot via the monitoring interface
+```sh
+roslaunch goldorak_bringup monitor.launch
+```
+
+## Dependencies
+
+For dependencies, you should look at the setup guidelines in `Setup.md`.
