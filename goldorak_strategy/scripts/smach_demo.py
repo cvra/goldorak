@@ -40,7 +40,7 @@ class Team:
     GREEN = 'green'
     VIOLET = 'violet'
 
-TEAM = Team.VIOLET
+TEAM = Team.GREEN
 
 robot_pose = Pose()
 
