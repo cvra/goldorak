@@ -266,7 +266,10 @@ class FishApproachState(State):
         client.send_goal(goal)
         client.wait_for_result()
 
-        move_base_override.move(0.05, duration=1.0)
+        if TEAM == Team.GREEN:
+            move_base_override.move(0.05, duration=1.0)
+        else:
+            move_base_override.move(-0.05, duration=1.0)
 
         return Transitions.SUCCESS
 
