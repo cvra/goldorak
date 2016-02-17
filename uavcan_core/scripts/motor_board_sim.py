@@ -9,6 +9,7 @@ from cvra_msgs.msg import MotorControlSetpoint, MotorEncoderStamped
 ENCODER_RESOLUTION = 2**16
 REFRESH_RATE = 50
 DELTA_T = 1 / REFRESH_RATE
+MAX_SPEED = 20.0
 
 class MotorBoardSim:
     def __init__(self, motor_name):
@@ -28,6 +29,12 @@ class MotorBoardSim:
     def callback(self, msg):
         if (msg.mode == msg.MODE_CONTROL_VELOCITY):
             self.vel = msg.velocity
+
+         # Clamp velocity
+         if self.vel > MAX_SPEED:
+             self.vel = MAX_SPEED
+         if self.vel < - MAX_SPEED:
+             self.vel = - MAX_SPEED
 
     def update(self):
         self.pos = self.pos + self.vel * DELTA_T
