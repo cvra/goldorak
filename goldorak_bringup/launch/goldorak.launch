@@ -77,7 +77,5 @@
                   command="load" />
         <rosparam file="$(find goldorak_navigation)/param/move_base_params.yaml"
                   command="load" />
-        <rosparam file="$(find goldorak_navigation)/param/navfn_global_planner_params.yaml"
-                  command="load" />
     </node>
 </launch>
