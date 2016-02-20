@@ -30,11 +30,11 @@ class MotorBoardSim:
         if (msg.mode == msg.MODE_CONTROL_VELOCITY):
             self.vel = msg.velocity
 
-         # Clamp velocity
-         if self.vel > MAX_SPEED:
-             self.vel = MAX_SPEED
-         if self.vel < - MAX_SPEED:
-             self.vel = - MAX_SPEED
+        # Clamp velocity
+        if self.vel > MAX_SPEED:
+            self.vel = MAX_SPEED
+        if self.vel < - MAX_SPEED:
+            self.vel = - MAX_SPEED
 
     def update(self):
         self.pos = self.pos + self.vel * DELTA_T
