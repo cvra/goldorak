@@ -47,6 +47,17 @@ Then, you can give target points to the robot via the monitoring interface
 roslaunch goldorak_bringup monitor.launch
 ```
 
+## Simulation (Gazebo)
+
+The robot can also be simulated using Gazebo.
+In this case, the differential base control and odometry are handled by ROS Control.
+Higher level nodes will run as on the robot.
+
+Run the simulation
+```sh
+roslaunch goldorak_simulation goldorak.launch
+```
+
 ## Dependencies
 
 For dependencies, you should look at the setup guidelines in `Setup.md`.
