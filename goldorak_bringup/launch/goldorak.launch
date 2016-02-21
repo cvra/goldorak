@@ -10,7 +10,7 @@
     <param name="robot_description" command="$(find xacro)/xacro.py $(arg model)" />
 
     <!-- Map setup -->
-    <include file="$(find goldorak_navigation)/launch/setup_map.launch">
+    <include file="$(find goldorak_navigation)/launch/map.launch">
         <arg name="map_file" value="$(arg map_file)"/>
     </include>
 
@@ -57,5 +57,7 @@
     <node name="diffbase_controller" pkg="goldorak_diffbase" type="diffbase_controller"/>
 
     <!-- Move base -->
-    <include file="$(find goldorak_navigation)/launch/setup_nav.launch"/>
+    <include file="$(find goldorak_navigation)/launch/navigation.launch">
+        <arg name="cmd_vel_topic" value="/cmd_vel"/>
+    </include>
 </launch>

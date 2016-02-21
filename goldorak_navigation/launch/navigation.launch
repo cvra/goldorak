@@ -1,8 +1,10 @@
 <launch>
+    <arg name="cmd_vel_topic" default="/cmd_vel"/>
+
     <node name="move_base" pkg="move_base" type="move_base"
           respawn="false"
           output="screen">
-        <remap from="/cmd_vel" to="/cmd_vel"/>
+        <remap from="/cmd_vel" to="$(arg cmd_vel_topic)"/>
         <rosparam file="$(find goldorak_navigation)/param/costmap_common_params.yaml"
                   command="load" ns="global_costmap" />
         <rosparam file="$(find goldorak_navigation)/param/costmap_common_params.yaml"
