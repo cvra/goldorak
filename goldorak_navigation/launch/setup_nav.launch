@@ -1,21 +1,5 @@
 <launch>
-    <arg name="map_file" default="$(find goldorak_navigation)/map/test_map.yaml"/>
-
-    <node name="map_server"
-          pkg="map_server"
-          type="map_server"
-          args="$(arg map_file)" />
-
-    <node name="map_tf_broadcaster"
-          pkg="tf"
-          type="static_transform_publisher"
-          args="0 0 0 0 0 0 1 map odom 100" />
-
-    <!-- Launch robot here -->
-
-    <node name="move_base"
-          pkg="move_base"
-          type="move_base"
+    <node name="move_base" pkg="move_base" type="move_base"
           respawn="false"
           output="screen">
         <remap from="/cmd_vel" to="/cmd_vel"/>
@@ -27,7 +11,7 @@
                   command="load" />
         <rosparam file="$(find goldorak_navigation)/param/global_costmap_params.yaml"
                   command="load" />
-        <rosparam file="$(find goldorak_navigation)/param/dwa_local_planner_params.yaml"
+        <rosparam file="$(find goldorak_navigation)/param/base_local_planner_params.yaml"
                   command="load" />
         <rosparam file="$(find goldorak_navigation)/param/global_planner_params.yaml"
                   command="load" />
