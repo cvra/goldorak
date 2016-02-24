@@ -1,0 +1,23 @@
+<launch>
+    <arg name="cmd_vel_topic" default="/cmd_vel"/>
+
+    <node name="move_base" pkg="move_base" type="move_base"
+          respawn="false"
+          output="screen">
+        <remap from="/cmd_vel" to="$(arg cmd_vel_topic)"/>
+        <rosparam file="$(find goldorak_navigation)/param/costmap_common_params.yaml"
+                  command="load" ns="global_costmap" />
+        <rosparam file="$(find goldorak_navigation)/param/costmap_common_params.yaml"
+                  command="load" ns="local_costmap" />
+        <rosparam file="$(find goldorak_navigation)/param/local_costmap_params.yaml"
+                  command="load" />
+        <rosparam file="$(find goldorak_navigation)/param/global_costmap_params.yaml"
+                  command="load" />
+        <rosparam file="$(find goldorak_navigation)/param/base_local_planner_params.yaml"
+                  command="load" />
+        <rosparam file="$(find goldorak_navigation)/param/global_planner_params.yaml"
+                  command="load" />
+        <rosparam file="$(find goldorak_navigation)/param/move_base_params.yaml"
+                  command="load" />
+    </node>
+</launch>

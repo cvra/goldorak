@@ -1,0 +1,17 @@
+<package>
+  <name>goldorak_description</name>
+  <version>0.1.0</version>
+
+  <description>This package contains the description model of Goldorak</description>
+  <author>Salah-Eddine Missri</author>
+
+  <maintainer email="missrisalaheddine@gmail.com">Salah-Eddine Missri</maintainer>
+
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>roslaunch</build_depend>
+  <run_depend>urdf</run_depend>
+  <run_depend>xacro</run_depend>
+
+</package>

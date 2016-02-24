@@ -1,38 +1,63 @@
 <launch>
-    <arg name="robot_ns" default="goldorak" />
+    <arg name="simulated_motors" default="false"/>
+    <arg name="map_file" default="$(find goldorak_navigation)/map/eurobot.yaml"/>
 
     <rosparam command="load" file="$(find goldorak_bringup)/param/uavcan_nodes.yaml"/>
-    <rosparam command="load" file="$(find goldorak_bringup)/param/robot.yaml" ns="$(arg robot_ns)"/>
+    <rosparam command="load" file="$(find goldorak_bringup)/param/robot.yaml"/>
+    <param name="use_sim_time" value="false"/>
 
-    <node name="uavcan_bridge"
-          pkg="uavcan_core"
-          type="uavcan_bridge"
-          args="10"
-          ns="$(arg robot_ns)"/>
+    <arg name="model" default="$(find goldorak_description)/urdf/goldorak.xacro"/>
+    <param name="robot_description" command="$(find xacro)/xacro.py $(arg model)" />
 
-    <!-- Right wheel -->
-    <include file="$(find uavcan_core)/launch/motor.launch" ns="$(arg robot_ns)">
-        <arg name="motor_ns" value="right_wheel" />
-        <arg name="node_uavcan_id" value="11" />
-        <arg name="motor_uavcan_id" value="50" />
-        <arg name="default_params" value="$(find goldorak_bringup)/param/right_wheel.yaml" />
+    <!-- Map setup -->
+    <include file="$(find goldorak_navigation)/launch/map.launch">
+        <arg name="map_file" value="$(arg map_file)"/>
     </include>
 
-    <!-- Left wheel -->
-    <include file="$(find uavcan_core)/launch/motor.launch" ns="$(arg robot_ns)">
-        <arg name="motor_ns" value="left_wheel" />
-        <arg name="node_uavcan_id" value="12" />
-        <arg name="motor_uavcan_id" value="41" />
-        <arg name="default_params" value="$(find goldorak_bringup)/param/left_wheel.yaml" />
+    <!-- TF setup -->
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
+    <node name="joint_state_publisher"  pkg="goldorak_state_publisher" type="joint_state_publisher" />
+
+    <!-- Simulate motors ... -->
+    <group if="$(arg simulated_motors)">
+        <!-- Right wheel -->
+        <node name="right_wheel_motor_sim" pkg="uavcan_core" type="motor_board_sim.py"
+              args="right_wheel"/>
+
+        <!-- Left wheel -->
+        <node name="left_wheel_motor_sim" pkg="uavcan_core" type="motor_board_sim.py"
+              args="left_wheel"/>
+    </group>
+
+    <!-- ... or use the real stuff -->
+    <group unless="$(arg simulated_motors)">
+        <!-- UAVCAN bridge -->
+        <node name="uavcan_bridge" pkg="uavcan_core" type="uavcan_bridge"
+              args="10"/>
+
+        <!-- Right wheel config server and parameters -->
+        <include file="$(find uavcan_core)/launch/motor.launch">
+            <arg name="motor_ns" value="right_wheel" />
+            <arg name="node_uavcan_id" value="11" />
+            <arg name="motor_uavcan_id" value="50" />
+            <arg name="default_params" value="$(find goldorak_bringup)/param/right_wheel.yaml" />
+        </include>
+
+        <!-- Left wheel config server and parameters -->
+        <include file="$(find uavcan_core)/launch/motor.launch">
+            <arg name="motor_ns" value="left_wheel" />
+            <arg name="node_uavcan_id" value="12" />
+            <arg name="motor_uavcan_id" value="41" />
+            <arg name="default_params" value="$(find goldorak_bringup)/param/left_wheel.yaml" />
+        </include>
+    </group>
+
+    <!-- Differential base controller and odometry -->
+    <node name="diffbase_odometry" pkg="goldorak_diffbase" type="diffbase_odometry"/>
+    <node name="diffbase_controller" pkg="goldorak_diffbase" type="diffbase_controller"/>
+
+    <!-- Move base -->
+    <include file="$(find goldorak_navigation)/launch/navigation.launch">
+        <arg name="cmd_vel_topic" value="/cmd_vel"/>
     </include>
-
-    <node name="diffbase_odometry"
-          pkg="goldorak_diffbase"
-          type="diffbase_odometry"
-          ns="$(arg robot_ns)"/>
-
-    <node name="diffbase_controller"
-          pkg="goldorak_diffbase"
-          type="diffbase_controller"
-          ns="$(arg robot_ns)"/>
 </launch>
