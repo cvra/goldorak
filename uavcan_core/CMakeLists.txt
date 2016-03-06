@@ -3,6 +3,7 @@ project(uavcan_core)
 
 add_definitions("-std=c++11")
 set(SRC src)
+set(TEST tests)
 set(UAVCAN_SRC_DIR uavcan)
 set(UAVCAN_LIB $ENV{UAVCAN_LIB})
 
@@ -57,8 +58,24 @@ target_link_libraries(motor_config_server ${UAVCAN_LIB} rt ${catkin_LIBRARIES})
 add_dependencies(motor_config_server ${PROJECT_NAME}_gencfg)
 
 add_executable(
+    motor_config_send_once
+    ${SRC}/motor_config_send_once.cpp
+    ${SRC}/platform_linux.cpp
+)
+target_link_libraries(motor_config_send_once ${UAVCAN_LIB} rt ${catkin_LIBRARIES})
+
+add_executable(
     uc_config_server
     ${SRC}/uc_config_server.cpp
     ${SRC}/platform_linux.cpp
     )
 target_link_libraries(uc_config_server ${UAVCAN_LIB} rt ${catkin_LIBRARIES})
+
+# Build tests
+if(CATKIN_ENABLE_TESTING)
+    find_package(rostest REQUIRED)
+    add_rostest_gtest(motor_param_test
+                     ${TEST}/motor_param_test.launch
+                     ${TEST}/motor_param_test.cpp)
+    target_link_libraries(motor_param_test ${UAVCAN_LIB} rt ${catkin_LIBRARIES})
+endif()

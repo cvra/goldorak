@@ -1,0 +1,46 @@
+robot:
+    motor:
+        motor_control_config:
+            enable:
+                enable: false
+            parameters:
+                mode: 3
+                motor_encoder_steps_per_revolution: 4096
+                second_encoder_steps_per_revolution: 16384
+                transmission_ratio_p: 49
+                transmission_ratio_q: 676
+                low_batt_th: 5.
+                acceleration_limit: 100.
+                velocity_limit: 50.
+                torque_limit: 14.
+                torque_constant: 1.
+                potentiometer_gain: 0.
+                max_temperature: 100.
+                thermal_capacity: 0.
+                thermal_resistance: 0.
+                thermal_current_gain: 0.
+            pid_current:
+                p: 10.
+                i: 2000.
+                d: 0.
+                i_limit: 20.
+            pid_position:
+                p: 0.1
+                i: 0.5
+                d: 0.
+                i_limit: 10000.
+            pid_velocity:
+                p: 1.
+                i: 0.
+                d: 0.
+                i_limit: 0.
+            stream:
+                motor_encoder: 100
+                motor_position: 20
+                motor_torque: 0
+                index: 40
+                current_pid: 50
+                velocity_pid: 60
+                position_pid: 70
+uavcan_nodes:
+    motor: 42
