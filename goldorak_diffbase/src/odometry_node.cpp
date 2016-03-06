@@ -17,31 +17,21 @@ odometry_differential_base_t robot;
 odometry_encoder_sample_t right_wheel_encoder;
 odometry_encoder_sample_t left_wheel_encoder;
 
-robot_base_pose_2d_s robot_pose;
-robot_base_vel_2d_s robot_vel;
 
-void right_wheel_cb(const cvra_msgs::MotorEncoderStamped::ConstPtr& msg)
+void odometry_base_update_wrapper(
+        ros::Time timestamp,
+        odometry_differential_base_t *robot,
+        const odometry_encoder_sample_t right_wheel_sample,
+        const odometry_encoder_sample_t left_wheel_sample)
 {
-    ROS_DEBUG("I heard the right wheel encoder: [%d]", msg->sample);
+    // Regular odometry update
+    odometry_base_update(robot, right_wheel_encoder, left_wheel_encoder);
 
-    odometry_encoder_record_sample(&right_wheel_encoder,
-                                   (uint32_t)(msg->timestamp.toNSec() / 1000.f),
-                                   msg->sample);
-}
-
-void left_wheel_cb(const cvra_msgs::MotorEncoderStamped::ConstPtr& msg)
-{
-    ROS_DEBUG("I heard the left wheel encoder: [%d]", msg->sample);
-
-    odometry_encoder_sample_t sample;
-    odometry_encoder_record_sample(&left_wheel_encoder,
-                                   (uint32_t)(msg->timestamp.toNSec() / 1000.f),
-                                   msg->sample);
-
-    odometry_base_update(&robot, right_wheel_encoder, left_wheel_encoder);
-
-    odometry_base_get_pose(&robot, &robot_pose);
-    odometry_base_get_vel(&robot, &robot_vel);
+    // Get values to display for debug
+    robot_base_pose_2d_s robot_pose;
+    robot_base_vel_2d_s robot_vel;
+    odometry_base_get_pose(robot, &robot_pose);
+    odometry_base_get_vel(robot, &robot_vel);
 
     ROS_DEBUG("Wheelbase pose is: x = %.3f, y = %.3f, theta = %.3f",
         robot_pose.x, robot_pose.y, robot_pose.theta);
@@ -52,7 +42,7 @@ void left_wheel_cb(const cvra_msgs::MotorEncoderStamped::ConstPtr& msg)
     odom_quat = tf::createQuaternionMsgFromYaw(robot_pose.theta);
 
     // First, we'll publish the transform over tf
-    odom_trans.header.stamp = msg->timestamp;
+    odom_trans.header.stamp = timestamp;
     odom_trans.header.frame_id = "odom";
     odom_trans.child_frame_id = "base_link";
 
@@ -65,7 +55,7 @@ void left_wheel_cb(const cvra_msgs::MotorEncoderStamped::ConstPtr& msg)
     odom_broadcaster->sendTransform(odom_trans);
 
     // Next, we'll publish the odometry message over ROS
-    odom.header.stamp = msg->timestamp;
+    odom.header.stamp = timestamp;
     odom.header.frame_id = "odom";
 
     // Set the position
@@ -82,6 +72,34 @@ void left_wheel_cb(const cvra_msgs::MotorEncoderStamped::ConstPtr& msg)
 
     // Publish the message
     odom_pub->publish(odom);
+}
+
+void right_wheel_cb(const cvra_msgs::MotorEncoderStamped::ConstPtr& msg)
+{
+    ROS_DEBUG("I heard the right wheel encoder: [%d]", msg->sample);
+
+    odometry_encoder_record_sample(&right_wheel_encoder,
+                                   (uint32_t)(msg->timestamp.toNSec() / 1000.f),
+                                   msg->sample);
+
+    if (left_wheel_encoder.timestamp != 0) {
+        odometry_base_update_wrapper(msg->timestamp, &robot,
+                                     right_wheel_encoder, left_wheel_encoder);
+    }
+}
+
+void left_wheel_cb(const cvra_msgs::MotorEncoderStamped::ConstPtr& msg)
+{
+    ROS_DEBUG("I heard the left wheel encoder: [%d]", msg->sample);
+
+    odometry_encoder_record_sample(&left_wheel_encoder,
+                                   (uint32_t)(msg->timestamp.toNSec() / 1000.f),
+                                   msg->sample);
+
+    if (right_wheel_encoder.timestamp != 0) {
+        odometry_base_update_wrapper(msg->timestamp, &robot,
+                                     right_wheel_encoder, left_wheel_encoder);
+    }
 }
 
 int main(int argc, char **argv)
@@ -148,10 +166,10 @@ int main(int argc, char **argv)
     odom_broadcaster = new tf::TransformBroadcaster();
 
     ros::Subscriber right_wheel_sub = nh.subscribe(
-        "right_wheel/feedback/encoder_raw",
+        "right_wheel/feedback/encoder",
         10, right_wheel_cb);
     ros::Subscriber left_wheel_sub = nh.subscribe(
-        "left_wheel/feedback/encoder_raw",
+        "left_wheel/feedback/encoder",
         10, left_wheel_cb);
 
     ROS_INFO("Odometry publisher node ready.");
