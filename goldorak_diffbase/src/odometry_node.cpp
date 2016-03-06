@@ -166,10 +166,10 @@ int main(int argc, char **argv)
     odom_broadcaster = new tf::TransformBroadcaster();
 
     ros::Subscriber right_wheel_sub = nh.subscribe(
-        "right_wheel/feedback/encoder_raw",
+        "right_wheel/feedback/encoder",
         10, right_wheel_cb);
     ros::Subscriber left_wheel_sub = nh.subscribe(
-        "left_wheel/feedback/encoder_raw",
+        "left_wheel/feedback/encoder",
         10, left_wheel_cb);
 
     ROS_INFO("Odometry publisher node ready.");
