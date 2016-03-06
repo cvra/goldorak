@@ -9,7 +9,7 @@
     <rosparam command="load" file="$(arg default_params)" ns="$(arg motor_ns)" />
 
     <!-- Start configuration node if we want dynamic configuration ... -->
-    <group if="$(dynamic_motor_config)">
+    <group if="$(arg dynamic_motor_config)">
       <node name="motor_control_config"
             pkg="uavcan_core"
             type="motor_config_server"
@@ -20,7 +20,7 @@
       </node>
     </group>
 
-    <group unless="$(dynamic_motor_config)">
+    <group unless="$(arg dynamic_motor_config)">
       <node name="motor_control_config"
             pkg="uavcan_core"
             type="motor_config_send_once"
