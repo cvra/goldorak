@@ -24,4 +24,5 @@ popd # exit uavcan_core
 
 pushd ../..
 catkin run_tests cvra_msgs uavcan_core goldorak_diffbase goldorak_bringup
+catkin_test_results build
 popd
