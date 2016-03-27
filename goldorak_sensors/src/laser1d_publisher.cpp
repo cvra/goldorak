@@ -12,7 +12,13 @@
 #define LASER1D_ADC_PIN 1
 #define LASER1D_RATE    100
 
-// Activate ADC by doing echo BB-ADC > /sys/devices/bone_capemgr.*/slots
+void adc_init()
+{
+    FILE *cape_slots_file;
+    cape_slots_file = fopen("/sys/devices/bone_capemgr.*/slots", "w");
+    fprintf(cape_slots_file, "BB-ADC");
+}
+
 float adc_read(int pin)
 {
     float value;
@@ -32,6 +38,7 @@ float adc_read(int pin)
 
 int main(int argc, char **argv)
 {
+    adc_init();
     ros::init(argc, argv, "laser1d_publisher");
     ros::NodeHandle n;
     ros::Publisher pub = n.advertise<sensor_msgs::Range>("laser1d/range", 100);
