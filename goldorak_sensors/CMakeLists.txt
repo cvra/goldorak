@@ -16,5 +16,5 @@ add_executable(
     laser1d_publisher
     src/laser1d_publisher.cpp
 )
-target_link_libraries(laser1d_publisher mraa ${CMAKE_THREAD_LIBS_INIT} ${catkin_LIBRARIES})
+target_link_libraries(laser1d_publisher ${CMAKE_THREAD_LIBS_INIT} ${catkin_LIBRARIES})
 add_dependencies(laser1d_publisher sensor_msgs)
