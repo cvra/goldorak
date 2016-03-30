@@ -1,8 +1,11 @@
 from unittest import TestCase
-from scripts import uavcan_bridge
 from unittest.mock import Mock
-import cvra_msgs.msg
+
+from scripts import uavcan_bridge
 import uavcan
+
+import cvra_msgs.msg
+import rospy
 
 class UtilityTestCase(TestCase):
     def setUp(self):

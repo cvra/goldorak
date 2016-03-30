@@ -1,7 +1,10 @@
+import os.path
+
 import uavcan
 import uavcan.node
-import os.path
+
 import cvra_msgs.msg
+import rospy
 
 BASE_PATH = os.path.join(os.path.dirname(__file__), '..', '..')
 
@@ -56,10 +59,17 @@ def main():
 
     load_dsdl()
     node = uavcan.node.make_node(args.interface, node_id=args.id)
+    rospy.init_node('uavcan_bridge', anonymous=True)
+
+    ros_type = ros_type_from_uavcan_type(find_msg(args.topic))
+    pub = rospy.Publisher('/'.join(s for s in args.topic.split('.')[1:]), ros_type, queue_size=10)
 
     def callback(transfer):
         msg = transfer.message
-        print("{}({})".format(type_name(msg), get_msg_values(msg)))
+        print("UAVCAN: {}({})".format(type_name(msg), get_msg_values(msg)))
+        ros_msg = ros_msg_from_uavcan_msg(find_msg(type_name(msg)), msg)
+        print("ROS: {} ({})".format(ros_type._type, ros_msg))
+        pub.publish(ros_msg)
 
     if args.publish:
         data = json.loads(args.publish)
