@@ -39,6 +39,10 @@ def ros_type_from_uavcan_type(uavcan_type):
     name = "".join(s.capitalize() for s in name.split('.')[1:])
     return getattr(cvra_msgs.msg, name)
 
+def ros_msg_from_uavcan_msg(uavcan_type, uavcan_msg):
+    msg_type = ros_type_from_uavcan_type(uavcan_type)
+    values = get_msg_values(uavcan_msg)
+    return msg_type(**values)
 
 def main():
     import argparse, json
