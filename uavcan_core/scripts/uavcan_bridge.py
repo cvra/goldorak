@@ -25,25 +25,37 @@ def get_msg_values(msg):
 def type_name(msg):
     return uavcan.get_uavcan_data_type(msg).full_name
 
+def publish(node, type_name, data):
+    Message = find_msg(type_name)
+    msg = Message(**data)
+
+    node.broadcast(msg)
+
 
 def main():
-    import argparse
+    import argparse, json
     parser = argparse.ArgumentParser(description="Example node that receives motor topics.")
     parser.add_argument('topic')
     parser.add_argument('--interface', '-i', default='vcan0')
+    parser.add_argument("--id", default=None, type=int)
+    parser.add_argument('--publish', '-p')
 
     args = parser.parse_args()
 
     load_dsdl()
-    node = uavcan.node.make_node(args.interface)
+    node = uavcan.node.make_node(args.interface, node_id=args.id)
 
     def callback(transfer):
         msg = transfer.message
         print("{}({})".format(type_name(msg), get_msg_values(msg)))
 
-    subscribe(node, args.topic, callback)
-
-    node.spin()
+    if args.publish:
+        data = json.loads(args.publish)
+        publish(node, args.topic, data)
+        node.spin(0.5)
+    else:
+        subscribe(node, args.topic, callback)
+        node.spin()
 
 if __name__ == '__main__':
     main()

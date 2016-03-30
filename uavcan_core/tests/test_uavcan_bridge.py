@@ -57,3 +57,16 @@ class UtilityTestCase(TestCase):
         expected = 'cvra.Reboot'
         self.assertEqual(uavcan_bridge.type_name(val), expected)
 
+class PublisherTestCase(TestCase):
+    def setUp(self):
+        uavcan_bridge.load_dsdl()
+
+    def test_publish(self):
+        node = Mock()
+        uavcan_bridge.publish(node, 'cvra.Reboot', {'bootmode': 1})
+
+        Reboot = uavcan_bridge.find_msg('cvra.Reboot')
+
+        msg = node.broadcast.call_args[0][0]
+
+        self.assertEqual(msg.bootmode, 1)
