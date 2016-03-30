@@ -1,6 +1,7 @@
 from unittest import TestCase
 from scripts import uavcan_bridge
 from unittest.mock import Mock
+import cvra_msgs.msg
 import uavcan
 
 class UtilityTestCase(TestCase):
@@ -70,3 +71,14 @@ class PublisherTestCase(TestCase):
         msg = node.broadcast.call_args[0][0]
 
         self.assertEqual(msg.bootmode, 1)
+
+class RosFromUavcanTestCase(TestCase):
+    def setUp(self):
+        uavcan_bridge.load_dsdl()
+
+    def test_ros_type_from_uavcan_name(self):
+        uavcan_type = uavcan_bridge.find_msg("cvra.motor.control.Velocity")
+        expected = cvra_msgs.msg.MotorControlVelocity
+        actual = uavcan_bridge.ros_type_from_uavcan_type(uavcan_type)
+
+        self.assertEqual(actual, expected)

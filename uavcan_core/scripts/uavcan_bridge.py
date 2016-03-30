@@ -1,6 +1,7 @@
 import uavcan
 import uavcan.node
 import os.path
+import cvra_msgs.msg
 
 BASE_PATH = os.path.join(os.path.dirname(__file__), '..', '..')
 
@@ -30,6 +31,13 @@ def publish(node, type_name, data):
     msg = Message(**data)
 
     node.broadcast(msg)
+
+def ros_type_from_uavcan_type(uavcan_type):
+    name = uavcan_type.full_name
+
+    # Convert uavcan name convention to cvra/ROS
+    name = "".join(s.capitalize() for s in name.split('.')[1:])
+    return getattr(cvra_msgs.msg, name)
 
 
 def main():
