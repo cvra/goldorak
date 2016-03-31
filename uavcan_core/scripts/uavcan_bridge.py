@@ -55,6 +55,10 @@ def uavcan_type_from_ros_type(ros_type):
     name += ''.join(['.', fields[-1].capitalize()])
     return find_msg(name)
 
+def dict_from_ros_msg(ros_type, ros_msg):
+    return {field: getattr(ros_msg, field) for field in ros_type.__slots__}
+
+
 def main():
     import argparse, json
     parser = argparse.ArgumentParser(description="Example node that receives motor topics.")

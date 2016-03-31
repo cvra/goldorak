@@ -102,3 +102,11 @@ class RosFromUavcanTestCase(TestCase):
 
         self.assertEqual(actual, expected)
 
+    def test_dict_from_ros_msg(self):
+        val = cvra_msgs.msg.MotorControlVelocity(node_id=42, velocity=3)
+
+        VelocityMsg = uavcan_bridge.find_msg('cvra.motor.control.Velocity')
+        expected = {'node_id':42, 'velocity':3}
+        actual = uavcan_bridge.dict_from_ros_msg(cvra_msgs.msg.MotorControlVelocity, val)
+
+        self.assertEqual(actual, expected)
