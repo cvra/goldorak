@@ -79,7 +79,7 @@ class RosFromUavcanTestCase(TestCase):
     def setUp(self):
         uavcan_bridge.load_dsdl()
 
-    def test_ros_type_from_uavcan_name(self):
+    def test_ros_type_from_uavcan_type(self):
         uavcan_type = uavcan_bridge.find_msg("cvra.motor.control.Velocity")
         expected = cvra_msgs.msg.MotorControlVelocity
         actual = uavcan_bridge.ros_type_from_uavcan_type(uavcan_type)
@@ -94,3 +94,11 @@ class RosFromUavcanTestCase(TestCase):
         actual = uavcan_bridge.ros_msg_from_uavcan_msg(VelocityMsg, val)
 
         self.assertEqual(actual, expected)
+
+    def test_uavcan_type_from_ros_type(self):
+        ros_type = cvra_msgs.msg.MotorControlVelocity
+        expected = uavcan_bridge.find_msg("cvra.motor.control.Velocity")
+        actual = uavcan_bridge.uavcan_type_from_ros_type(ros_type)
+
+        self.assertEqual(actual, expected)
+

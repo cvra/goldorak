@@ -1,4 +1,5 @@
 import os.path
+import re
 
 import uavcan
 import uavcan.node
@@ -46,6 +47,14 @@ def ros_msg_from_uavcan_msg(uavcan_type, uavcan_msg):
     msg_type = ros_type_from_uavcan_type(uavcan_type)
     values = get_msg_values(uavcan_msg)
     return msg_type(**values)
+
+def uavcan_type_from_ros_type(ros_type):
+    name = str(cvra_msgs.msg.MotorControlVelocity).split('.')[-1][:-2]
+    fields = re.sub("([A-Z])", "_\\1", name).lower().lstrip("_").split("_")
+    name = 'cvra.'
+    name += '.'.join(fields[:-1])
+    name += ''.join(['.', fields[-1].capitalize()])
+    return find_msg(name)
 
 def main():
     import argparse, json
