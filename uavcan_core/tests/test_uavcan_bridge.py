@@ -82,6 +82,13 @@ class RosFromUavcanTestCase(TestCase):
 
         self.assertEqual(actual, expected)
 
+    def test_get_uavcan_msg_type(self):
+        uavcan_type = uavcan_bridge.find_uavcan_msg("cvra.motor.control.Velocity")
+        msg = uavcan_type()
+        actual = uavcan_bridge.get_uavcan_msg_type(msg)
+
+        self.assertEqual(actual, uavcan_type)
+
     def test_get_uavcan_msg_values(self):
         VelocityMsg = uavcan_bridge.find_uavcan_msg('cvra.motor.control.Velocity')
         val = uavcan.transport.CompoundValue(VelocityMsg, node_id=42, velocity=3)
@@ -97,6 +104,13 @@ class RosFromUavcanTestCase(TestCase):
         actual = uavcan_bridge.uavcan_type_from_ros_type(ros_type)
 
         self.assertEqual(actual, expected)
+
+    def test_get_ros_msg_type(self):
+        ros_type = cvra_msgs.msg.MotorControlVelocity
+        msg = ros_type()
+        actual = uavcan_bridge.get_ros_msg_type(msg)
+
+        self.assertEqual(actual, ros_type)
 
     def test_get_ros_msg_values(self):
         val = cvra_msgs.msg.MotorControlVelocity(node_id=42, velocity=3)
