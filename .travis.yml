@@ -8,7 +8,8 @@ install:
     - git submodule update --init --recursive
     - docker pull cvra/goldorak
     - docker run -d -it --name goldorak -v $(pwd)/:/home/ubuntu/catkin_ws/src/goldorak cvra/goldorak bash
+    - docker exec goldorak bash -c "cd /home/ubuntu/catkin_ws/src/goldorak; ./build.sh"
 
 script:
-    - docker exec goldorak bash -c "cd /home/ubuntu/catkin_ws/src/goldorak; ./build.sh; exit $?"
-    - docker exec goldorak bash -c "cd /home/ubuntu/catkin_ws/src/goldorak; ./run_tests.sh; exit $?"
+    - docker exec goldorak bash -c "cd /home/ubuntu/catkin_ws/src/goldorak; ./build.sh"; exit $?
+    - docker exec goldorak bash -c "cd /home/ubuntu/catkin_ws/src/goldorak; ./run_tests.sh"; exit $?
