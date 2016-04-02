@@ -6,11 +6,13 @@ import uavcan.node
 
 import cvra_msgs.msg
 import rospy
+import rospkg
 
-BASE_PATH = os.path.join(os.path.dirname(__file__), '..', '..')
+rospack = rospkg.RosPack()
+BASE_PATH = rospack.get_path('cvra_msgs')
 
 def load_uavcan_msg_dsdl():
-    uavcan.load_dsdl(os.path.join(BASE_PATH, 'cvra_msgs', 'uavcan', 'cvra'))
+    uavcan.load_dsdl(os.path.join(BASE_PATH, 'uavcan', 'cvra'))
 
 def find_uavcan_msg(name):
     return uavcan.TYPENAMES[name]

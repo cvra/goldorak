@@ -1,7 +1,7 @@
 from unittest import TestCase
 from unittest.mock import Mock, MagicMock
 
-from scripts import uavcan_bridge, cvra_bridge
+from uavcan_bridge import utils, bridge
 import uavcan
 
 import std_msgs.msg
@@ -10,14 +10,14 @@ import rospy
 
 class CvraBridgeUtilitesTestCase(TestCase):
     def setUp(self):
-        uavcan_bridge.load_uavcan_msg_dsdl()
+        utils.load_uavcan_msg_dsdl()
 
     def test_get_uavcan_name_from_id(self):
         nodes = {'left_wheel': {'id': 41, 'type': 'motor'},
                  'right_wheel': {'id': 50, 'type': 'motor'}}
 
-        self.assertEqual(cvra_bridge.uavcan_node_names(nodes)[41], 'left_wheel')
-        self.assertEqual(cvra_bridge.uavcan_node_names(nodes)[50], 'right_wheel')
+        self.assertEqual(bridge.uavcan_node_names(nodes)[41], 'left_wheel')
+        self.assertEqual(bridge.uavcan_node_names(nodes)[50], 'right_wheel')
 
     def test_find_node_type_associated_messages(self):
         nodes = {'left_wheel': {'id': 41, 'type': 'motor'},
@@ -47,18 +47,18 @@ class CvraBridgeUtilitesTestCase(TestCase):
                         'cvra.motor.feedback.PositionPID',
                         'cvra.motor.feedback.VelocityPID'])
 
-        actual = cvra_bridge.find_node_uavcan_msgs(nodes['left_wheel']['type'])
+        actual = bridge.find_node_uavcan_msgs(nodes['left_wheel']['type'])
         for element in actual:
             self.assertIn(element, expected)
 
-        actual = cvra_bridge.find_node_uavcan_msgs(nodes['right_wheel']['type'])
+        actual = bridge.find_node_uavcan_msgs(nodes['right_wheel']['type'])
         for element in actual:
             self.assertIn(element, expected)
 
 
 class CvraBridgeUavcanSubscriberCallbacksTestCase(TestCase):
     def setUp(self):
-        uavcan_bridge.load_uavcan_msg_dsdl()
+        utils.load_uavcan_msg_dsdl()
 
     def test_uavcan_subscribe_to_motor_encoder(self):
         nodes = {'left_wheel': {'id': 41, 'type': 'motor'},
@@ -70,7 +70,7 @@ class CvraBridgeUavcanSubscriberCallbacksTestCase(TestCase):
         uavcan_transfer.message = {'raw_encoder_position':42}
         uavcan_transfer.source_node_id = 41
 
-        cvra_bridge.motor_encoder_position_callback(nodes, ros_publishers, uavcan_transfer)
+        bridge.motor_encoder_position_callback(nodes, ros_publishers, uavcan_transfer)
 
         ros_msg = cvra_msgs.msg.MotorEncoderStamped(**{'sample':42})
         ros_publishers['left_wheel'].publish.assert_called_with(ros_msg)
