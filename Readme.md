@@ -1,4 +1,5 @@
 # Project Goldorak
+[![Build Status](https://travis-ci.org/cvra/goldorak.svg?branch=master)](https://travis-ci.org/cvra/goldorak)
 
 ## Setup
 
