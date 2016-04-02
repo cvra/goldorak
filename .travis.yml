@@ -5,7 +5,7 @@ services:
 
 before_install:
     - docker pull cvra/goldorak
-    - docker run -v $(pwd):/home/ubuntu/catkin_ws/src cvra/goldorak /bin/bash -c "cd /home/ubuntu/catkin_ws/src/goldorak; ./build.sh"
+    - docker run -v $(pwd)/:/home/ubuntu/catkin_ws/src/goldorak cvra/goldorak /bin/bash -c "cd /home/ubuntu/catkin_ws/src/goldorak; ./build.sh"
 
 script:
     - ./build.sh
