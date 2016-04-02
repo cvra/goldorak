@@ -11,5 +11,5 @@ install:
     - docker exec goldorak bash -c "cd /home/ubuntu/catkin_ws/src/goldorak; ./build.sh"
 
 script:
-    - docker exec goldorak bash -c "cd /home/ubuntu/catkin_ws/src/goldorak; ./build.sh"; exit $?
-    - docker exec goldorak bash -c "cd /home/ubuntu/catkin_ws/src/goldorak; ./run_tests.sh"; exit $?
+    - docker exec goldorak bash -c "cd /home/ubuntu/catkin_ws/src/goldorak; ./build.sh"
+    - docker exec goldorak bash -c "cd /home/ubuntu/catkin_ws/src/goldorak; ./run_tests.sh"
