@@ -90,7 +90,9 @@ if(CATKIN_ENABLE_TESTING)
 endif()
 
 if(CATKIN_ENABLE_TESTING)
+    find_package(rostest REQUIRED)
     catkin_add_nosetests(
         tests/test_utils.py
         tests/test_bridge.py)
+    add_rostest(tests/test_node_uavcan_publisher.launch)
 endif()

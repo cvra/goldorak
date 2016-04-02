@@ -1,0 +1,17 @@
+<launch>
+    <arg name="can_interface" default="vcan0" />
+
+    <node name="uavcan_encoder_publisher"
+          pkg="uavcan_core"
+          type="uavcan_publisher.py"
+          args="-i $(arg can_interface) -t cvra.motor.feedback.MotorEncoderPosition --id 20" />
+
+    <node name="uavcan_velocity_setpoint_publisher"
+          pkg="uavcan_core"
+          type="uavcan_publisher.py"
+          args="-i $(arg can_interface) -t cvra.motor.control.Velocity --id 30" />
+
+    <test test-name="uavcan_publisher_node_test"
+          pkg="uavcan_core"
+          type="test_node_uavcan_publisher.py" />
+</launch>
