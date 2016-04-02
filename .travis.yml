@@ -3,12 +3,11 @@ sudo: required
 services:
     - docker
 
-before_install:
+install:
     - git submodule update --init --recursive
     - docker pull cvra/goldorak
+    - docker run -d -it --name goldorak -v $(pwd)/:/home/ubuntu/catkin_ws/src/goldorak cvra/goldorak bash
 
 script:
-    - docker run -it -v $(pwd)/:/home/ubuntu/catkin_ws/src/goldorak cvra/goldorak
-        /bin/bash -c "cd /home/ubuntu/catkin_ws/src/goldorak;
-                      ./build.sh;
-                      ./run_tests.sh"
+    - docker exec goldorak bash -c "cd /home/ubuntu/catkin_ws/src/goldorak; ./build.sh; exit $?"
+    - docker exec goldorak bash -c "cd /home/ubuntu/catkin_ws/src/goldorak; ./run_tests.sh; exit $?"
