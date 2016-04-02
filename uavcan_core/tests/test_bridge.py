@@ -1,5 +1,5 @@
 from unittest import TestCase
-from unittest.mock import Mock, MagicMock
+from mock import Mock, MagicMock
 
 from uavcan_bridge import utils, bridge
 import uavcan

@@ -1,6 +1,6 @@
-#!/usr/bin/python3
+#!/usr/bin/env python
 import uavcan
-from uavcan_bridge.utils import *
+from uavcan_bridge import utils
 
 import std_msgs.msg
 import cvra_msgs.msg

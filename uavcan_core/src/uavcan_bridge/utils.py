@@ -47,7 +47,7 @@ def get_ros_msg_type(msg):
 def ros_type_from_uavcan_type(uavcan_type):
     name = uavcan_type.full_name
 
-    # Convert uavcan name convention to cvra/ROS
+    # Convert uavcan name convention to cvra/ROS
     name = "".join(s.capitalize() for s in name.split('.')[1:])
     return getattr(cvra_msgs.msg, name)
 

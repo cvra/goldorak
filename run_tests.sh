@@ -17,16 +17,8 @@ pushd uavcan_core/uavcan/libuavcan/dsdl_compiler
 ./libuavcan_dsdlc ../../../../cvra_msgs/uavcan/cvra/
 popd
 
+# Run all tests
 pushd ../..
 catkin run_tests cvra_msgs uavcan_core goldorak_diffbase goldorak_bringup
 catkin_test_results build
-popd
-
-# Run Python unittests
-pushd ../..
-catkin build cvra_msgs
-source devel/setup.bash
-popd
-pushd uavcan_core
-python3 -m unittest
 popd
