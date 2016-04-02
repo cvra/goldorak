@@ -4,6 +4,8 @@ services:
     - docker
 
 install:
+    - git submodule foreach --recursive 'git submodule sync'
+    - git submodule update --init --recursive
     - docker pull cvra/goldorak
     - docker run -d -it --name goldorak -v $(pwd)/:/home/ubuntu/catkin_ws/src/goldorak cvra/goldorak bash
 

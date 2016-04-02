@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 source /opt/ros/indigo/setup.bash
-git submodule update --init --recursive
 
 # Build UAVCAN
 mkdir uavcan_core/uavcan/libuavcan/build
