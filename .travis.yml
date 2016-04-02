@@ -6,7 +6,9 @@ services:
 before_install:
     - git submodule update --init --recursive
     - docker pull cvra/goldorak
-    - docker run -it -v $(pwd)/:/home/ubuntu/catkin_ws/src/goldorak cvra/goldorak /bin/bash -c "cd /home/ubuntu/catkin_ws/src/goldorak"
 
 script:
-    - ./build.sh
+    - docker run -it -v $(pwd)/:/home/ubuntu/catkin_ws/src/goldorak cvra/goldorak
+        /bin/bash -c "cd /home/ubuntu/catkin_ws/src/goldorak;
+                      ./build.sh;
+                      ./run_tests.sh"
