@@ -1,3 +1,7 @@
 uavcan_nodes:
-    left_wheel: 41
-    right_wheel: 50
+    left_wheel:
+        id: 41
+        type: 'motor'
+    right_wheel:
+        id: 50
+        type: 'motor'
