@@ -1,0 +1,4 @@
+uavcan_nodes:
+    left_wheel:
+        id: 41
+        type: 'motor'

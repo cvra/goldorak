@@ -1,0 +1,18 @@
+<launch>
+    <arg name="can_interface" default="vcan0" />
+    <rosparam command="load" file="$(find uavcan_core)/tests/test_uavcan_nodes.yaml" />
+
+    <node name="uavcan_bridge"
+          pkg="uavcan_core"
+          type="bridge.py"
+          args="-i $(arg can_interface) --id 10" />
+
+    <node name="uavcan_encoder_publisher"
+          pkg="uavcan_core"
+          type="uavcan_publisher.py"
+          args="-i $(arg can_interface) -t cvra.motor.feedback.MotorEncoderPosition --id 41" />
+
+    <test test-name="cvra_bridge_node_test"
+          pkg="uavcan_core"
+          type="test_node_cvra_bridge.py" />
+</launch>

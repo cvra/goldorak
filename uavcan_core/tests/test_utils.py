@@ -120,3 +120,58 @@ class RosFromUavcanTestCase(TestCase):
         actual = utils.get_ros_msg_values(val)
 
         self.assertEqual(actual, expected)
+
+class CvraBridgeUtilitesTestCase(TestCase):
+    def setUp(self):
+        utils.load_uavcan_msg_dsdl()
+
+    def test_get_uavcan_name_from_id(self):
+        nodes = {'left_wheel': {'id': 41, 'type': 'motor'},
+                 'right_wheel': {'id': 50, 'type': 'motor'}}
+
+        self.assertEqual(utils.uavcan_node_names(nodes)[41], 'left_wheel')
+        self.assertEqual(utils.uavcan_node_names(nodes)[50], 'right_wheel')
+
+    def test_find_node_type_associated_messages(self):
+        nodes = {'left_wheel': {'id': 41, 'type': 'motor'},
+                 'right_wheel': {'id': 50, 'type': 'motor'}}
+        expected = set(['cvra.Reboot',
+                        'cvra.StringID',
+                        'cvra.motor.EmergencyStop',
+                        'cvra.motor.config.CurrentPID',
+                        'cvra.motor.config.EnableMotor',
+                        'cvra.motor.config.FeedbackStream',
+                        'cvra.motor.config.LoadConfiguration',
+                        'cvra.motor.config.PID',
+                        'cvra.motor.config.PeriodicDataConfig',
+                        'cvra.motor.config.PositionPID',
+                        'cvra.motor.config.TorqueLimit',
+                        'cvra.motor.config.VelocityPID',
+                        'cvra.motor.control.Position',
+                        'cvra.motor.control.Torque',
+                        'cvra.motor.control.Trajectory',
+                        'cvra.motor.control.Velocity',
+                        'cvra.motor.control.Voltage',
+                        'cvra.motor.feedback.CurrentPID',
+                        'cvra.motor.feedback.Index',
+                        'cvra.motor.feedback.MotorEncoderPosition',
+                        'cvra.motor.feedback.MotorPosition',
+                        'cvra.motor.feedback.MotorTorque',
+                        'cvra.motor.feedback.PositionPID',
+                        'cvra.motor.feedback.VelocityPID'])
+
+        actual = utils.find_node_uavcan_msgs(nodes['left_wheel']['type'])
+        for element in actual:
+            self.assertIn(element, expected)
+
+        actual = utils.find_node_uavcan_msgs(nodes['right_wheel']['type'])
+        for element in actual:
+            self.assertIn(element, expected)
+
+    def test_can_detect_node_already_subscribed_to_topic(self):
+        callback = Mock()
+        node = uavcan.node.make_node('vcan0')
+
+        self.assertFalse(utils.uavcan_is_subscribed(node, 'cvra.Reboot'))
+        utils.uavcan_subscribe(node, 'cvra.Reboot', callback)
+        self.assertTrue(utils.uavcan_is_subscribed(node, 'cvra.Reboot'))

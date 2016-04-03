@@ -8,10 +8,10 @@ import cvra_msgs.msg
 import rospy
 import rospkg
 
-rospack = rospkg.RosPack()
-BASE_PATH = rospack.get_path('cvra_msgs')
 
 def load_uavcan_msg_dsdl():
+    rospack = rospkg.RosPack()
+    BASE_PATH = rospack.get_path('cvra_msgs')
     uavcan.load_dsdl(os.path.join(BASE_PATH, 'uavcan', 'cvra'))
 
 def find_uavcan_msg(name):
@@ -63,38 +63,18 @@ def get_ros_msg_values(ros_msg):
     ros_type = ros_msg.__class__
     return {field: getattr(ros_msg, field) for field in ros_type.__slots__}
 
+def uavcan_node_names(nodes):
+    return {nodes[node]['id']: node for node in nodes}
 
-def main():
-    import argparse, json
-    parser = argparse.ArgumentParser(description="Example node that receives motor topics.")
-    parser.add_argument('topic')
-    parser.add_argument('--interface', '-i', default='vcan0')
-    parser.add_argument("--id", default=None, type=int)
-    parser.add_argument('--publish', '-p', help="Publish to UAVCAN")
+def find_node_uavcan_msgs(node_type):
+    return set([msg \
+                for msg in uavcan.TYPENAMES \
+                if msg.split('.')[0] == 'cvra' and msg.split('.')[1] == node_type])
 
-    args = parser.parse_args()
+def uavcan_is_subscribed(node, topic):
+    node_subscriptions = node._handler_dispatcher._handlers
+    for subscription in node_subscriptions:
+        if str(subscription[0]) == topic:
+            return True
 
-    load_uavcan_msg_dsdl()
-    node = uavcan.node.make_node(args.interface, node_id=args.id)
-    rospy.init_node('uavcan_bridge', anonymous=True)
-
-    ros_type = ros_type_from_uavcan_type(find_uavcan_msg(args.topic))
-    pub = rospy.Publisher('/'.join(s for s in args.topic.split('.')[1:]), ros_type, queue_size=10)
-
-    def callback(transfer):
-        msg = transfer.message
-        data = get_uavcan_msg_values(msg)
-        print("UAVCAN: {}({})".format(uavcan_type_name(msg), data))
-        pub.publish(ros_type(**data))
-        print("ROS: {}({})".format(ros_type._type, data))
-
-    if args.publish:
-        data = json.loads(args.publish)
-        uavcan_publish(node, args.topic, data)
-        node.spin(0.5)
-    else:
-        uavcan_subscribe(node, args.topic, callback)
-        node.spin()
-
-if __name__ == '__main__':
-    main()
+    return False
