@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 from unittest import TestCase
+from mock import Mock, ANY
 
 import uavcan
 from uavcan_bridge import utils, bridge
@@ -7,6 +8,7 @@ from uavcan_bridge import utils, bridge
 import rospy
 from std_msgs.msg import String
 from cvra_msgs.msg import MotorEncoderStamped
+
 PKG = 'uavcan_core'
 
 class CvraIntegrationTestCase(TestCase):
@@ -24,23 +26,18 @@ class CvraIntegrationTestCase(TestCase):
                 }
             })
 
-    def msg_callback(self, msg):
-        self.success = True
-        self.last_msg = msg
-
     def test_uavcan_bridge_publish_motor_encoder(self):
-        uavcan_node = uavcan.node.make_node('vcan0')
-        uavcan_nodes_params = rospy.get_param('/uavcan_nodes')
         self.success = False
         self.last_msg = None
 
+        cb = Mock()
+
         sub = rospy.Subscriber(
-                '/left_wheel/feedback/encoder', MotorEncoderStamped, self.msg_callback)
+                '/left_wheel/feedback/encoder', MotorEncoderStamped, cb)
 
         rospy.sleep(1.0)
 
-        self.assertTrue(self.success)
-        self.assertEqual(self.last_msg.sample, 0)
+        cb.assert_any_call(ANY)
 
 if __name__ == '__main__':
     import rostest
