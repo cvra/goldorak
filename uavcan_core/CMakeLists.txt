@@ -23,6 +23,9 @@ find_package(catkin REQUIRED COMPONENTS
     std_msgs
 )
 
+# Build Python package
+catkin_python_setup()
+
 generate_dynamic_reconfigure_options(
     cfg/PID.cfg
     cfg/MotorBoard.cfg
@@ -71,6 +74,12 @@ add_executable(
     )
 target_link_libraries(uc_config_server ${UAVCAN_LIB} rt ${catkin_LIBRARIES})
 
+# Install Python scripts
+catkin_install_python(
+    PROGRAMS scripts
+    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+    )
+
 # Build tests
 if(CATKIN_ENABLE_TESTING)
     find_package(rostest REQUIRED)
@@ -78,4 +87,13 @@ if(CATKIN_ENABLE_TESTING)
                      ${TEST}/motor_param_test.launch
                      ${TEST}/motor_param_test.cpp)
     target_link_libraries(motor_param_test ${UAVCAN_LIB} rt ${catkin_LIBRARIES})
+endif()
+
+if(CATKIN_ENABLE_TESTING)
+    find_package(rostest REQUIRED)
+    catkin_add_nosetests(tests/test_utils.py)
+    catkin_add_nosetests(tests/test_bridge.py)
+    catkin_add_nosetests(tests/test_motor_callbacks.py)
+    add_rostest(tests/test_node_uavcan_publisher.launch)
+    add_rostest(tests/test_node_cvra_bridge.launch)
 endif()
