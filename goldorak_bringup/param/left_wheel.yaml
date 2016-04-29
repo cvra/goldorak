@@ -2,12 +2,12 @@ motor_control_config:
     enable:
         enable: false
     parameters:
-        mode: 3
-        motor_encoder_steps_per_revolution: 229376
-        second_encoder_steps_per_revolution: 229376
-        transmission_ratio_p: 1
-        transmission_ratio_q: 1
-        low_batt_th: 10.
+        mode: 2
+        motor_encoder_steps_per_revolution: 4096
+        second_encoder_steps_per_revolution: 16384
+        transmission_ratio_p: 49
+        transmission_ratio_q: 676
+        low_batt_th: 5.
         acceleration_limit: 100.
         velocity_limit: 50.
         torque_limit: 14.
@@ -18,20 +18,20 @@ motor_control_config:
         thermal_resistance: 0.
         thermal_current_gain: 0.
     pid_current:
-        p: 1.5
-        i: 50.
+        p: 4.
+        i: 1500.
         d: 0.
-        i_limit: 100.
+        i_limit: 50.
+    pid_velocity:
+        p: 14.
+        i: 110.
+        d: 0.
+        i_limit: 1400.
     pid_position:
-        p: 10.
-        i: 0.
+        p: 0.1
+        i: 0.5
         d: 0.
         i_limit: 0.
-    pid_velocity:
-        p: 0.4
-        i: 5.
-        d: 0.
-        i_limit: 100.
     stream:
         motor_encoder: 50
         motor_position: 10
