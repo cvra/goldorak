@@ -1,6 +1,6 @@
 motor_control_config:
     enable:
-        enable: false
+        enable: true
     parameters:
         mode: 2
         motor_encoder_steps_per_revolution: 4096
