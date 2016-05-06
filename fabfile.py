@@ -56,3 +56,17 @@ def monitor():
     with shell_env(ROS_IP=local_ip, ROS_MASTER_URI='http://{}:11311'.format(robot_ip)):
         _bash_local('source ~/catkin_ws/devel/setup.bash')
         _bash_local('roslaunch goldorak_bringup monitor.launch')
+
+def vcan(vcan_name):
+    """
+    Creates a virtual CAN interface with given name
+    """
+    local('sudo modprobe can')
+    local('sudo modprobe can_raw')
+    local('sudo modprobe can_bcm')
+    local('sudo modprobe vcan')
+
+    local('sudo ip link add dev {} type vcan'.format(vcan_name))
+    local('sudo ip link set up {}'.format(vcan_name))
+
+    local('sudo ifconfig {} up'.format(vcan_name))
