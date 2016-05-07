@@ -10,7 +10,7 @@ ros::Publisher *right_setpt_pub;
 ros::Publisher *left_setpt_pub;
 
 float wheelbase, right_wheel_radius, left_wheel_radius;
-int right_wheel_direction, left_wheel_direction;
+int right_wheel_direction, left_wheel_direction, external_to_internal_wheelbase_encoder_direction;
 
 void cmdvel_cb(const geometry_msgs::Twist::ConstPtr& msg)
 {
@@ -35,8 +35,10 @@ void cmdvel_cb(const geometry_msgs::Twist::ConstPtr& msg)
     left_setpt_msg.velocity /= left_wheel_radius;
 
     // Fix wheel direction
-    right_setpt_msg.velocity *= right_wheel_direction;
-    left_setpt_msg.velocity *= left_wheel_direction;
+    right_setpt_msg.velocity *= right_wheel_direction
+                                * external_to_internal_wheelbase_encoder_direction;
+    left_setpt_msg.velocity *= left_wheel_direction
+                                * external_to_internal_wheelbase_encoder_direction;
 
 
     ROS_DEBUG("Parameters [%f] [%f] [%f]", wheelbase, right_wheel_radius, left_wheel_radius);
@@ -84,6 +86,12 @@ int main(int argc, char **argv)
         nh.getParam(param_key, left_wheel_direction);
     } else {
         left_wheel_direction = 1;
+    }
+
+    if (nh.searchParam("diffbase/external_to_internal_wheelbase_encoder_direction", param_key)) {
+        nh.getParam(param_key, external_to_internal_wheelbase_encoder_direction);
+    } else {
+        external_to_internal_wheelbase_encoder_direction = 1;
     }
 
     /* Initialise controller */

@@ -1,5 +1,12 @@
 diffbase:
+    # Distance between external encoder wheels
     wheelbase: 0.194
+
+    # Internal wheelbase motor encoders have opposite direction
+    # relative to external encoders
+    external_to_internal_wheelbase_encoder_direction: -1
+
+    # Right and Left wheels have opposite directions (180° symetry)    right_wheel:
     right_wheel:
         radius: 0.016
         direction: 1
