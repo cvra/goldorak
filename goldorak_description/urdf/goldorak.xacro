@@ -116,8 +116,8 @@
 
   </xacro:macro>
 
-  <xacro:wheel prefix="right" reflect="1"/>
-  <xacro:wheel prefix="left" reflect="-1"/>
+  <xacro:wheel prefix="right" reflect="-1"/>
+  <xacro:wheel prefix="left" reflect="1"/>
 
   <xacro:macro name="caster" params="prefix reflect">
 
