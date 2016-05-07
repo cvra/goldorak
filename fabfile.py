@@ -43,8 +43,8 @@ def launch():
         ip = '127.0.0.1'
 
     with shell_env(ROS_IP=ip, ROS_MASTER_URI='http://{}:11311'.format(ip)):
-        _bash_run('source ~/catkin_ws/devel/setup.bash')
-        _bash_run('roslaunch goldorak_bringup goldorak.launch')
+        _bash_run('source ~/catkin_ws/devel/setup.bash && \
+                   roslaunch goldorak_bringup goldorak.launch')
 
 def monitor():
     """
@@ -58,19 +58,17 @@ def monitor():
         local_ip = '127.0.0.1'
 
     with shell_env(ROS_IP=local_ip, ROS_MASTER_URI='http://{}:11311'.format(robot_ip)):
-        _bash_run('source ~/catkin_ws/devel/setup.bash')
-        _bash_run('roslaunch goldorak_bringup monitor.launch')
+        _bash_run('source ~/catkin_ws/devel/setup.bash && \
+                   roslaunch goldorak_bringup monitor.launch')
 
 def vcan(vcan_name):
     """
     Creates a virtual CAN interface with given name
     """
-    run('sudo modprobe can')
-    run('sudo modprobe can_raw')
-    run('sudo modprobe can_bcm')
-    run('sudo modprobe vcan')
-
-    run('sudo ip link add dev {} type vcan'.format(vcan_name))
-    run('sudo ip link set up {}'.format(vcan_name))
-
-    run('sudo ifconfig {} up'.format(vcan_name))
+    _bash_run('sudo modprobe can && \
+               sudo modprobe can_raw && \
+               sudo modprobe can_bcm && \
+               sudo modprobe vcan && \
+               sudo ip link add dev {0} type vcan && \
+               sudo ip link set up {0} && \
+               sudo ifconfig {0} up'.format(vcan_name))
