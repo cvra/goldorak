@@ -7,17 +7,19 @@
 ros::Publisher *joint_pub;
 
 float right_wheel_pos, left_wheel_pos;
-
+int right_wheel_direction, left_wheel_direction, external_to_internal_wheelbase_encoder_direction;
 
 void right_wheel_cb(const std_msgs::Float32ConstPtr& msg)
 {
-    right_wheel_pos = msg->data;
+    right_wheel_pos = msg->data * right_wheel_direction
+                        * external_to_internal_wheelbase_encoder_direction;
     ROS_DEBUG("Got right wheel %f", right_wheel_pos);
 }
 
 void left_wheel_cb(const std_msgs::Float32ConstPtr& msg)
 {
-    left_wheel_pos = msg->data;
+    left_wheel_pos = msg->data * left_wheel_direction
+                        * external_to_internal_wheelbase_encoder_direction;
     ROS_DEBUG("Got left wheel %f", left_wheel_pos);
 
     sensor_msgs::JointState joint_state;
@@ -42,6 +44,29 @@ int main(int argc, char** argv)
     ros::init(argc, argv, "joint_state_publisher");
 
     ros::NodeHandle n;
+
+    /* Get differential base parameters */
+    std::string param_key;
+
+    if (n.searchParam("diffbase/right_wheel/direction", param_key)) {
+        n.getParam(param_key, right_wheel_direction);
+    } else {
+        right_wheel_direction = 1;
+    }
+
+    if (n.searchParam("diffbase/left_wheel/direction", param_key)) {
+        n.getParam(param_key, left_wheel_direction);
+    } else {
+        left_wheel_direction = 1;
+    }
+
+    if (n.searchParam("diffbase/external_to_internal_wheelbase_encoder_direction", param_key)) {
+        n.getParam(param_key, external_to_internal_wheelbase_encoder_direction);
+    } else {
+        external_to_internal_wheelbase_encoder_direction = 1;
+    }
+
+
     ros::Subscriber right_wheel_sub = n.subscribe(
         "right_wheel/feedback/position", 1, right_wheel_cb);
     ros::Subscriber left_wheel_sub = n.subscribe(
