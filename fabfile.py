@@ -6,8 +6,10 @@ def _bash_run(command_string):
     """
     Creates a new local command to enforce /bin/bash as shell
     """
-    run(command_string, shell="/bin/bash")
-
+    if len(env.hosts) > 0:
+        run(command_string, shell="/bin/bash")
+    else:
+        local(command_string, shell="/bin/bash")
 
 def goldorak():
     """
