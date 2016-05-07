@@ -9,7 +9,7 @@ diffbase:
     # Right and Left wheels have opposite directions (180° symetry)    right_wheel:
     right_wheel:
         radius: 0.016
-        direction: 1
+        direction: -1
     left_wheel:
         radius: 0.016
-        direction: -1
+        direction: 1
