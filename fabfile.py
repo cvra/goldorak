@@ -48,7 +48,7 @@ def launch():
 
 def monitor():
     """
-    Monitor running robot state
+    Monitor robot using Rviz
     """
     if len(env.hosts) > 0:
         robot_ip = env.hosts[-1]
@@ -58,8 +58,25 @@ def monitor():
         local_ip = '127.0.0.1'
 
     with shell_env(ROS_IP=local_ip, ROS_MASTER_URI='http://{}:11311'.format(robot_ip)):
-        _bash_run('source ~/catkin_ws/devel/setup.bash && \
-                   roslaunch goldorak_bringup monitor.launch')
+        local('source ~/catkin_ws/devel/setup.bash && \
+               roslaunch goldorak_bringup monitor.launch',
+               shell="/bin/bash")
+
+def rqt():
+    """
+    Opens RQT on shared ROS network
+    """
+    if len(env.hosts) > 0:
+        robot_ip = env.hosts[-1]
+        local_ip = '192.168.8.1'
+    else:
+        robot_ip = '127.0.0.1'
+        local_ip = '127.0.0.1'
+
+    with shell_env(ROS_IP=local_ip, ROS_MASTER_URI='http://{}:11311'.format(robot_ip)):
+        local('source ~/catkin_ws/devel/setup.bash && \
+               rqt',
+               shell="/bin/bash")
 
 def vcan(vcan_name):
     """
