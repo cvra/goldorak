@@ -7,8 +7,8 @@ controller_patience: 2.0
 planner_frequency: 1.0
 planner_patience: 5.0
 
-oscillation_timeout: 10.0
-oscillation_distance: 0.2
+oscillation_timeout: 1.0
+oscillation_distance: 0.1
 
 base_local_planner: "dwa_local_planner/DWAPlannerROS"
 # base_local_planner: "base_local_planner/TrajectoryPlannerROS"
@@ -20,12 +20,12 @@ base_global_planner: "global_planner/GlobalPlanner"
 recovery_behavior_enabled: true
 
 recovery_behaviors:
+    - name: 'clearing_rotation'
+      type: 'rotate_recovery/RotateRecovery'
     - name: 'clearing_costmap'
       type: 'clear_costmap_recovery/ClearCostmapRecovery'
     - name: 'move_slow_and_clear'
       type: 'move_slow_and_clear/MoveSlowAndClear'
-    - name: 'clearing_rotation'
-      type: 'rotate_recovery/RotateRecovery'
 
 move_slow_and_clear:
     clearing_distance: 0.5
@@ -36,3 +36,6 @@ move_slow_and_clear:
 
 clearing_costmap:
     reset_distance: 0.3
+
+clearing_rotation:
+    sim_granularity: 0.10
