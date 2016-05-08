@@ -2,6 +2,7 @@
 #include "tf/transform_broadcaster.h"
 #include "cvra_msgs/MotorEncoderStamped.h"
 #include "nav_msgs/Odometry.h"
+#include "geometry_msgs/PoseWithCovarianceStamped.h"
 
 #include "odometry/odometry.h"
 #include "odometry/robot_base.h"
@@ -18,26 +19,11 @@ odometry_encoder_sample_t right_wheel_encoder;
 odometry_encoder_sample_t left_wheel_encoder;
 
 
-void odometry_base_update_wrapper(
+void publish_odom_tf(
         ros::Time timestamp,
-        odometry_differential_base_t *robot,
-        const odometry_encoder_sample_t right_wheel_sample,
-        const odometry_encoder_sample_t left_wheel_sample)
+        const robot_base_pose_2d_s robot_pose,
+        const robot_base_vel_2d_s robot_vel)
 {
-    // Regular odometry update
-    odometry_base_update(robot, right_wheel_encoder, left_wheel_encoder);
-
-    // Get values to display for debug
-    robot_base_pose_2d_s robot_pose;
-    robot_base_vel_2d_s robot_vel;
-    odometry_base_get_pose(robot, &robot_pose);
-    odometry_base_get_vel(robot, &robot_vel);
-
-    ROS_DEBUG("Wheelbase pose is: x = %.3f, y = %.3f, theta = %.3f",
-        robot_pose.x, robot_pose.y, robot_pose.theta);
-    ROS_DEBUG("Wheelbase velocity is: x = %.3f, y = %.3f, omega = %.3f",
-        robot_vel.x, robot_vel.y, robot_vel.omega);
-
     // Since all odometry is 6DOF we'll need a quaternion created from yaw
     odom_quat = tf::createQuaternionMsgFromYaw(robot_pose.theta);
 
@@ -72,6 +58,50 @@ void odometry_base_update_wrapper(
 
     // Publish the message
     odom_pub->publish(odom);
+
+    ROS_DEBUG("Wheelbase pose is: x = %.3f, y = %.3f, theta = %.3f",
+        robot_pose.x, robot_pose.y, robot_pose.theta);
+    ROS_DEBUG("Wheelbase velocity is: x = %.3f, y = %.3f, omega = %.3f",
+        robot_vel.x, robot_vel.y, robot_vel.omega);
+}
+
+void odometry_base_update_wrapper(
+        ros::Time timestamp,
+        odometry_differential_base_t *robot,
+        const odometry_encoder_sample_t right_wheel_sample,
+        const odometry_encoder_sample_t left_wheel_sample)
+{
+    // Regular odometry update
+    odometry_base_update(robot, right_wheel_encoder, left_wheel_encoder);
+
+    // Publish new tf
+    robot_base_pose_2d_s robot_pose;
+    robot_base_vel_2d_s robot_vel;
+    odometry_base_get_pose(robot, &robot_pose);
+    odometry_base_get_vel(robot, &robot_vel);
+    publish_odom_tf(timestamp, robot_pose, robot_vel);
+}
+
+void odometry_pose_reset_wrapper(
+        ros::Time timestamp,
+        odometry_differential_base_t *robot,
+        const geometry_msgs::Pose new_pose)
+{
+    uint32_t time_now = (uint32_t)(timestamp.toNSec() / 1000.f);
+
+    struct robot_base_pose_2d_s new_state;
+    new_state.x = new_pose.position.x;
+    new_state.y = new_pose.position.y;
+    new_state.theta = tf::getYaw(new_pose.orientation);
+
+    odometry_state_override(robot, new_state, time_now);
+
+    // Publish new tf
+    robot_base_pose_2d_s robot_pose;
+    robot_base_vel_2d_s robot_vel;
+    odometry_base_get_pose(robot, &robot_pose);
+    odometry_base_get_vel(robot, &robot_vel);
+    publish_odom_tf(timestamp, robot_pose, robot_vel);
 }
 
 void right_wheel_cb(const cvra_msgs::MotorEncoderStamped::ConstPtr& msg)
@@ -100,6 +130,13 @@ void left_wheel_cb(const cvra_msgs::MotorEncoderStamped::ConstPtr& msg)
         odometry_base_update_wrapper(msg->timestamp, &robot,
                                      right_wheel_encoder, left_wheel_encoder);
     }
+}
+
+void reset_pose_cb(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg)
+{
+    ROS_INFO("Resetting robot pose");
+
+    odometry_pose_reset_wrapper(msg->header.stamp, &robot, msg->pose.pose);
 }
 
 int main(int argc, char **argv)
@@ -146,6 +183,9 @@ int main(int argc, char **argv)
     ros::Subscriber left_wheel_sub = node.subscribe(
         "left_wheel/feedback/encoder",
         10, left_wheel_cb);
+    ros::Subscriber reset_pose_sub = node.subscribe(
+        "initialpose",
+        1, reset_pose_cb);
 
     ROS_INFO("Odometry publisher node ready.");
     ros::spin();
