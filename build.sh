@@ -6,7 +6,7 @@ source ~/catkin_ws/devel/setup.bash
 pushd uavcan_core
 
 # Build UAVCAN
-mkdir uavcan/libuavcan/build
+mkdir -p uavcan/libuavcan/build
 pushd uavcan/libuavcan/build
 cmake ..
 make
