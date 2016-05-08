@@ -14,7 +14,7 @@ int right_wheel_direction, left_wheel_direction, external_to_internal_wheelbase_
 
 void cmdvel_cb(const geometry_msgs::Twist::ConstPtr& msg)
 {
-    ROS_DEBUG("I heard velocity commands: [%f] [%f]", msg->linear.x, msg->angular.z);
+    ROS_DEBUG("Sending velocity commands: [%f] [%f]", msg->linear.x, msg->angular.z);
 
     ros::Time current_time = ros::Time::now();
 
@@ -41,8 +41,8 @@ void cmdvel_cb(const geometry_msgs::Twist::ConstPtr& msg)
                                 * external_to_internal_wheelbase_encoder_direction;
 
 
-    ROS_DEBUG("Parameters [%f] [%f] [%f]", wheelbase, right_wheel_radius, left_wheel_radius);
-    ROS_DEBUG("Velocities [%f] [%f]", right_setpt_msg.velocity, left_setpt_msg.velocity);
+    ROS_DEBUG("Parameters: [%f] [%f] [%f]", wheelbase, right_wheel_radius, left_wheel_radius);
+    ROS_DEBUG("Velocities: [%f] [%f]", right_setpt_msg.velocity, left_setpt_msg.velocity);
 
     // Publish the setpoints
     right_setpt_pub->publish(right_setpt_msg);
@@ -51,58 +51,28 @@ void cmdvel_cb(const geometry_msgs::Twist::ConstPtr& msg)
 
 int main(int argc, char **argv)
 {
-    ros::init(argc, argv, "diffbase/controller");
+    ros::init(argc, argv, "diffbase_controller");
 
-    ros::NodeHandle nh;
+    ros::NodeHandle node;
 
     /* Get differential base parameters */
-    std::string param_key;
-
-    if (nh.searchParam("diffbase/wheelbase", param_key)) {
-        nh.getParam(param_key, wheelbase);
-    } else {
-        wheelbase = 0.194f;
-    }
-
-    if (nh.searchParam("diffbase/right_wheel/radius", param_key)) {
-        nh.getParam(param_key, right_wheel_radius);
-    } else {
-        right_wheel_radius = 0.016f;
-    }
-
-    if (nh.searchParam("diffbase/left_wheel/radius", param_key)) {
-        nh.getParam(param_key, left_wheel_radius);
-    } else {
-        left_wheel_radius = 0.016f;
-    }
-
-    if (nh.searchParam("diffbase/right_wheel/direction", param_key)) {
-        nh.getParam(param_key, right_wheel_direction);
-    } else {
-        right_wheel_direction = 1;
-    }
-
-    if (nh.searchParam("diffbase/left_wheel/direction", param_key)) {
-        nh.getParam(param_key, left_wheel_direction);
-    } else {
-        left_wheel_direction = 1;
-    }
-
-    if (nh.searchParam("diffbase/external_to_internal_wheelbase_encoder_direction", param_key)) {
-        nh.getParam(param_key, external_to_internal_wheelbase_encoder_direction);
-    } else {
-        external_to_internal_wheelbase_encoder_direction = 1;
-    }
+    node.param<float>("diffbase/wheelbase", wheelbase, 0.194f);
+    node.param<float>("diffbase/right_wheel/radius", right_wheel_radius, 0.016f);
+    node.param<float>("diffbase/left_wheel/radius", left_wheel_radius, 0.016f);
+    node.param<int>("diffbase/right_wheel/direction", right_wheel_direction, 1);
+    node.param<int>("diffbase/left_wheel/direction", left_wheel_direction, 1);
+    node.param<int>("diffbase/external_to_internal_wheelbase_encoder_direction",
+                    external_to_internal_wheelbase_encoder_direction, 1);
 
     /* Initialise controller */
-    ros::Publisher rpub = nh.advertise
+    ros::Publisher rpub = node.advertise
         <cvra_msgs::MotorControlSetpoint>("right_wheel/setpoint", 10);
-    ros::Publisher lpub = nh.advertise
+    ros::Publisher lpub = node.advertise
         <cvra_msgs::MotorControlSetpoint>("left_wheel/setpoint", 10);
     right_setpt_pub = &rpub;
     left_setpt_pub = &lpub;
 
-    ros::Subscriber cmdvel_sub = nh.subscribe("cmd_vel", 10, cmdvel_cb);
+    ros::Subscriber cmdvel_sub = node.subscribe("cmd_vel", 10, cmdvel_cb);
 
     ROS_INFO("Diffbase controller node ready.");
     ros::spin();

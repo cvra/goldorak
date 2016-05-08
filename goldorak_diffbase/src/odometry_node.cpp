@@ -76,7 +76,7 @@ void odometry_base_update_wrapper(
 
 void right_wheel_cb(const cvra_msgs::MotorEncoderStamped::ConstPtr& msg)
 {
-    ROS_DEBUG("I heard the right wheel encoder: [%d]", msg->sample);
+    ROS_DEBUG("Right wheel encoder: [%d]", msg->sample);
 
     odometry_encoder_record_sample(&right_wheel_encoder,
                                    (uint32_t)(msg->timestamp.toNSec() / 1000.f),
@@ -90,7 +90,7 @@ void right_wheel_cb(const cvra_msgs::MotorEncoderStamped::ConstPtr& msg)
 
 void left_wheel_cb(const cvra_msgs::MotorEncoderStamped::ConstPtr& msg)
 {
-    ROS_DEBUG("I heard the left wheel encoder: [%d]", msg->sample);
+    ROS_DEBUG("Left wheel encoder: [%d]", msg->sample);
 
     odometry_encoder_record_sample(&left_wheel_encoder,
                                    (uint32_t)(msg->timestamp.toNSec() / 1000.f),
@@ -104,9 +104,9 @@ void left_wheel_cb(const cvra_msgs::MotorEncoderStamped::ConstPtr& msg)
 
 int main(int argc, char **argv)
 {
-    ros::init(argc, argv, "diffbase/odometry");
+    ros::init(argc, argv, "diffbase_odometry");
 
-    ros::NodeHandle nh;
+    ros::NodeHandle node;
 
     /* Initialise differential base parameters */
     robot_base_pose_2d_s init_pose;
@@ -116,39 +116,14 @@ int main(int argc, char **argv)
 
     float wheelbase, right_wheel_radius, left_wheel_radius;
     int right_wheel_direction, left_wheel_direction;
-    std::string param_key;
 
-    if (nh.searchParam("diffbase/wheelbase", param_key)) {
-        nh.getParam(param_key, wheelbase);
-    } else {
-        wheelbase = 0.194f;
-    }
+    node.param<float>("diffbase/wheelbase", wheelbase, 0.194f);
+    node.param<float>("diffbase/right_wheel/radius", right_wheel_radius, 0.016f);
+    node.param<float>("diffbase/left_wheel/radius", left_wheel_radius, 0.016f);
+    node.param<int>("diffbase/right_wheel/direction", right_wheel_direction, 1);
+    node.param<int>("diffbase/left_wheel/direction", left_wheel_direction, 1);
 
-    if (nh.searchParam("diffbase/right_wheel/radius", param_key)) {
-        nh.getParam(param_key, right_wheel_radius);
-    } else {
-        right_wheel_radius = 0.016f;
-    }
-
-    if (nh.searchParam("diffbase/left_wheel/radius", param_key)) {
-        nh.getParam(param_key, left_wheel_radius);
-    } else {
-        left_wheel_radius = 0.016f;
-    }
-
-    if (nh.searchParam("diffbase/right_wheel/direction", param_key)) {
-        nh.getParam(param_key, right_wheel_direction);
-    } else {
-        right_wheel_direction = 1;
-    }
-
-    if (nh.searchParam("diffbase/left_wheel/direction", param_key)) {
-        nh.getParam(param_key, left_wheel_direction);
-    } else {
-        left_wheel_direction = 1;
-    }
-
-    ROS_DEBUG("Params [%f] [%f] [%f]", wheelbase, right_wheel_radius, left_wheel_radius);
+    ROS_DEBUG("Wheelbase parameters [%f] [%f] [%f]", wheelbase, right_wheel_radius, left_wheel_radius);
 
     /* Initialise odometry */
     odometry_base_init(&robot,
@@ -160,15 +135,15 @@ int main(int argc, char **argv)
                        wheelbase,
                        (uint32_t)(ros::Time::now().toNSec() / 1000.f));
 
-    ros::Publisher pub = nh.advertise<nav_msgs::Odometry>("odom", 10);
+    ros::Publisher pub = node.advertise<nav_msgs::Odometry>("odom", 10);
     odom_pub = &pub;
 
     odom_broadcaster = new tf::TransformBroadcaster();
 
-    ros::Subscriber right_wheel_sub = nh.subscribe(
+    ros::Subscriber right_wheel_sub = node.subscribe(
         "right_wheel/feedback/encoder",
         10, right_wheel_cb);
-    ros::Subscriber left_wheel_sub = nh.subscribe(
+    ros::Subscriber left_wheel_sub = node.subscribe(
         "left_wheel/feedback/encoder",
         10, left_wheel_cb);
 
