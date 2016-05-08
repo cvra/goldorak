@@ -89,3 +89,14 @@ def vcan(vcan_name):
                sudo ip link add dev {0} type vcan && \
                sudo ip link set up {0} && \
                sudo ifconfig {0} up'.format(vcan_name))
+
+def share_internet():
+    """
+    Share internet with robot through Ethernet
+    """
+    local('sudo iptables -A POSTROUTING -t nat -j MASQUERADE')
+    local('sudo echo 1 | sudo tee /proc/sys/net/ipv4/ip_forward > /dev/null')
+
+    run('sudo /sbin/route add default gw 192.168.8.1')
+    run('sudo -s && echo "nameserver 8.8.8.8" >> /etc/resolv.conf && exit')
+    run('sudo ntpdate -b -s -u pool.ntp.org')
