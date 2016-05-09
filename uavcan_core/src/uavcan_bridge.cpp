@@ -24,13 +24,15 @@ public:
     ros::NodeHandle ros_node;
 
     UavcanRosMotorController motor_controller;
+    UavcanRosProximityBeaconDriver beacon_driver;
 
     uavcan::Subscriber<uavcan::protocol::debug::LogMessage> uavcan_log_sub;
 
     UavcanRosBridge(int id):
         uavcan_node(getCanDriver(), getSystemClock()),
         uavcan_log_sub(this->uavcan_node),
-        motor_controller(this->uavcan_node, this->ros_node)
+        motor_controller(this->uavcan_node, this->ros_node),
+        beacon_driver(this->uavcan_node, this->ros_node)
     {
         this->uavcan_id = id;
 
