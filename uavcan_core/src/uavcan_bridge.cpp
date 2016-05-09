@@ -7,6 +7,7 @@
 
 #include "ros/ros.h"
 #include "UavcanRosMotorController.hpp"
+#include "UavcanRosProximityBeaconDriver.hpp"
 
 extern uavcan::ICanDriver& getCanDriver();
 extern uavcan::ISystemClock& getSystemClock();
