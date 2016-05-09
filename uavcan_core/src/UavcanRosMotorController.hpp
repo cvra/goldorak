@@ -1,3 +1,6 @@
+#ifndef UAVCAN_ROS_MOTOR_CONTROLLER_HPP
+#define UAVCAN_ROS_MOTOR_CONTROLLER_HPP
+
 #include "UavcanMotorController.hpp"
 
 #include "ros/ros.h"
@@ -214,3 +217,5 @@ public:
         }
     }
 };
+
+#endif /* UAVCAN_ROS_MOTOR_CONTROLLER_HPP */

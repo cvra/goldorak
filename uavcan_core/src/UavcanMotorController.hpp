@@ -1,3 +1,6 @@
+#ifndef UAVCAN_MOTOR_CONTROLLER_HPP
+#define UAVCAN_MOTOR_CONTROLLER_HPP
+
 #include <uavcan/uavcan.hpp>
 
 #include <cvra/motor/control/Trajectory.hpp>
@@ -197,3 +200,5 @@ public:
     virtual void position_pid_sub_cb(
         const uavcan::ReceivedDataStructure<cvra::motor::feedback::PositionPID>& msg) = 0;
 };
+
+#endif /* UAVCAN_MOTOR_CONTROLLER_HPP */
