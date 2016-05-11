@@ -33,8 +33,8 @@ motor_control_config:
         d: 0.
         i_limit: 0.
     stream:
-        motor_encoder: 50
-        motor_position: 10
+        motor_encoder: 20
+        motor_position: 5
         motor_torque: 0
         index: 0
         current_pid: 0
