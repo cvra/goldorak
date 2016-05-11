@@ -132,3 +132,29 @@ def share_internet():
     run('sudo /sbin/route add default gw 192.168.8.1')
     run('sudo -s && echo "nameserver 8.8.8.8" >> /etc/resolv.conf && exit')
     run('sudo ntpdate -b -s -u pool.ntp.org')
+
+def beacon():
+    """
+    Builds the beacon firmware and flashes it
+    """
+    with lcd('proximity-beacon-firmware'):
+        local('pwd')
+        local('make dsdlc')
+        local('packager/packager.py')
+        local('make')
+
+        put('build/motor-control-firmware.bin', '/tmp/beacon.bin')
+
+    # wait for user input before flashing
+    flash_command = "read &&"
+    flash_command += " bootloader_flash"
+    # Base adress
+    flash_command += " -a 0x08003800"
+    flash_command += " -i can1"
+    flash_command += " --device-class proximity-beacon"
+    flash_command += " -b /tmp/beacon.bin"
+    flash_command += " --run"
+    flash_command += " 54"
+    run(flash_command)
+
+    run('rm /tmp/beacon.bin')
