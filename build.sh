@@ -24,6 +24,6 @@ popd
 popd # exit uavcan_core
 
 pushd ../..
-catkin build cvra_msgs uavcan_core goldorak_diffbase goldorak_bringup goldorak_state_publisher goldorak_description goldorak_navigation
+catkin build cvra_msgs uavcan_core goldorak_diffbase goldorak_bringup goldorak_state_publisher goldorak_description goldorak_navigation goldorak_strategy
 source devel/setup.bash
 popd
