@@ -12,8 +12,9 @@ from smach import StateMachine
 from smach_ros import SimpleActionState, IntrospectionServer
 
 WAYPOINTS = {
-    'START': (0., 0., 'END'),
-    'END': (0., 2.0, 'START'),
+    'START': (0., 0., 'MIDDLE'),
+    'MIDDLE': (0., 0.5, 'END'),
+    'END': (0.5, 0.5, 'START'),
 }
 
 def main():
