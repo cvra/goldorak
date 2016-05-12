@@ -22,7 +22,7 @@ class MotorBoardSim:
 
         self.vel_pub = rospy.Publisher(motor_name + '/feedback/velocity', Float32, queue_size=1)
         self.pos_pub = rospy.Publisher(motor_name + '/feedback/position', Float32, queue_size=1)
-        self.enc_pub = rospy.Publisher(motor_name + '/feedback/encoder_raw', MotorEncoderStamped, queue_size=1)
+        self.enc_pub = rospy.Publisher(motor_name + '/feedback/encoder', MotorEncoderStamped, queue_size=1)
 
         rospy.Subscriber(motor_name + '/setpoint', MotorControlSetpoint, self.callback)
 
