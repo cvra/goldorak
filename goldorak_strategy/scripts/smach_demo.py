@@ -2,6 +2,7 @@
 
 import time
 import argparse
+from math import radians
 
 import rospy
 import roslib
@@ -14,10 +15,14 @@ from smach_ros import SimpleActionState, IntrospectionServer
 from geometry_msgs.msg import PoseWithCovarianceStamped, Quaternion
 from tf.transformations import quaternion_from_euler
 
-WAYPOINTS = {
-    'START': (0.5, 0.9, 'MIDDLE'),
-    'MIDDLE': (0.3, 1.8, 'exit'),
-}
+WAYPOINTS = (
+    ('start', (0.5, 0.9, 'first')),
+    ('first', (0.3, 1.8, 'back_out')),
+    ('back_out', (0.6, 1.5, 'second')),
+    ('second', (0.6, 1.8, 'home')),
+    ('home', (0.6, 0.9, 'exit')),
+
+)
 
 def main():
     rospy.init_node('smach_example_state_machine')
@@ -37,12 +42,12 @@ def main():
 
     sm = StateMachine(['exit'])
     with sm:
-        for key, (x, y, next_point) in WAYPOINTS.items():
+        for key, (x, y, next_point) in WAYPOINTS:
             goal = MoveBaseGoal()
             goal.target_pose.header.frame_id = 'odom'
             goal.target_pose.pose.position.x = x
             goal.target_pose.pose.position.y = y
-            goal.target_pose.pose.orientation.w = 1.
+            goal.target_pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, radians(90)))
 
             StateMachine.add(key, SimpleActionState('move_base',
                                                 MoveBaseAction,
