@@ -24,7 +24,6 @@
         <!-- Right wheel -->
         <node name="right_wheel_motor_sim" pkg="uavcan_core" type="motor_board_sim.py"
               args="right_wheel"/>
-
         <!-- Left wheel -->
         <node name="left_wheel_motor_sim" pkg="uavcan_core" type="motor_board_sim.py"
               args="left_wheel"/>
@@ -44,7 +43,6 @@
             <arg name="dynamic_motor_config" value="$(arg dynamic_motor_config)"/>
             <arg name="default_params" value="$(find goldorak_bringup)/param/right_wheel.yaml" />
         </include>
-
         <!-- Left wheel config server and parameters -->
         <include file="$(find uavcan_core)/launch/motor.launch">
             <arg name="motor_ns" value="left_wheel" />
@@ -62,6 +60,14 @@
             <arg name="dynamic_motor_config" value="$(arg dynamic_motor_config)"/>
             <arg name="default_params" value="$(find goldorak_bringup)/param/beacon.yaml" />
         </include>
+
+        <!-- Fishing module y axis config server and parameters -->
+        <include file="$(find uavcan_core)/launch/motor.launch">
+            <arg name="motor_ns" value="fishing_y_axis" />
+            <arg name="node_uavcan_id" value="13" />
+            <arg name="motor_uavcan_id" value="59" />
+            <arg name="dynamic_motor_config" value="$(arg dynamic_motor_config)"/>
+            <arg name="default_params" value="$(find goldorak_bringup)/param/fishing_y_axis.yaml" />
 
         <!-- Umbrella config server and parameters -->
         <include file="$(find uavcan_core)/launch/motor.launch">
