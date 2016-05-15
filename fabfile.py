@@ -140,7 +140,6 @@ def beacon():
         local('make dsdlc')
         local('packager/packager.py')
         local('make')
-
         put('build/motor-control-firmware.bin', '/tmp/beacon.bin')
 
     # wait for user input before flashing
@@ -156,3 +155,28 @@ def beacon():
     run(flash_command)
 
     run('rm /tmp/beacon.bin')
+
+def motor(ids):
+    """
+    Builds the motor firmware and flashes it to specified ids
+    """
+    with lcd('motor-control-firmware'):
+        local('pwd')
+        local('make dsdlc')
+        local('packager/packager.py')
+        local('make')
+        put('build/motor-control-firmware.bin', '/tmp/motor.bin')
+
+    # wait for user input before flashing
+    flash_command = "read &&"
+    flash_command += " bootloader_flash"
+    # Base adress
+    flash_command += " -a 0x08003800"
+    flash_command += " -i can1"
+    flash_command += " --device-class motor-board-v1"
+    flash_command += " -b /tmp/motor.bin"
+    flash_command += " --run"
+    flash_command += " {}".format(ids)
+    run(flash_command)
+
+    run('rm /tmp/motor.bin')
