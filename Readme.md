@@ -6,7 +6,7 @@
 
 You'll need to create a virtual CAN interface to simulate the CAN interface on the robot
 ```sh
-./sysops/create_virtual_can.sh vcan0
+fab vcan:'vcan0'
 ```
 
 ### On the robot / the BBB
@@ -56,6 +56,17 @@ Higher level nodes will run as on the robot.
 Run the simulation
 ```sh
 roslaunch goldorak_simulation goldorak.launch
+```
+
+## Simulation (ROS only)
+
+The robot can also be simulated partially without Gazebo.
+Motor boards are simulated by a basic python script.
+Higher level nodes will run as on the robot.
+
+Run the simulation
+```sh
+roslaunch goldorak_bringup goldorak.launch simulated_motors:=true
 ```
 
 ## Dependencies
