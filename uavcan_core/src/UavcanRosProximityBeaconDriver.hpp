@@ -6,8 +6,14 @@
 #include <math.h>
 #include "ros/ros.h"
 #include "std_msgs/Float32.h"
-#include "geometry_msgs/PoseStamped.h"
+#include <tf/transform_broadcaster.h>
 
+
+void polar_to_cartesian(float distance, float angle, float *x, float *y)
+{
+    *x = distance * cosf(angle);
+    *y = distance * sinf(angle);
+}
 
 class UavcanRosProximityBeaconDriver : public UavcanProximityBeaconDriver
 {
@@ -18,10 +24,12 @@ public:
     int beacon_node_id;
     float reflector_diameter, index_offset;
     ros::Subscriber settings_sub;
-    ros::Publisher signal_pub;
+    ros::Publisher distance_pub;
+    tf::TransformBroadcaster opponent_tf_broadcaster;
 
     geometry_msgs::PoseStamped opponent_msg;
     std_msgs::Float32 opponent_distance_msg;
+    tf::Transform opponent_transform;
 
     UavcanRosProximityBeaconDriver(Node& uavcan_node, ros::NodeHandle& ros_node):
         UavcanProximityBeaconDriver(uavcan_node)
@@ -34,8 +42,7 @@ public:
         /* Initialise publishers / subscribers */
         settings_sub = ros_node.subscribe("beacon/speed", 10,
             &UavcanRosProximityBeaconDriver::setting_cb, this);
-        // signal_pub = ros_node.advertise<geometry_msgs::PoseStamped>("beacon/obstacle", 10);
-        signal_pub = ros_node.advertise<std_msgs::Float32>("beacon/distance", 10);
+        distance_pub = ros_node.advertise<std_msgs::Float32>("beacon/distance", 10);
     }
 
     void setting_cb(const std_msgs::Float32::ConstPtr& msg)
@@ -52,13 +59,24 @@ public:
         /* Check that the source node is expected beacon node */
         if (id == this->beacon_node_id) {
             float distance = reflector_diameter / (2 * sinf(msg.length / 2.f));
-            float angle = msg.start_angle + msg.length / 2.f;
+            float angle = M_2_PI - (msg.start_angle + msg.length / 2.f); // mirrored angle because
 
             ROS_DEBUG("Beacon saw an opponent at [%.2f] m with offset [%.2f] rad",
                 distance, angle);
 
+            // Publish distance to opponent
             this->opponent_distance_msg.data = distance;
-            this->signal_pub.publish(this->opponent_distance_msg);
+            this->distance_pub.publish(this->opponent_distance_msg);
+
+            // Publish a tf of the opponent
+            float x, y;
+            polar_to_cartesian(distance, angle - M_PI_2, &x, &y); // Zero on Y+ axis
+            this->opponent_transform.setOrigin(tf::Vector3(x, y, 0.f));
+            this->opponent_tf_broadcaster.sendTransform(
+                tf::StampedTransform(this->opponent_transform,
+                                     ros::Time::now(),
+                                     "base_link",
+                                     "opponent"));
         } else {
             ROS_WARN("Received signal from unregistered beacon ID");
         }
