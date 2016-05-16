@@ -11,10 +11,10 @@
 
 #include <ros/ros.h>
 #include <dynamic_reconfigure/server.h>
-#include <uavcan_core/PIDConfig.h>
-#include <uavcan_core/MotorBoardConfig.h>
-#include <uavcan_core/EnableMotorConfig.h>
-#include <uavcan_core/FeedbackStreamConfig.h>
+#include <goldorak_base/PIDConfig.h>
+#include <goldorak_base/MotorBoardConfig.h>
+#include <goldorak_base/EnableMotorConfig.h>
+#include <goldorak_base/FeedbackStreamConfig.h>
 
 #include "UavcanMotorConfig.hpp"
 
@@ -30,7 +30,7 @@ public:
     cvra::motor::config::EnableMotor::Request enable_msg;
     cvra::motor::config::FeedbackStream::Request stream_msg;
 
-    uavcan_core::FeedbackStreamConfig stream_config_cached;
+    goldorak_base::FeedbackStreamConfig stream_config_cached;
 
     ros::NodeHandle nh_pos_pid;
     ros::NodeHandle nh_vel_pid;
@@ -39,19 +39,19 @@ public:
     ros::NodeHandle nh_enable;
     ros::NodeHandle nh_stream;
 
-    dynamic_reconfigure::Server<uavcan_core::PIDConfig> cfg_pos_pid;
-    dynamic_reconfigure::Server<uavcan_core::PIDConfig> cfg_vel_pid;
-    dynamic_reconfigure::Server<uavcan_core::PIDConfig> cfg_cur_pid;
-    dynamic_reconfigure::Server<uavcan_core::MotorBoardConfig> cfg_params;
-    dynamic_reconfigure::Server<uavcan_core::EnableMotorConfig> cfg_enable;
-    dynamic_reconfigure::Server<uavcan_core::FeedbackStreamConfig> cfg_stream;
+    dynamic_reconfigure::Server<goldorak_base::PIDConfig> cfg_pos_pid;
+    dynamic_reconfigure::Server<goldorak_base::PIDConfig> cfg_vel_pid;
+    dynamic_reconfigure::Server<goldorak_base::PIDConfig> cfg_cur_pid;
+    dynamic_reconfigure::Server<goldorak_base::MotorBoardConfig> cfg_params;
+    dynamic_reconfigure::Server<goldorak_base::EnableMotorConfig> cfg_enable;
+    dynamic_reconfigure::Server<goldorak_base::FeedbackStreamConfig> cfg_stream;
 
-    dynamic_reconfigure::Server<uavcan_core::PIDConfig>::CallbackType f_pos;
-    dynamic_reconfigure::Server<uavcan_core::PIDConfig>::CallbackType f_vel;
-    dynamic_reconfigure::Server<uavcan_core::PIDConfig>::CallbackType f_cur;
-    dynamic_reconfigure::Server<uavcan_core::MotorBoardConfig>::CallbackType f_params;
-    dynamic_reconfigure::Server<uavcan_core::EnableMotorConfig>::CallbackType f_enable;
-    dynamic_reconfigure::Server<uavcan_core::FeedbackStreamConfig>::CallbackType f_stream;
+    dynamic_reconfigure::Server<goldorak_base::PIDConfig>::CallbackType f_pos;
+    dynamic_reconfigure::Server<goldorak_base::PIDConfig>::CallbackType f_vel;
+    dynamic_reconfigure::Server<goldorak_base::PIDConfig>::CallbackType f_cur;
+    dynamic_reconfigure::Server<goldorak_base::MotorBoardConfig>::CallbackType f_params;
+    dynamic_reconfigure::Server<goldorak_base::EnableMotorConfig>::CallbackType f_enable;
+    dynamic_reconfigure::Server<goldorak_base::FeedbackStreamConfig>::CallbackType f_stream;
 
     UavcanRosMotorConfig(int uavcan_id, int target_id):
         UavcanMotorConfig(uavcan_id),
@@ -85,7 +85,7 @@ public:
         this->cfg_stream.setCallback(this->f_stream);
     }
 
-    bool position_pid_cb(uavcan_core::PIDConfig &config, uint32_t level)
+    bool position_pid_cb(goldorak_base::PIDConfig &config, uint32_t level)
     {
         ROS_INFO("Updating position PID gains to node %d", this->target_id);
 
@@ -102,7 +102,7 @@ public:
         this->send_position_pid_config(this->target_id, this->position_pid_msg);
     }
 
-    bool velocity_pid_cb(uavcan_core::PIDConfig &config, uint32_t level)
+    bool velocity_pid_cb(goldorak_base::PIDConfig &config, uint32_t level)
     {
         ROS_INFO("Updating velocity PID gains to node %d", this->target_id);
 
@@ -119,7 +119,7 @@ public:
         this->send_velocity_pid_config(this->target_id, this->velocity_pid_msg);
     }
 
-    bool current_pid_cb(uavcan_core::PIDConfig &config, uint32_t level)
+    bool current_pid_cb(goldorak_base::PIDConfig &config, uint32_t level)
     {
         ROS_INFO("Updating current PID gains to node %d", this->target_id);
 
@@ -136,7 +136,7 @@ public:
         this->send_current_pid_config(this->target_id, this->current_pid_msg);
     }
 
-    bool parameters_cb(uavcan_core::MotorBoardConfig &config, uint32_t level)
+    bool parameters_cb(goldorak_base::MotorBoardConfig &config, uint32_t level)
     {
         ROS_INFO("Updating motor parameters to node %d", this->target_id);
 
@@ -165,7 +165,7 @@ public:
         this->send_config(this->target_id, this->config_msg);
     }
 
-    bool enable_cb(uavcan_core::EnableMotorConfig &config, uint32_t level)
+    bool enable_cb(goldorak_base::EnableMotorConfig &config, uint32_t level)
     {
         ROS_INFO("Updating motor control enable to node %d", this->target_id);
 
@@ -174,7 +174,7 @@ public:
         this->send_enable(this->target_id, this->enable_msg);
     }
 
-    bool stream_cb(uavcan_core::FeedbackStreamConfig &config, uint32_t level)
+    bool stream_cb(goldorak_base::FeedbackStreamConfig &config, uint32_t level)
     {
         ROS_INFO("Updating feedback stream parameters to node %d", this->target_id);
 

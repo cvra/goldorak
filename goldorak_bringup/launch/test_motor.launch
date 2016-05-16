@@ -4,12 +4,12 @@
     <rosparam command="load" file="$(find goldorak_bringup)/param/test_nodes.yaml"/>
 
     <node name="uavcan_bridge"
-          pkg="uavcan_core"
+          pkg="goldorak_base"
           type="uavcan_bridge"
           args="10"
           ns="$(arg robot_ns)"/>
 
-    <include file="$(find uavcan_core)/launch/motor.launch" ns="$(arg robot_ns)">
+    <include file="$(find goldorak_base)/launch/motor.launch" ns="$(arg robot_ns)">
         <arg name="motor_ns" value="test_motor" />
         <arg name="node_uavcan_id" value="11" />
         <arg name="motor_uavcan_id" value="40" />
