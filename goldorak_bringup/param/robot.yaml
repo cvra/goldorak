@@ -1,3 +1,6 @@
+obstacle_avoidance:
+    braking_distance: 0.3 # distance below which any obstacle detected will make the robot brake
+
 diffbase:
     # Distance between external encoder wheels
     wheelbase: 0.194
