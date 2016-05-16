@@ -3,8 +3,8 @@
 
 #include <uavcan/uavcan.hpp>
 
-#include <cvra/beacon/Signal.hpp>
-#include <cvra/beacon/Settings.hpp>
+#include <cvra/proximity_beacon/Signal.hpp>
+#include <cvra/proximity_beacon/Settings.hpp>
 
 class UavcanProximityBeaconDriver
 {
@@ -12,10 +12,10 @@ class UavcanProximityBeaconDriver
     typedef uavcan::Node<NodeMemoryPoolSize> Node;
 
 public:
-    uavcan::Publisher<cvra::beacon::Settings> settings_pub;
-    uavcan::Subscriber<cvra::beacon::Signal> signal_sub;
+    uavcan::Publisher<cvra::proximity_beacon::Settings> settings_pub;
+    uavcan::Subscriber<cvra::proximity_beacon::Signal> signal_sub;
 
-    cvra::beacon::Settings settings_msg;
+    cvra::proximity_beacon::Settings settings_msg;
 
     UavcanProximityBeaconDriver(Node& uavcan_node):
         settings_pub(uavcan_node),
@@ -31,7 +31,7 @@ public:
 
         /* Subscribers */
         this->signal_sub.start(
-            [&](const uavcan::ReceivedDataStructure<cvra::beacon::Signal>& msg)
+            [&](const uavcan::ReceivedDataStructure<cvra::proximity_beacon::Signal>& msg)
             {
                 this->signal_sub_cb(msg);
             }
@@ -45,7 +45,7 @@ public:
     }
 
     virtual void signal_sub_cb(
-        const uavcan::ReceivedDataStructure<cvra::beacon::Signal>& msg) = 0;
+        const uavcan::ReceivedDataStructure<cvra::proximity_beacon::Signal>& msg) = 0;
 };
 
 #endif /* UAVCAN_PROXIMITY_BEACON_DRIVER_HPP */

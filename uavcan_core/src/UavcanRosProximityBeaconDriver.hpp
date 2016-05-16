@@ -45,7 +45,7 @@ public:
     }
 
     virtual void signal_sub_cb(
-        const uavcan::ReceivedDataStructure<cvra::beacon::Signal>& msg)
+        const uavcan::ReceivedDataStructure<cvra::proximity_beacon::Signal>& msg)
     {
         int id = msg.getSrcNodeID().get();
 

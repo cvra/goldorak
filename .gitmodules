@@ -5,7 +5,7 @@
 	path = cvra_msgs/uavcan/cvra/motor
 	url = https://github.com/cvra/motor-control-uavcan-dsdl
 [submodule "cvra_msgs/uavcan/cvra/beacon"]
-	path = cvra_msgs/uavcan/cvra/beacon
+	path = cvra_msgs/uavcan/cvra/proximity_beacon
 	url = https://github.com/cvra/proximity-beacon-uavcan-dsdl.git
 [submodule "proximity-beacon-firmware"]
 	path = proximity-beacon-firmware
