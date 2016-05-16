@@ -40,7 +40,7 @@ add_executable(
     ${SRC}/uavcan_bridge.cpp
     ${SRC}/platform_linux.cpp
 )
-target_link_libraries(uavcan_bridge ${UAVCAN_LIB} rt ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+target_link_libraries(uavcan_bridge ${UAVCAN_LIB} rt pthread ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 add_dependencies(uavcan_bridge cvra_msgs)
 
 add_executable(
@@ -79,10 +79,10 @@ if(CATKIN_ENABLE_TESTING)
     add_rostest_gtest(motor_param_test
                      ${TEST}/motor_param_test.launch
                      ${TEST}/motor_param_test.cpp)
-    target_link_libraries(motor_param_test ${UAVCAN_LIB} rt ${catkin_LIBRARIES})
+    target_link_libraries(motor_param_test ${UAVCAN_LIB} rt pthread ${catkin_LIBRARIES})
 
     add_rostest_gtest(proximity_beacon_driver_test
                      ${TEST}/proximity_beacon_driver_test.launch
                      ${TEST}/proximity_beacon_driver_test.cpp)
-    target_link_libraries(proximity_beacon_driver_test ${UAVCAN_LIB} rt ${catkin_LIBRARIES})
+    target_link_libraries(proximity_beacon_driver_test ${UAVCAN_LIB} rt pthread ${catkin_LIBRARIES})
 endif()

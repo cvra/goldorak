@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <unistd.h>
+#include <pthread.h>
 
 #include <uavcan/uavcan.hpp>
 #include <uavcan/protocol/debug/LogMessage.hpp>
@@ -12,61 +13,61 @@
 extern uavcan::ICanDriver& getCanDriver();
 extern uavcan::ISystemClock& getSystemClock();
 
-
-class UavcanRosBridge
+void *uavcan_bridge_thread(void *p)
 {
     static const unsigned NodeMemoryPoolSize = 16384;
     typedef uavcan::Node<NodeMemoryPoolSize> Node;
 
-public:
-    int uavcan_id;
-    Node uavcan_node;
+    Node uavcan_node(getCanDriver(), getSystemClock());
+    int uavcan_id = static_cast<int>(reinterpret_cast<long>(p));
+
     ros::NodeHandle ros_node;
 
-    UavcanRosMotorController motor_controller;
-    UavcanRosProximityBeaconDriver beacon_driver;
+    UavcanRosMotorController motor_controller(uavcan_node, ros_node);
+    UavcanRosProximityBeaconDriver beacon_driver(uavcan_node, ros_node);
 
-    uavcan::Subscriber<uavcan::protocol::debug::LogMessage> uavcan_log_sub;
+    uavcan::Subscriber<uavcan::protocol::debug::LogMessage> uavcan_log_sub(uavcan_node);
 
-    UavcanRosBridge(int id):
-        uavcan_node(getCanDriver(), getSystemClock()),
-        uavcan_log_sub(this->uavcan_node),
-        motor_controller(this->uavcan_node, this->ros_node),
-        beacon_driver(this->uavcan_node, this->ros_node)
-    {
-        this->uavcan_id = id;
+    /* Start UAVCAN node and publisher */
+    const int self_node_id = uavcan_id;
+    uavcan_node.setNodeID(self_node_id);
+    uavcan_node.setName("uavcan_ros_bridge");
 
-        /* Start UAVCAN node and publisher */
-        const int self_node_id = this->uavcan_id;
-        this->uavcan_node.setNodeID(self_node_id);
-        this->uavcan_node.setName("uavcan_ros_bridge");
-
-        const int node_start_res = uavcan_node.start();
-        if (node_start_res < 0) {
-            throw std::runtime_error("Failed to start the UAVCAN bridge node");
-        }
-
-        this->uavcan_log_sub.start(
-            [&](const uavcan::ReceivedDataStructure<uavcan::protocol::debug::LogMessage>& msg)
-            {
-                std::cout << msg << std::endl;
-            }
-        );
-
-        this->uavcan_node.setModeOperational();
+    const int node_start_res = uavcan_node.start();
+    if (node_start_res < 0) {
+        throw std::runtime_error("Failed to start the UAVCAN bridge node");
     }
 
-    void spin(void)
-    {
-        while (ros::ok()) {
-            ros::spinOnce();
-            const int res = this->uavcan_node.spin(uavcan::MonotonicDuration::fromMSec(1));
-            if (res < 0) {
-                std::cerr << "Transient failure in UAVCAN bridge: " << res << std::endl;
-            }
+    /* Uavcan log subscriber */
+    int res = uavcan_log_sub.start(
+        [&](const uavcan::ReceivedDataStructure<uavcan::protocol::debug::LogMessage>& msg)
+        {
+            std::cout << msg << std::endl;
+        }
+    );
+    if (res < 0) {
+        throw std::runtime_error("Failed to start Uavcan log subscriber");
+    }
+
+    /* Signal that the node is now operational */
+    uavcan_node.setModeOperational();
+
+    while (true) {
+        const int res = uavcan_node.spin(uavcan::MonotonicDuration::fromMSec(1));
+        if (res < 0) {
+            std::cerr << "Transient failure in UAVCAN bridge: " << res << std::endl;
         }
     }
-};
+}
+
+void uavcan_bridge_start(int id)
+{
+    pthread_t uavcan_bridge_thd;
+    pthread_create(&uavcan_bridge_thd,
+                   NULL,
+                   uavcan_bridge_thread,
+                   (void *)id);
+}
 
 
 int main(int argc, const char** argv)
@@ -75,12 +76,12 @@ int main(int argc, const char** argv)
         std::cerr << "Usage: " << argv[0] << " <uavcan-id>" << std::endl;
         return 1;
     }
+    int uavcan_id = std::stoi(argv[1]);
 
-    ros::init(argc, (char **)argv, "uavcan_bridge");
+    ros::init(argc, (char **)argv, "goldorak_base");
 
-    UavcanRosBridge uavcan_bridge(std::stoi(argv[1]));
+    uavcan_bridge_start(uavcan_id);
 
-    uavcan_bridge.spin();
-
+    ros::spin();
     return 0;
 }
