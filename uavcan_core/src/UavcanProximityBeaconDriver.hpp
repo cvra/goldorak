@@ -30,12 +30,15 @@ public:
         this->settings_pub.setPriority(uavcan::TransferPriority::MiddleLower);
 
         /* Subscribers */
-        this->signal_sub.start(
+        int res = this->signal_sub.start(
             [&](const uavcan::ReceivedDataStructure<cvra::proximity_beacon::Signal>& msg)
             {
                 this->signal_sub_cb(msg);
             }
         );
+        if (res < 0) {
+            throw std::runtime_error("Failed to start cvra::proximity_beacon::Signal subscriber");
+        }
     }
 
     void send_settings(float speed)
