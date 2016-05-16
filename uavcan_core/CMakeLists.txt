@@ -4,7 +4,7 @@ project(uavcan_core)
 add_definitions("-std=c++11")
 set(SRC src)
 set(TEST tests)
-set(UAVCAN_SRC_DIR uavcan)
+set(UAVCAN_SRC_DIR ../uavcan)
 set(UAVCAN_LIB $ENV{UAVCAN_LIB})
 
 include_directories(

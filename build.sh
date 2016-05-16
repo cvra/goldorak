@@ -3,8 +3,6 @@
 source /opt/ros/indigo/setup.bash
 source ~/catkin_ws/devel/setup.bash
 
-pushd uavcan_core
-
 # Build UAVCAN
 mkdir -p uavcan/libuavcan/build
 pushd uavcan/libuavcan/build
@@ -20,8 +18,6 @@ pushd uavcan/libuavcan/dsdl_compiler
 ./libuavcan_dsdlc ../../dsdl/uavcan/
 ./libuavcan_dsdlc ../../../../cvra_msgs/uavcan/cvra/
 popd
-
-popd # exit uavcan_core
 
 pushd ../..
 catkin build cvra_msgs
