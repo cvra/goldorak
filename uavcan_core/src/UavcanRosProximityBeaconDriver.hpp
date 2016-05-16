@@ -24,11 +24,10 @@ public:
     int beacon_node_id;
     float reflector_diameter, index_offset;
     ros::Subscriber settings_sub;
-    ros::Publisher distance_pub;
+    ros::Publisher distance_pub, angle_pub;
     tf::TransformBroadcaster opponent_tf_broadcaster;
 
-    geometry_msgs::PoseStamped opponent_msg;
-    std_msgs::Float32 opponent_distance_msg;
+    std_msgs::Float32 opponent_distance_msg, opponent_angle_msg;
     tf::Transform opponent_transform;
 
     UavcanRosProximityBeaconDriver(Node& uavcan_node, ros::NodeHandle& ros_node):
@@ -43,6 +42,7 @@ public:
         settings_sub = ros_node.subscribe("beacon/speed", 10,
             &UavcanRosProximityBeaconDriver::setting_cb, this);
         distance_pub = ros_node.advertise<std_msgs::Float32>("beacon/distance", 10);
+        angle_pub = ros_node.advertise<std_msgs::Float32>("beacon/angle", 10);
     }
 
     void setting_cb(const std_msgs::Float32::ConstPtr& msg)
@@ -64,9 +64,11 @@ public:
             ROS_DEBUG("Beacon saw an opponent at [%.2f] m with offset [%.2f] rad",
                 distance, angle);
 
-            // Publish distance to opponent
+            // Publish distance and angle to opponent
             this->opponent_distance_msg.data = distance;
             this->distance_pub.publish(this->opponent_distance_msg);
+            this->opponent_angle_msg.data = angle;
+            this->angle_pub.publish(this->opponent_angle_msg);
 
             // Publish a tf of the opponent
             float x, y;
