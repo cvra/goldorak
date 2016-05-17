@@ -31,9 +31,9 @@
 
     <!-- ... or use the real stuff -->
     <group unless="$(arg simulated_motors)">
-        <!-- UAVCAN bridge -->
-        <node name="uavcan_bridge" pkg="goldorak_base" type="uavcan_bridge"
-              args="10"/>
+        <!-- Robot base controller -->
+        <node name="base_controller" pkg="goldorak_base" type="base_controller"
+              required="true"/>
 
         <!-- Right wheel config server and parameters -->
         <include file="$(find goldorak_base)/launch/motor.launch">

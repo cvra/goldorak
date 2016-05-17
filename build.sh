@@ -4,6 +4,9 @@ source /opt/ros/indigo/setup.bash
 source ~/catkin_ws/devel/setup.bash
 
 # Build UAVCAN
+export CXXFLAGS="$CXXFLAGS -fPIC"
+export CFLAGS="$CFLAGS -fPIC"
+
 mkdir -p uavcan/libuavcan/build
 pushd uavcan/libuavcan/build
 cmake ..

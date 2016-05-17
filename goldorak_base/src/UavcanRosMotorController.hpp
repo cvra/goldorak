@@ -42,11 +42,15 @@ public:
     UavcanRosMotorController(Node& uavcan_node, ros::NodeHandle& ros_node):
         UavcanMotorController(uavcan_node)
     {
+        ROS_INFO("Starting motor controller");
+
         /* Get list of UAVCAN nodes (names with IDs) */
         ros_node.getParam("/uavcan_nodes", this->uavcan_nodes);
 
         /* For each node, initialise publishers and subscribers needed */
         for (const auto& elem : this->uavcan_nodes) {
+            ROS_INFO_STREAM("Initialising motor: id [" << elem.second << "], name [" << elem.first << "]");
+
             /* Intiialise ROS subscribers (setpoint sending) */
             this->setpoint_sub[elem.second] = ros_node.subscribe(
                 elem.first + "/setpoint", 10,
@@ -71,7 +75,11 @@ public:
                 ros_node.advertise<cvra_msgs::MotorFeedbackPID>(elem.first + "/feedback_pid/velocity", 10);
             this->position_pid_pub[elem.second] =
                 ros_node.advertise<cvra_msgs::MotorFeedbackPID>(elem.first + "/feedback_pid/position", 10);
+
+            ROS_INFO_STREAM("Motor: id [" << elem.second << "], name [" << elem.first << "] is now ready");
         }
+
+        ROS_INFO("Motor controller is now ready");
     }
 
     void setpoint_cb(const cvra_msgs::MotorControlSetpoint::ConstPtr& msg)
@@ -81,7 +89,7 @@ public:
 
             switch (msg->mode) {
                 case cvra_msgs::MotorControlSetpoint::MODE_CONTROL_TRAJECTORY: {
-                    ROS_DEBUG("Sending trajectory setpoint to node %d", id);
+                    ROS_INFO("Sending trajectory setpoint to node %d", id);
                     this->send_trajectory_setpoint(id,
                                                    msg->position,
                                                    msg->velocity,
@@ -89,27 +97,27 @@ public:
                                                    msg->torque);
                 } break;
                 case cvra_msgs::MotorControlSetpoint::MODE_CONTROL_POSITION: {
-                    ROS_DEBUG("Sending position setpoint to node %d", id);
+                    ROS_INFO("Sending position setpoint to node %d", id);
                     this->send_position_setpoint(id, msg->position);
                 } break;
                 case cvra_msgs::MotorControlSetpoint::MODE_CONTROL_VELOCITY: {
-                    ROS_DEBUG("Sending velocity setpoint to node %d", id);
+                    ROS_INFO("Sending velocity setpoint to node %d", id);
                     this->send_velocity_setpoint(id, msg->velocity);
                 } break;
                 case cvra_msgs::MotorControlSetpoint::MODE_CONTROL_TORQUE: {
-                    ROS_DEBUG("Sending torque setpoint to node %d", id);
+                    ROS_INFO("Sending torque setpoint to node %d", id);
                     this->send_torque_setpoint(id, msg->torque);
                 } break;
                 case cvra_msgs::MotorControlSetpoint::MODE_CONTROL_VOLTAGE: {
-                    ROS_DEBUG("Sending voltage setpoint to node %d", id);
+                    ROS_INFO("Sending voltage setpoint to node %d", id);
                     this->send_voltage_setpoint(id, msg->voltage);
                 } break;
                 default: {
-                    ROS_DEBUG("Unable to send setpoint: invalid mode selected");
+                    ROS_INFO("Unable to send setpoint: invalid mode selected");
                 }
             }
         } else {
-            ROS_DEBUG("Unable to send setpoint: node doesn't have an associated ID");
+            ROS_INFO("Unable to send setpoint: node doesn't have an associated ID");
         }
     }
 
@@ -120,7 +128,7 @@ public:
 
         /* Check that the source node has an associated publisher */
         if (position_pub.count(id) && velocity_pub.count(id)) {
-            ROS_DEBUG("Got motor position and velocity feedback from node %d", id);
+            ROS_INFO("Got motor position and velocity feedback from node %d", id);
 
             this->position_msg.data = msg.position;
             this->velocity_msg.data = msg.velocity;
@@ -137,7 +145,7 @@ public:
 
         /* Check that the source node has an associated publisher */
         if (torque_pub.count(id)) {
-            ROS_DEBUG("Got motor torque feedback from node %d", id);
+            ROS_INFO("Got motor torque feedback from node %d", id);
             this->torque_msg.data = msg.torque;
             this->torque_pub[id].publish(this->torque_msg);
         }
@@ -151,7 +159,7 @@ public:
 
         /* Check that the source node has an associated publisher */
         if (encoder_pub.count(id)) {
-            ROS_DEBUG("Got motor raw encoder feedback from node %d", id);
+            ROS_INFO("Got motor raw encoder feedback from node %d", id);
             this->encoder_msg.timestamp = now;
             this->encoder_msg.sample = msg.raw_encoder_position;
             this->encoder_pub[id].publish(this->encoder_msg);
@@ -165,7 +173,7 @@ public:
 
         /* Check that the source node has an associated publisher */
         if (index_pub.count(id)) {
-            ROS_DEBUG("Got motor index feedback from node %d", id);
+            ROS_INFO("Got motor index feedback from node %d", id);
             this->index_msg.data = msg.position;
             this->index_pub[id].publish(this->index_msg);
         }
@@ -178,7 +186,7 @@ public:
 
         /* Check that the source node has an associated publisher */
         if (current_pid_pub.count(id)) {
-            ROS_DEBUG("Got motor current PID feedback from node %d", id);
+            ROS_INFO("Got motor current PID feedback from node %d", id);
 
             this->current_pid_msg.setpoint = msg.current_setpoint;
             this->current_pid_msg.measured = msg.current;
@@ -196,7 +204,7 @@ public:
 
         /* Check that the source node has an associated publisher */
         if (velocity_pid_pub.count(id)) {
-            ROS_DEBUG("Got motor velocity PID feedback from node %d", id);
+            ROS_INFO("Got motor velocity PID feedback from node %d", id);
             this->velocity_pid_msg.setpoint = msg.velocity_setpoint;
             this->velocity_pid_msg.measured = msg.velocity;
             this->velocity_pid_pub[id].publish(this->velocity_pid_msg);
@@ -210,7 +218,7 @@ public:
 
         /* Check that the source node has an associated publisher */
         if (position_pid_pub.count(id)) {
-            ROS_DEBUG("Got motor position PID feedback from node %d", id);
+            ROS_INFO("Got motor position PID feedback from node %d", id);
             this->position_pid_msg.setpoint = msg.position_setpoint;
             this->position_pid_msg.measured = msg.position;
             this->position_pid_pub[id].publish(this->position_pid_msg);

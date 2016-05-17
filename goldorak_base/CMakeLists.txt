@@ -23,6 +23,7 @@ find_package(catkin REQUIRED COMPONENTS
     rospy
     std_msgs
     tf
+    nodelet
 )
 
 generate_dynamic_reconfigure_options(
@@ -32,18 +33,18 @@ generate_dynamic_reconfigure_options(
     cfg/FeedbackStream.cfg
 )
 
-catkin_package()
+catkin_package(LIBRARIES
+    uavcan_bridge_nodelet
+)
 
 find_library(UAVCAN_LIB uavcan REQUIRED)
 
 add_executable(
-    uavcan_bridge
+    base_controller
     ${SRC}/main.cpp
-    ${SRC}/uavcan_bridge.cpp
-    ${SRC}/platform_linux.cpp
 )
-target_link_libraries(uavcan_bridge ${UAVCAN_LIB} rt pthread ${catkin_LIBRARIES} ${Boost_LIBRARIES})
-add_dependencies(uavcan_bridge cvra_msgs)
+target_link_libraries(base_controller ${UAVCAN_LIB} rt ${catkin_LIBRARIES})
+add_dependencies(base_controller cvra_msgs)
 
 add_executable(
     uc_publisher
@@ -73,6 +74,31 @@ add_executable(
     ${SRC}/platform_linux.cpp
     )
 target_link_libraries(uc_config_server ${UAVCAN_LIB} rt ${catkin_LIBRARIES})
+
+## Create the uavcan bridge nodelet library
+add_library(
+    uavcan_bridge_nodelet
+    ${SRC}/uavcan_bridge_nodelet.cpp
+    ${SRC}/platform_linux.cpp
+)
+target_link_libraries(uavcan_bridge_nodelet ${UAVCAN_LIB} rt ${catkin_LIBRARIES})
+if(catkin_EXPORTED_LIBRARIES)
+    add_dependencies(uavcan_bridge_nodelet ${catkin_EXPORTED_LIBRARIES})
+endif()
+
+## Mark the nodelet library for installations
+install(TARGETS
+    uavcan_bridge_nodelet
+    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+## Mark other files for installation (e.g. launch and bag files, etc.)
+install(FILES
+    nodelets.xml
+    DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)
 
 # Build tests
 if(CATKIN_ENABLE_TESTING)

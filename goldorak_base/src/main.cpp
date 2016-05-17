@@ -2,21 +2,18 @@
 #include <pthread.h>
 
 #include "ros/ros.h"
-
-#include "uavcan_bridge.h"
+#include "nodelet/loader.h"
 
 
 int main(int argc, const char** argv)
 {
-    if (argc < 2) {
-        std::cerr << "Usage: " << argv[0] << " <uavcan-id>" << std::endl;
-        return 1;
-    }
-    int uavcan_id = std::stoi(argv[1]);
+    ros::init(argc, (char **)argv, "goldorak_base_controller");
 
-    ros::init(argc, (char **)argv, "goldorak_base");
-
-    uavcan_bridge_start(uavcan_id);
+    nodelet::Loader nodelet;
+    nodelet::M_string remap(ros::names::getRemappings());
+    nodelet::V_string nargv;
+    std::string nodelet_name = ros::this_node::getName();
+    nodelet.load(nodelet_name, "goldorak_base/uavcan_bridge_nodelet", remap, nargv);
 
     ros::spin();
     return 0;

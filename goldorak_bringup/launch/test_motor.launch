@@ -3,9 +3,9 @@
 
     <rosparam command="load" file="$(find goldorak_bringup)/param/test_nodes.yaml"/>
 
-    <node name="uavcan_bridge"
+    <node name="base_controller"
           pkg="goldorak_base"
-          type="uavcan_bridge"
+          type="base_controller"
           args="10"
           ns="$(arg robot_ns)"/>
 
