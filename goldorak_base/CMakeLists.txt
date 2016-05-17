@@ -8,6 +8,7 @@ set(UAVCAN_SRC_DIR ../uavcan)
 set(UAVCAN_LIB $ENV{UAVCAN_LIB})
 
 include_directories(
+    ${SRC}
     ${UAVCAN_SRC_DIR}/libuavcan/include/
     ${UAVCAN_SRC_DIR}/libuavcan_drivers/linux/include/
     ${UAVCAN_SRC_DIR}/libuavcan_drivers/posix/include/
@@ -37,6 +38,7 @@ find_library(UAVCAN_LIB uavcan REQUIRED)
 
 add_executable(
     uavcan_bridge
+    ${SRC}/main.cpp
     ${SRC}/uavcan_bridge.cpp
     ${SRC}/platform_linux.cpp
 )

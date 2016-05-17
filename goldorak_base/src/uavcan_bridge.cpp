@@ -1,5 +1,5 @@
 #include <iostream>
-#include <cstdlib>
+#include <stdlib.h>
 #include <unistd.h>
 #include <pthread.h>
 
@@ -12,6 +12,7 @@
 
 extern uavcan::ICanDriver& getCanDriver();
 extern uavcan::ISystemClock& getSystemClock();
+
 
 void *uavcan_bridge_thread(void *p)
 {
@@ -67,21 +68,4 @@ void uavcan_bridge_start(int id)
                    NULL,
                    uavcan_bridge_thread,
                    (void *)id);
-}
-
-
-int main(int argc, const char** argv)
-{
-    if (argc < 2) {
-        std::cerr << "Usage: " << argv[0] << " <uavcan-id>" << std::endl;
-        return 1;
-    }
-    int uavcan_id = std::stoi(argv[1]);
-
-    ros::init(argc, (char **)argv, "goldorak_base");
-
-    uavcan_bridge_start(uavcan_id);
-
-    ros::spin();
-    return 0;
 }
