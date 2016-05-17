@@ -30,36 +30,31 @@ class WaitStartState(State):
         return Transitions.SUCCESS
 
 def add_waypoints(waypoints):
-    for key, (x, y, next_point) in waypoints:
+    for key, (x, y, angle) in waypoints:
         goal = MoveBaseGoal()
         goal.target_pose.header.frame_id = 'odom'
         goal.target_pose.pose.position.x = x
         goal.target_pose.pose.position.y = y
-        goal.target_pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, radians(90)))
+        goal.target_pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, radians(angle)))
 
-        StateMachine.add(key, SimpleActionState('move_base',
-                         MoveBaseAction,
-                         goal=goal),
-                         transitions={
-                             Transitions.SUCCESS: next_point,
-                             'aborted': Transitions.FAILURE,
-                             'preempted': Transitions.FAILURE}
-                         )
+        Sequence.add(key, SimpleActionState('move_base', MoveBaseAction, goal=goal),
+                transitions={'preempted': Transitions.FAILURE, 'aborted': Transitions.FAILURE})
 
 
 def create_door_state_machine(door_x):
-    sm = StateMachine(outcomes=[Transitions.SUCCESS, Transitions.FAILURE])
+    seq = Sequence(outcomes=[Transitions.SUCCESS, Transitions.FAILURE],
+                   connector_outcome=Transitions.SUCCESS)
 
     waypoints = (
-        ('approach', (door_x, 1.5, 'close')),
-        ('close', (door_x, 1.8, 'back_out')),
-        ('back_out', (door_x, 1.5, Transitions.SUCCESS)),
+        ('approach', (door_x, 1.5, 90)),
+        ('close', (door_x, 1.8, 90)),
+        ('back_out', (door_x, 1.5, 90)),
     )
 
-    with sm:
+    with seq:
         add_waypoints(waypoints)
 
-    return sm
+    return seq
 
 def main():
     rospy.init_node('smach_example_state_machine')
