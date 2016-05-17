@@ -7,3 +7,13 @@
     </description>
   </class>
 </library>
+
+<library path="lib/libjoint_state_publisher_nodelet">
+  <class name="goldorak_base/joint_state_publisher_nodelet"
+         type="goldorak_base::joint_state_publisher_nodelet"
+         base_class_type="nodelet::Nodelet">
+    <description>
+      Goldorak joint state publisher
+    </description>
+  </class>
+</library>

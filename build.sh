@@ -23,6 +23,8 @@ pushd uavcan/libuavcan/dsdl_compiler
 popd
 
 pushd ../..
-catkin build cvra_msgs goldorak_base goldorak_diffbase goldorak_bringup goldorak_state_publisher goldorak_description goldorak_navigation goldorak_strategy
+catkin build cvra_msgs
+source devel/setup.bash
+catkin build goldorak_base goldorak_diffbase goldorak_bringup goldorak_description goldorak_navigation goldorak_strategy
 source devel/setup.bash
 popd

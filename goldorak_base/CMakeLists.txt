@@ -22,6 +22,7 @@ find_package(catkin REQUIRED COMPONENTS
     roscpp
     rospy
     std_msgs
+    sensor_msgs
     tf
     nodelet
 )
@@ -33,18 +34,11 @@ generate_dynamic_reconfigure_options(
     cfg/FeedbackStream.cfg
 )
 
-catkin_package(LIBRARIES
-    uavcan_bridge_nodelet
+catkin_package(
+    DEPENDS roscpp nodelet
 )
 
 find_library(UAVCAN_LIB uavcan REQUIRED)
-
-add_executable(
-    base_controller
-    ${SRC}/main.cpp
-)
-target_link_libraries(base_controller ${UAVCAN_LIB} rt ${catkin_LIBRARIES})
-add_dependencies(base_controller cvra_msgs)
 
 add_executable(
     uc_publisher
@@ -86,9 +80,20 @@ if(catkin_EXPORTED_LIBRARIES)
     add_dependencies(uavcan_bridge_nodelet ${catkin_EXPORTED_LIBRARIES})
 endif()
 
+## Create the joint state publisher nodelet library
+add_library(
+    joint_state_publisher_nodelet
+    ${SRC}/joint_state_publisher_nodelet.cpp
+)
+target_link_libraries(joint_state_publisher_nodelet rt ${catkin_LIBRARIES})
+if(catkin_EXPORTED_LIBRARIES)
+    add_dependencies(joint_state_publisher_nodelet ${catkin_EXPORTED_LIBRARIES})
+endif()
+
 ## Mark the nodelet library for installations
 install(TARGETS
     uavcan_bridge_nodelet
+    joint_state_publisher_nodelet
     ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
@@ -99,6 +104,11 @@ install(FILES
     nodelets.xml
     DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
+install(DIRECTORY
+    launch
+    DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)
+
 
 # Build tests
 if(CATKIN_ENABLE_TESTING)
