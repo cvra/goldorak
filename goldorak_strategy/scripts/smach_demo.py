@@ -72,6 +72,25 @@ def create_door_state_machine(door_x):
 
     return seq
 
+def create_fish_sequence():
+    seq = Sequence(outcomes=[Transitions.SUCCESS, Transitions.FAILURE],
+                   connector_outcome=Transitions.SUCCESS)
+
+    margin = 0.13
+    waypoints = (
+        ('approach', mirror_point(0.73, 0.3), -90),
+        ('close', mirror_point(0.73, margin), -90),
+        ('orientation', mirror_point(0.73, margin), 0),
+        ('drop', mirror_point(1.5, margin), 0),
+        ('drop2', mirror_point(1.5, margin), 0),
+    )
+
+    with seq:
+        add_waypoints(waypoints)
+
+    return seq
+
+
 def main():
     rospy.init_node('smach_example_state_machine')
 
@@ -93,6 +112,7 @@ def main():
                   connector_outcome=Transitions.SUCCESS)
     with sq:
         Sequence.add('waiting', WaitStartState())
+        Sequence.add('fishing', create_fish_sequence())
         Sequence.add('inner_door', create_door_state_machine(0.3))
         Sequence.add('outer_door', create_door_state_machine(0.6))
 
