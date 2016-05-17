@@ -9,7 +9,7 @@ import roslib
 import actionlib
 from move_base_msgs.msg import MoveBaseGoal, MoveBaseAction
 
-from smach import StateMachine, State
+from smach import StateMachine, State, Sequence
 
 from smach_ros import SimpleActionState, IntrospectionServer
 
@@ -77,24 +77,19 @@ def main():
     pub.publish(msg)
 
 
-    sm = StateMachine(['exit'])
-    with sm:
-        StateMachine.add('waiting', WaitStartState(), transitions={Transitions.SUCCESS: 'inner_door'})
-
-        StateMachine.add('inner_door', create_door_state_machine(0.3),
-                transitions={Transitions.FAILURE: 'exit',
-                             Transitions.SUCCESS: 'outer_door'})
-
-        StateMachine.add('outer_door', create_door_state_machine(0.6),
-                transitions={Transitions.FAILURE: 'exit',
-                             Transitions.SUCCESS: 'exit'})
+    sq = Sequence(outcomes=[Transitions.SUCCESS, Transitions.FAILURE],
+                  connector_outcome=Transitions.SUCCESS)
+    with sq:
+        Sequence.add('waiting', WaitStartState())
+        Sequence.add('inner_door', create_door_state_machine(0.3))
+        Sequence.add('outer_door', create_door_state_machine(0.6))
 
     # Create and start the introspection server
-    sis = IntrospectionServer('strat', sm, '/strat')
+    sis = IntrospectionServer('strat', sq, '/strat')
     sis.start()
 
     # Execute the state machine
-    outcome = sm.execute()
+    outcome = sq.execute()
 
     # Wait for ctrl-c to stop the application
     rospy.spin()
