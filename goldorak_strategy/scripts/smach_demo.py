@@ -9,20 +9,53 @@ import roslib
 import actionlib
 from move_base_msgs.msg import MoveBaseGoal, MoveBaseAction
 
-from smach import StateMachine
+from smach import StateMachine, State
+
 from smach_ros import SimpleActionState, IntrospectionServer
 
 from geometry_msgs.msg import PoseWithCovarianceStamped, Quaternion
 from tf.transformations import quaternion_from_euler
 
-WAYPOINTS = (
-    ('start', (0.5, 0.9, 'first')),
-    ('first', (0.3, 1.8, 'back_out')),
-    ('back_out', (0.6, 1.5, 'second')),
-    ('second', (0.6, 1.8, 'home')),
-    ('home', (0.6, 0.9, 'exit')),
+class WaitStartState(State):
+    def __init__(self):
+        State.__init__(self, outcomes=['start'])
 
-)
+    def execute(self, userdata):
+        rospy.loginfo('Waiting for start')
+        rospy.loginfo('starting')
+        return 'start'
+
+def add_waypoints(waypoints):
+    for key, (x, y, next_point) in waypoints:
+        goal = MoveBaseGoal()
+        goal.target_pose.header.frame_id = 'odom'
+        goal.target_pose.pose.position.x = x
+        goal.target_pose.pose.position.y = y
+        goal.target_pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, radians(90)))
+
+        StateMachine.add(key, SimpleActionState('move_base',
+                         MoveBaseAction,
+                         goal=goal),
+                         transitions={
+                             'succeeded': next_point,
+                             'aborted': 'failure',
+                             'preempted': 'failure'}
+                         )
+
+
+def create_door_state_machine(door_x):
+    sm = StateMachine(outcomes=['succeeded', 'failure'])
+
+    waypoints = (
+        ('approach', (door_x, 1.5, 'close')),
+        ('close', (door_x, 1.8, 'back_out')),
+        ('back_out', (door_x, 1.5, 'succeeded')),
+    )
+
+    with sm:
+        add_waypoints(waypoints)
+
+    return sm
 
 def main():
     rospy.init_node('smach_example_state_machine')
@@ -42,20 +75,15 @@ def main():
 
     sm = StateMachine(['exit'])
     with sm:
-        for key, (x, y, next_point) in WAYPOINTS:
-            goal = MoveBaseGoal()
-            goal.target_pose.header.frame_id = 'odom'
-            goal.target_pose.pose.position.x = x
-            goal.target_pose.pose.position.y = y
-            goal.target_pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, radians(90)))
+        StateMachine.add('waiting', WaitStartState(), transitions={'start': 'inner_door'})
+        StateMachine.add('inner_door', create_door_state_machine(0.3),
+                transitions={'failure': 'exit', 'succeeded': 'outer_door'})
 
-            StateMachine.add(key, SimpleActionState('move_base',
-                                                MoveBaseAction,
-                                                goal=goal),
-                              transitions={'succeeded': next_point, 'aborted': 'exit', 'preempted': 'exit'})
+        StateMachine.add('outer_door', create_door_state_machine(0.6),
+                transitions={'failure': 'exit', 'succeeded': 'exit'})
 
     # Create and start the introspection server
-    sis = IntrospectionServer('strat', sm, '/SM_ROOT')
+    sis = IntrospectionServer('strat', sm, '/strat')
     sis.start()
 
     # Execute the state machine
