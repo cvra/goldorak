@@ -20,6 +20,22 @@ class Transitions:
     SUCCESS = 'succeeded'
     FAILURE = 'failure'
 
+class Team:
+    GREEN = 'green'
+    VIOLET = 'violet'
+
+TEAM = Team.VIOLET
+
+def mirror_point(x, y):
+    if TEAM == Team.VIOLET:
+        return x, y
+    elif TEAM == Team.GREEN:
+        return 3.0 - x, y
+
+    raise ValueError("Unknown team")
+
+
+
 class WaitStartState(State):
     def __init__(self):
         State.__init__(self, outcomes=[Transitions.SUCCESS])
@@ -30,7 +46,7 @@ class WaitStartState(State):
         return Transitions.SUCCESS
 
 def add_waypoints(waypoints):
-    for key, (x, y, angle) in waypoints:
+    for key, (x, y), angle in waypoints:
         goal = MoveBaseGoal()
         goal.target_pose.header.frame_id = 'odom'
         goal.target_pose.pose.position.x = x
@@ -46,9 +62,9 @@ def create_door_state_machine(door_x):
                    connector_outcome=Transitions.SUCCESS)
 
     waypoints = (
-        ('approach', (door_x, 1.5, 90)),
-        ('close', (door_x, 1.8, 90)),
-        ('back_out', (door_x, 1.5, 90)),
+        ('approach', mirror_point(door_x, 1.5), 90),
+        ('close', mirror_point(door_x, 1.8), 90),
+        ('back_out', mirror_point(door_x, 1.5), 90),
     )
 
     with seq:
@@ -65,8 +81,9 @@ def main():
 
     msg = PoseWithCovarianceStamped()
     msg.header.stamp = rospy.get_rostime()
-    msg.pose.pose.position.x = 0.105
-    msg.pose.pose.position.y = 0.900
+    x, y = mirror_point(0.105, 0.900)
+    msg.pose.pose.position.x = x
+    msg.pose.pose.position.y = y
     msg.pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, 0))
 
     pub.publish(msg)
