@@ -1,3 +1,6 @@
+#ifndef UAVCAN_BRIDGE_NODELET_H
+#define UAVCAN_BRIDGE_NODELET_H
+
 #include <nodelet/nodelet.h>
 
 namespace goldorak_base
@@ -8,3 +11,5 @@ namespace goldorak_base
             virtual void onInit();
     };
 }
+
+#endif /* UAVCAN_BRIDGE_NODELET_H */
