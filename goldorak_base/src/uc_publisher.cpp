@@ -20,8 +20,8 @@ static Node& getNode()
 
 int main(int argc, const char** argv)
 {
-    if (argc < 2) {
-        std::cerr << "Usage: " << argv[0] << " <node-id>" << std::endl;
+    if (argc < 3) {
+        std::cerr << "Usage: " << argv[0] << " <node-id> <rate>" << std::endl;
         return 1;
     }
 
@@ -50,7 +50,7 @@ int main(int argc, const char** argv)
     node.setModeOperational();
 
     while (true) {
-        const int spin_res = node.spin(uavcan::MonotonicDuration::fromMSec(200));
+        const int spin_res = node.spin(uavcan::MonotonicDuration::fromMSec(1000.f / std::stoi(argv[2])));
         if (spin_res < 0) {
             std::cerr << "Transient failure: " << spin_res << std::endl;
         }
