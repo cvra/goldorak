@@ -29,15 +29,6 @@ public:
     std::map<int, ros::Publisher> position_pid_pub;
     std::map<int, ros::Publisher> velocity_pid_pub;
 
-    std_msgs::Float32 position_msg;
-    std_msgs::Float32 velocity_msg;
-    std_msgs::Float32 torque_msg;
-    std_msgs::Float32 index_msg;
-    std_msgs::Float32 voltage_msg;
-    cvra_msgs::MotorEncoderStamped encoder_msg;
-    cvra_msgs::MotorFeedbackPID current_pid_msg;
-    cvra_msgs::MotorFeedbackPID velocity_pid_msg;
-    cvra_msgs::MotorFeedbackPID position_pid_msg;
 
     UavcanRosMotorController(Node& uavcan_node, ros::NodeHandle& ros_node):
         UavcanMotorController(uavcan_node)
@@ -130,11 +121,14 @@ public:
         if (position_pub.count(id) && velocity_pub.count(id)) {
             ROS_INFO("Got motor position and velocity feedback from node %d", id);
 
-            this->position_msg.data = msg.position;
-            this->velocity_msg.data = msg.velocity;
+            std_msgs::Float32Ptr position_msg(new std_msgs::Float32);
+            std_msgs::Float32Ptr velocity_msg(new std_msgs::Float32);
 
-            this->position_pub[id].publish(this->position_msg);
-            this->velocity_pub[id].publish(this->velocity_msg);
+            position_msg->data = msg.position;
+            velocity_msg->data = msg.velocity;
+
+            this->position_pub[id].publish(position_msg);
+            this->velocity_pub[id].publish(velocity_msg);
         }
     }
 
@@ -146,8 +140,11 @@ public:
         /* Check that the source node has an associated publisher */
         if (torque_pub.count(id)) {
             ROS_INFO("Got motor torque feedback from node %d", id);
-            this->torque_msg.data = msg.torque;
-            this->torque_pub[id].publish(this->torque_msg);
+
+            std_msgs::Float32Ptr torque_msg(new std_msgs::Float32);
+
+            torque_msg->data = msg.torque;
+            this->torque_pub[id].publish(torque_msg);
         }
     }
 
@@ -160,9 +157,11 @@ public:
         /* Check that the source node has an associated publisher */
         if (encoder_pub.count(id)) {
             ROS_INFO("Got motor raw encoder feedback from node %d", id);
-            this->encoder_msg.timestamp = now;
-            this->encoder_msg.sample = msg.raw_encoder_position;
-            this->encoder_pub[id].publish(this->encoder_msg);
+
+            cvra_msgs::MotorEncoderStampedPtr encoder_msg(new cvra_msgs::MotorEncoderStamped);
+            encoder_msg->timestamp = now;
+            encoder_msg->sample = msg.raw_encoder_position;
+            this->encoder_pub[id].publish(encoder_msg);
         }
     }
 
@@ -174,8 +173,10 @@ public:
         /* Check that the source node has an associated publisher */
         if (index_pub.count(id)) {
             ROS_INFO("Got motor index feedback from node %d", id);
-            this->index_msg.data = msg.position;
-            this->index_pub[id].publish(this->index_msg);
+
+            std_msgs::Float32Ptr index_msg(new std_msgs::Float32);
+            index_msg->data = msg.position;
+            this->index_pub[id].publish(index_msg);
         }
     }
 
@@ -188,12 +189,15 @@ public:
         if (current_pid_pub.count(id)) {
             ROS_INFO("Got motor current PID feedback from node %d", id);
 
-            this->current_pid_msg.setpoint = msg.current_setpoint;
-            this->current_pid_msg.measured = msg.current;
-            this->voltage_msg.data = msg.motor_voltage;
+            std_msgs::Float32Ptr voltage_msg(new std_msgs::Float32);
+            cvra_msgs::MotorFeedbackPIDPtr current_pid_msg(new cvra_msgs::MotorFeedbackPID);
 
-            this->current_pid_pub[id].publish(this->current_pid_msg);
-            this->voltage_pub[id].publish(this->voltage_msg);
+            current_pid_msg->setpoint = msg.current_setpoint;
+            current_pid_msg->measured = msg.current;
+            voltage_msg->data = msg.motor_voltage;
+
+            this->current_pid_pub[id].publish(current_pid_msg);
+            this->voltage_pub[id].publish(voltage_msg);
         }
     }
 
@@ -205,9 +209,12 @@ public:
         /* Check that the source node has an associated publisher */
         if (velocity_pid_pub.count(id)) {
             ROS_INFO("Got motor velocity PID feedback from node %d", id);
-            this->velocity_pid_msg.setpoint = msg.velocity_setpoint;
-            this->velocity_pid_msg.measured = msg.velocity;
-            this->velocity_pid_pub[id].publish(this->velocity_pid_msg);
+
+            cvra_msgs::MotorFeedbackPIDPtr velocity_pid_msg(new cvra_msgs::MotorFeedbackPID);
+
+            velocity_pid_msg->setpoint = msg.velocity_setpoint;
+            velocity_pid_msg->measured = msg.velocity;
+            this->velocity_pid_pub[id].publish(velocity_pid_msg);
         }
     }
 
@@ -219,9 +226,12 @@ public:
         /* Check that the source node has an associated publisher */
         if (position_pid_pub.count(id)) {
             ROS_INFO("Got motor position PID feedback from node %d", id);
-            this->position_pid_msg.setpoint = msg.position_setpoint;
-            this->position_pid_msg.measured = msg.position;
-            this->position_pid_pub[id].publish(this->position_pid_msg);
+
+            cvra_msgs::MotorFeedbackPIDPtr position_pid_msg(new cvra_msgs::MotorFeedbackPID);
+
+            position_pid_msg->setpoint = msg.position_setpoint;
+            position_pid_msg->measured = msg.position;
+            this->position_pid_pub[id].publish(position_pid_msg);
         }
     }
 };
