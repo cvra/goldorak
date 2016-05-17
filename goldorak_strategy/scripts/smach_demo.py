@@ -8,6 +8,7 @@ import rospy
 import roslib
 import actionlib
 from move_base_msgs.msg import MoveBaseGoal, MoveBaseAction
+from actionlib_msgs.msg import GoalID
 
 from smach import StateMachine, State, Sequence
 
@@ -15,6 +16,8 @@ from smach_ros import SimpleActionState, IntrospectionServer
 
 from geometry_msgs.msg import PoseWithCovarianceStamped, Quaternion
 from tf.transformations import quaternion_from_euler
+
+GAME_DURATION = 90
 
 class Transitions:
     SUCCESS = 'succeeded'
@@ -35,14 +38,23 @@ def mirror_point(x, y):
     raise ValueError("Unknown team")
 
 
-
 class WaitStartState(State):
     def __init__(self):
         State.__init__(self, outcomes=[Transitions.SUCCESS])
+        self.abort_navigation_pub = rospy.Publisher('move_base/cancel', GoalID, queue_size=1)
+
+    def end_of_game_cb(self, event):
+        rospy.loginfo("End of game")
+        rospy.loginfo("Cancelling move_base actions")
+        self.abort_navigation_pub.publish(GoalID())
+        rospy.loginfo("Opening parasol")
 
     def execute(self, userdata):
         rospy.loginfo('Waiting for start')
         rospy.loginfo('starting')
+
+        rospy.Timer(rospy.Duration(GAME_DURATION), self.end_of_game_cb, oneshot=True)
+
         return Transitions.SUCCESS
 
 def add_waypoints(waypoints):
