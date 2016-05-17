@@ -1,6 +1,7 @@
 #include <iostream>
 #include <stdlib.h>
 #include <unistd.h>
+#include <boost/thread.hpp>
 
 #include <uavcan/uavcan.hpp>
 #include <uavcan/protocol/debug/LogMessage.hpp>
@@ -20,15 +21,16 @@ PLUGINLIB_EXPORT_CLASS(goldorak_base::uavcan_bridge_nodelet, nodelet::Nodelet);
 
 namespace goldorak_base
 {
+    uavcan_bridge_nodelet::uavcan_bridge_nodelet():
+        uavcan_node(getCanDriver(), getSystemClock())
+    {
+    }
+
     void uavcan_bridge_nodelet::onInit()
     {
-        static const unsigned NodeMemoryPoolSize = 16384;
-        typedef uavcan::Node<NodeMemoryPoolSize> Node;
-
         NODELET_INFO("Initialising Uavcan bridge nodelet...");
 
-        Node uavcan_node(getCanDriver(), getSystemClock());
-        ros::NodeHandle ros_node = getNodeHandle();
+        ros::NodeHandle ros_node = getMTNodeHandle();
 
         int uavcan_id;
         ros_node.param<int>("uavcan_bridge_nodelet/uavcan_id", uavcan_id, 10);;
@@ -36,7 +38,6 @@ namespace goldorak_base
         /* Start motor controller and beacon driver */
         UavcanRosMotorController motor_controller(uavcan_node, ros_node);
         UavcanRosProximityBeaconDriver beacon_driver(uavcan_node, ros_node);
-
 
         /* Start UAVCAN node */
         const int self_node_id = uavcan_id;
@@ -64,12 +65,17 @@ namespace goldorak_base
         uavcan_node.setModeOperational();
         NODELET_INFO("Uavcan bridge nodelet is ready...");
 
-        while (true) {
+        boost::thread processing_thread(boost::bind(&uavcan_bridge_nodelet::processing_thread, this));
+    }
+
+    void uavcan_bridge_nodelet::processing_thread()
+    {
+        while (ros::ok()) {
             const int res = uavcan_node.spin(uavcan::MonotonicDuration::fromMSec(1));
             if (res < 0) {
                 std::cerr << "Transient failure in UAVCAN bridge: " << res << std::endl;
             }
-            ros::spinOnce();
+            usleep(100);
         }
     }
 }
