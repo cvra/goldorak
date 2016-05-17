@@ -16,14 +16,18 @@ from smach_ros import SimpleActionState, IntrospectionServer
 from geometry_msgs.msg import PoseWithCovarianceStamped, Quaternion
 from tf.transformations import quaternion_from_euler
 
+class Transitions:
+    SUCCESS = 'succeeded'
+    FAILURE = 'failure'
+
 class WaitStartState(State):
     def __init__(self):
-        State.__init__(self, outcomes=['start'])
+        State.__init__(self, outcomes=[Transitions.SUCCESS])
 
     def execute(self, userdata):
         rospy.loginfo('Waiting for start')
         rospy.loginfo('starting')
-        return 'start'
+        return Transitions.SUCCESS
 
 def add_waypoints(waypoints):
     for key, (x, y, next_point) in waypoints:
@@ -37,19 +41,19 @@ def add_waypoints(waypoints):
                          MoveBaseAction,
                          goal=goal),
                          transitions={
-                             'succeeded': next_point,
-                             'aborted': 'failure',
-                             'preempted': 'failure'}
+                             Transitions.SUCCESS: next_point,
+                             'aborted': Transitions.FAILURE,
+                             'preempted': Transitions.FAILURE}
                          )
 
 
 def create_door_state_machine(door_x):
-    sm = StateMachine(outcomes=['succeeded', 'failure'])
+    sm = StateMachine(outcomes=[Transitions.SUCCESS, Transitions.FAILURE])
 
     waypoints = (
         ('approach', (door_x, 1.5, 'close')),
         ('close', (door_x, 1.8, 'back_out')),
-        ('back_out', (door_x, 1.5, 'succeeded')),
+        ('back_out', (door_x, 1.5, Transitions.SUCCESS)),
     )
 
     with sm:
@@ -75,12 +79,15 @@ def main():
 
     sm = StateMachine(['exit'])
     with sm:
-        StateMachine.add('waiting', WaitStartState(), transitions={'start': 'inner_door'})
+        StateMachine.add('waiting', WaitStartState(), transitions={Transitions.SUCCESS: 'inner_door'})
+
         StateMachine.add('inner_door', create_door_state_machine(0.3),
-                transitions={'failure': 'exit', 'succeeded': 'outer_door'})
+                transitions={Transitions.FAILURE: 'exit',
+                             Transitions.SUCCESS: 'outer_door'})
 
         StateMachine.add('outer_door', create_door_state_machine(0.6),
-                transitions={'failure': 'exit', 'succeeded': 'exit'})
+                transitions={Transitions.FAILURE: 'exit',
+                             Transitions.SUCCESS: 'exit'})
 
     # Create and start the introspection server
     sis = IntrospectionServer('strat', sm, '/strat')
