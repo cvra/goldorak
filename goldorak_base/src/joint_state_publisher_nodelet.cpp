@@ -33,24 +33,14 @@ namespace goldorak_base
 
         joint_pub = node.advertise<sensor_msgs::JointState>("joint_states", 1);
 
+        ros::Timer timer = node.createTimer(ros::Duration(0.1), &goldorak_base::joint_state_publisher_nodelet::timer_cb, this);
+
         NODELET_INFO("Joint state publisher nodelet is ready");
     }
 
-    void joint_state_publisher_nodelet::right_wheel_cb(const std_msgs::Float32ConstPtr& msg)
+    void joint_state_publisher_nodelet::timer_cb(const ros::TimerEvent&)
     {
-        right_wheel_pos = msg->data * right_wheel_direction
-                            * external_to_internal_wheelbase_encoder_direction;
-        ROS_DEBUG("Got right wheel %f", right_wheel_pos);
-    }
-
-    void joint_state_publisher_nodelet::left_wheel_cb(const std_msgs::Float32ConstPtr& msg)
-    {
-        left_wheel_pos = msg->data * left_wheel_direction
-                            * external_to_internal_wheelbase_encoder_direction;
-        ROS_DEBUG("Got left wheel %f", left_wheel_pos);
-
         sensor_msgs::JointState joint_state;
-        const double degree = M_PI / 180;
 
         // Update joint_state
         joint_state.header.stamp = ros::Time::now();
@@ -64,5 +54,19 @@ namespace goldorak_base
 
         // Send the joint state and transform
         joint_pub.publish(joint_state);
+    }
+
+    void joint_state_publisher_nodelet::right_wheel_cb(const std_msgs::Float32ConstPtr& msg)
+    {
+        right_wheel_pos = msg->data * right_wheel_direction
+                            * external_to_internal_wheelbase_encoder_direction;
+        ROS_DEBUG("Got right wheel joint position %f", right_wheel_pos);
+    }
+
+    void joint_state_publisher_nodelet::left_wheel_cb(const std_msgs::Float32ConstPtr& msg)
+    {
+        left_wheel_pos = msg->data * left_wheel_direction
+                            * external_to_internal_wheelbase_encoder_direction;
+        ROS_DEBUG("Got left wheel joint position %f", left_wheel_pos);
     }
 }
