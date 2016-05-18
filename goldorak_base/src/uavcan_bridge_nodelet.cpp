@@ -30,6 +30,11 @@ namespace goldorak_base
     {
         NODELET_INFO("Initialising Uavcan bridge nodelet...");
 
+        boost::thread processing_thread(boost::bind(&uavcan_bridge_nodelet::processing_thread, this));
+    }
+
+    void uavcan_bridge_nodelet::processing_thread()
+    {
         ros::NodeHandle ros_node = getMTNodeHandle();
 
         int uavcan_id;
@@ -65,11 +70,6 @@ namespace goldorak_base
         uavcan_node.setModeOperational();
         NODELET_INFO("Uavcan bridge nodelet is ready...");
 
-        boost::thread processing_thread(boost::bind(&uavcan_bridge_nodelet::processing_thread, this));
-    }
-
-    void uavcan_bridge_nodelet::processing_thread()
-    {
         while (ros::ok()) {
             const int res = uavcan_node.spin(uavcan::MonotonicDuration::fromMSec(1));
             if (res < 0) {
