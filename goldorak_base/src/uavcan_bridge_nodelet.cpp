@@ -75,7 +75,6 @@ namespace goldorak_base
             if (res < 0) {
                 std::cerr << "Transient failure in UAVCAN bridge: " << res << std::endl;
             }
-            usleep(100);
         }
     }
 }
