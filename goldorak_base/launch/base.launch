@@ -4,6 +4,14 @@
   <rosparam file="$(find goldorak_bringup)/param/uavcan_nodes.yaml"/>
   <rosparam file="$(find goldorak_base)/param/base.yaml"/>
 
+  <!-- Uavcan bridge -->
+  <group unless="$(arg simulated_can)">
+    <node pkg="goldorak_base" type="uavcan_bridge" name="uavcan_bridge"
+          args="10"
+          output="screen">
+    </node>
+  </group>
+
   <!-- Nodelet manager -->
   <node pkg="nodelet" type="nodelet" name="base_nodelet_manager"
         args="manager"
@@ -11,13 +19,6 @@
     <param name="num_worker_threads" value="8"/>
   </node>
 
-  <!-- Uavcan bridge nodelet -->
-  <group unless="$(arg simulated_can)">
-    <node pkg="nodelet" type="nodelet" name="uavcan_bridge_nodelet"
-          args="load goldorak_base/uavcan_bridge_nodelet base_nodelet_manager"
-          output="screen">
-    </node>
-  </group>
 
   <!-- Joint state publisher nodelet -->
   <node pkg="nodelet" type="nodelet" name="joint_state_publisher_nodelet"
