@@ -6,7 +6,6 @@
 #include <math.h>
 #include "ros/ros.h"
 #include "std_msgs/Float32.h"
-#include <tf/transform_broadcaster.h>
 
 
 void polar_to_cartesian(float distance, float angle, float *x, float *y)
@@ -25,10 +24,8 @@ public:
     float reflector_diameter, index_offset;
     ros::Subscriber settings_sub;
     ros::Publisher distance_pub, angle_pub;
-    tf::TransformBroadcaster opponent_tf_broadcaster;
 
     std_msgs::Float32 opponent_distance_msg, opponent_angle_msg;
-    tf::Transform opponent_transform;
 
     UavcanRosProximityBeaconDriver(Node& uavcan_node, ros::NodeHandle& ros_node):
         UavcanProximityBeaconDriver(uavcan_node)
@@ -69,16 +66,6 @@ public:
             this->distance_pub.publish(this->opponent_distance_msg);
             this->opponent_angle_msg.data = angle;
             this->angle_pub.publish(this->opponent_angle_msg);
-
-            // Publish a tf of the opponent
-            float x, y;
-            polar_to_cartesian(distance, angle - M_PI_2, &x, &y); // Zero on Y+ axis
-            this->opponent_transform.setOrigin(tf::Vector3(x, y, 0.f));
-            this->opponent_tf_broadcaster.sendTransform(
-                tf::StampedTransform(this->opponent_transform,
-                                     ros::Time::now(),
-                                     "base_link",
-                                     "opponent"));
         } else {
             ROS_WARN("Received signal from unregistered beacon ID");
         }
