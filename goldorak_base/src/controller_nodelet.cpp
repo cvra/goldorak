@@ -15,6 +15,7 @@ namespace goldorak_base
 {
     void controller_nodelet::onInit()
     {
+        NODELET_INFO("Initialising controller nodelet");
         ros::NodeHandle node = getMTNodeHandle();
 
         /* Get differential base parameters */
@@ -35,7 +36,7 @@ namespace goldorak_base
         cmdvel_sub = node.subscribe("cmd_vel", 10,
             &goldorak_base::controller_nodelet::cmdvel_cb, this);
 
-        NODELET_INFO("Diffbase controller node ready.");
+        NODELET_INFO("Controller nodelet ready");
 
     }
 
