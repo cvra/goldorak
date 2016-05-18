@@ -16,6 +16,8 @@ namespace goldorak_base
             int right_wheel_direction, left_wheel_direction, external_to_internal_wheelbase_encoder_direction;
 
             ros::Publisher joint_pub;
+            ros::Subscriber left_wheel_sub, right_wheel_sub;
+            ros::Timer timer;
 
             void right_wheel_cb(const std_msgs::Float32ConstPtr& msg);
             void left_wheel_cb(const std_msgs::Float32ConstPtr& msg);
