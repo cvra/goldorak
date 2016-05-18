@@ -1,3 +1,4 @@
 uavcan_nodes:
     left_wheel: 41
     right_wheel: 50
+    beacon: 54

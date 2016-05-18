@@ -21,6 +21,7 @@ find_package(catkin REQUIRED COMPONENTS
     roscpp
     rospy
     std_msgs
+    tf
 )
 
 generate_dynamic_reconfigure_options(
@@ -74,8 +75,14 @@ target_link_libraries(uc_config_server ${UAVCAN_LIB} rt ${catkin_LIBRARIES})
 # Build tests
 if(CATKIN_ENABLE_TESTING)
     find_package(rostest REQUIRED)
+
     add_rostest_gtest(motor_param_test
                      ${TEST}/motor_param_test.launch
                      ${TEST}/motor_param_test.cpp)
     target_link_libraries(motor_param_test ${UAVCAN_LIB} rt ${catkin_LIBRARIES})
+
+    add_rostest_gtest(proximity_beacon_driver_test
+                     ${TEST}/proximity_beacon_driver_test.launch
+                     ${TEST}/proximity_beacon_driver_test.cpp)
+    target_link_libraries(proximity_beacon_driver_test ${UAVCAN_LIB} rt ${catkin_LIBRARIES})
 endif()

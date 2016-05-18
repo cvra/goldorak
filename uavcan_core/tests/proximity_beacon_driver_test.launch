@@ -1,0 +1,8 @@
+<launch>
+    <rosparam command="load" file="$(find uavcan_core)/tests/test_config.yaml" />
+
+    <test test-name="proximity_beacon_driver_test"
+          pkg="uavcan_core"
+          type="proximity_beacon_driver_test"
+          ns="robot/beacon" />
+</launch>
