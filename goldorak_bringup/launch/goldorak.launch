@@ -93,8 +93,8 @@
     </group>
 
     <!-- Differential base controller and odometry -->
-    <node name="diffbase_odometry" pkg="goldorak_diffbase" type="diffbase_odometry"/>
-    <node name="diffbase_controller" pkg="goldorak_diffbase" type="diffbase_controller"/>
+    <node name="diffbase_odometry" pkg="goldorak_base" type="diffbase_odometry"/>
+    <node name="diffbase_controller" pkg="goldorak_base" type="diffbase_controller"/>
 
     <!-- Move base -->
     <include file="$(find goldorak_navigation)/launch/navigation.launch">

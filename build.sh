@@ -25,6 +25,6 @@ popd
 pushd ../..
 catkin build cvra_msgs
 source devel/setup.bash
-catkin build goldorak_base goldorak_diffbase goldorak_bringup goldorak_description goldorak_navigation goldorak_strategy
+catkin build goldorak_base goldorak_bringup goldorak_description goldorak_navigation goldorak_strategy
 source devel/setup.bash
 popd

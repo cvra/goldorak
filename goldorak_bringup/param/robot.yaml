@@ -7,7 +7,7 @@ diffbase:
 
     # Internal wheelbase motor encoders have opposite direction
     # relative to external encoders
-    external_to_internal_wheelbase_encoder_direction: -1
+    external_to_internal_wheelbase_encoder_direction: 1
 
     # Right and Left wheels have opposite directions (180° symetry)    right_wheel:
     right_wheel:
