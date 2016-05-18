@@ -40,7 +40,6 @@
             <arg name="node_uavcan_id" value="11" />
             <arg name="motor_uavcan_id" value="50" />
             <arg name="dynamic_motor_config" value="$(arg dynamic_motor_config)"/>
-            <arg name="default_params" value="$(find goldorak_bringup)/param/right_wheel.yaml" />
         </include>
         <!-- Left wheel config server and parameters -->
         <include file="$(find goldorak_base)/launch/motor.launch">
@@ -48,7 +47,6 @@
             <arg name="node_uavcan_id" value="12" />
             <arg name="motor_uavcan_id" value="41" />
             <arg name="dynamic_motor_config" value="$(arg dynamic_motor_config)"/>
-            <arg name="default_params" value="$(find goldorak_bringup)/param/left_wheel.yaml" />
         </include>
 
         <!-- Proximity beacon config server and parameters -->
@@ -57,7 +55,6 @@
             <arg name="node_uavcan_id" value="13" />
             <arg name="motor_uavcan_id" value="54" />
             <arg name="dynamic_motor_config" value="$(arg dynamic_motor_config)"/>
-            <arg name="default_params" value="$(find goldorak_bringup)/param/beacon.yaml" />
         </include>
 
         <!-- Fishing module y axis config server and parameters -->
