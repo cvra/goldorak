@@ -71,13 +71,6 @@ add_executable(
     )
 target_link_libraries(uc_config_server ${UAVCAN_LIB} rt ${catkin_LIBRARIES})
 
-add_executable(
-    diffbase_odometry
-    src/odometry/odometry.c
-    src/odometry_node.cpp
-)
-target_link_libraries(diffbase_odometry rt ${catkin_LIBRARIES} ${Boost_LIBRARIES})
-add_dependencies(diffbase_odometry cvra_msgs nav_msgs)
 
 add_executable(
     diffbase_controller
@@ -108,10 +101,22 @@ if(catkin_EXPORTED_LIBRARIES)
     add_dependencies(joint_state_publisher_nodelet ${catkin_EXPORTED_LIBRARIES})
 endif()
 
+## Create the odometry nodelet library
+add_library(
+    odometry_nodelet
+    ${SRC}/odometry_nodelet.cpp
+    ${SRC}/odometry/odometry.c
+)
+target_link_libraries(odometry_nodelet rt ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+if(catkin_EXPORTED_LIBRARIES)
+    add_dependencies(odometry_nodelet ${catkin_EXPORTED_LIBRARIES})
+endif()
+
 ## Mark the nodelet library for installations
 install(TARGETS
     uavcan_bridge_nodelet
     joint_state_publisher_nodelet
+    odometry_nodelet
     ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

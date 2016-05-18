@@ -1,5 +1,5 @@
-#ifndef JOINT_STATE_PUBLISHER_H
-#define JOINT_STATE_PUBLISHER_H
+#ifndef JOINT_STATE_PUBLISHER_NODELET_H
+#define JOINT_STATE_PUBLISHER_NODELET_H
 
 #include <nodelet/nodelet.h>
 #include <std_msgs/Float32.h>
@@ -25,4 +25,4 @@ namespace goldorak_base
     };
 }
 
-#endif /* JOINT_STATE_PUBLISHER_H */
+#endif /* JOINT_STATE_PUBLISHER_NODELET_H */

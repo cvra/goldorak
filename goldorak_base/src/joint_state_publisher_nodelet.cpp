@@ -20,7 +20,6 @@ namespace goldorak_base
         NODELET_INFO("Initialising joint state publisher nodelet");
 
         ros::NodeHandle node = getMTNodeHandle();
-        ros::Rate rate(10);
 
         /* Get differential base parameters */
         node.param<int>("diffbase/right_wheel/direction", right_wheel_direction, 1);

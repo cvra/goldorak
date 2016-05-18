@@ -19,7 +19,9 @@
     <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
 
     <!-- Robot base controller -->
-    <include file="$(find goldorak_base)/launch/base.launch"/>
+    <include file="$(find goldorak_base)/launch/base.launch">
+        <arg name="simulated_can" value="$(arg simulated_motors)"/>
+    </include>
 
     <!-- Simulate motors ... -->
     <group if="$(arg simulated_motors)">
@@ -92,8 +94,7 @@
 
     </group>
 
-    <!-- Differential base controller and odometry -->
-    <node name="diffbase_odometry" pkg="goldorak_base" type="diffbase_odometry"/>
+    <!-- Differential base controller -->
     <node name="diffbase_controller" pkg="goldorak_base" type="diffbase_controller"/>
 
     <!-- Move base -->
