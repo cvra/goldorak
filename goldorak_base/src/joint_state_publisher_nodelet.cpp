@@ -37,6 +37,9 @@ namespace goldorak_base
         timer = node.createTimer(ros::Duration(0.1),
             &goldorak_base::joint_state_publisher_nodelet::timer_cb, this);
 
+        right_wheel_pos = 0;
+        left_wheel_pos = 0;
+
         NODELET_INFO("Joint state publisher nodelet is ready");
     }
 
