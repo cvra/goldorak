@@ -94,9 +94,6 @@
 
     </group>
 
-    <!-- Differential base controller -->
-    <node name="diffbase_controller" pkg="goldorak_base" type="diffbase_controller"/>
-
     <!-- Move base -->
     <include file="$(find goldorak_navigation)/launch/navigation.launch">
         <arg name="cmd_vel_topic" value="/cmd_vel"/>

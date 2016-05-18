@@ -27,3 +27,13 @@
     </description>
   </class>
 </library>
+
+<library path="lib/libcontroller_nodelet">
+  <class name="goldorak_base/controller_nodelet"
+         type="goldorak_base::controller_nodelet"
+         base_class_type="nodelet::Nodelet">
+    <description>
+      Goldorak's differential wheelbase controller
+    </description>
+  </class>
+</library>

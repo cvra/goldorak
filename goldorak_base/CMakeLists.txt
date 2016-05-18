@@ -71,15 +71,6 @@ add_executable(
     )
 target_link_libraries(uc_config_server ${UAVCAN_LIB} rt ${catkin_LIBRARIES})
 
-
-add_executable(
-    diffbase_controller
-    src/controller_node.cpp
-)
-target_link_libraries(diffbase_controller rt ${catkin_LIBRARIES} ${Boost_LIBRARIES})
-add_dependencies(diffbase_controller cvra_msgs geometry_msgs)
-
-
 ## Create the uavcan bridge nodelet library
 add_library(
     uavcan_bridge_nodelet
@@ -112,11 +103,22 @@ if(catkin_EXPORTED_LIBRARIES)
     add_dependencies(odometry_nodelet ${catkin_EXPORTED_LIBRARIES})
 endif()
 
+## Create the controller nodelet library
+add_library(
+    controller_nodelet
+    ${SRC}/controller_nodelet.cpp
+)
+target_link_libraries(controller_nodelet rt ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+if(catkin_EXPORTED_LIBRARIES)
+    add_dependencies(controller_nodelet ${catkin_EXPORTED_LIBRARIES})
+endif()
+
 ## Mark the nodelet library for installations
 install(TARGETS
     uavcan_bridge_nodelet
     joint_state_publisher_nodelet
     odometry_nodelet
+    controller_nodelet
     ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

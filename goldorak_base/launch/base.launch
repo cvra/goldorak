@@ -31,4 +31,9 @@
         output="screen">
   </node>
 
+  <!-- Wheelbase controller nodelet -->
+  <node pkg="nodelet" type="nodelet" name="controller_nodelet"
+        args="load goldorak_base/controller_nodelet base_nodelet_manager"
+        output="screen">
+  </node>
 </launch>
