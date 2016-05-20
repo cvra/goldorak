@@ -9,4 +9,4 @@
 	url = https://github.com/cvra/proximity-beacon-uavcan-dsdl.git
 [submodule "proximity-beacon-firmware"]
 	path = proximity-beacon-firmware
-	url = github.com:cvra/proximity-beacon-firmware.git
+	url = https://github.com/cvra/proximity-beacon-firmware.git
