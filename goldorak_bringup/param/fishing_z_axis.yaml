@@ -2,8 +2,9 @@ motor_control_config:
     enable:
         enable: true
     parameters:
-        mode: 0 # open loop mode
-        motor_encoder_steps_per_revolution: 1024
+        mode: 3 # encoder bounded
+        motor_encoder_steps_per_revolution: 4096
+        second_encoder_steps_per_revolution: 4096
         transmission_ratio_p: 1
         transmission_ratio_q: 1
         low_batt_th: 5.
@@ -13,20 +14,20 @@ motor_control_config:
         torque_constant: 1.
         max_temperature: 100.
     pid_current:
-        p: 0.
-        i: 0.
+        p: 4.
+        i: 1500.
         d: 0.
-        i_limit: 0.
+        i_limit: 50.
     pid_velocity:
-        p: 0.
-        i: 0.
+        p: 0.02
+        i: 0.6
         d: 0.
-        i_limit: 0.
+        i_limit: 1000.
     pid_position:
-        p: 0.
-        i: 0.
-        d: 0.
-        i_limit: 0.
+        p: 80.
+        i: 500.
+        d: 1.
+        i_limit: 50.
     stream:
         motor_encoder: 20
         motor_position: 5
