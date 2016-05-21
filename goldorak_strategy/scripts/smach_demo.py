@@ -56,11 +56,13 @@ class WaitStartState(State):
         rate = rospy.Rate(10) # 10hz
 
         for i in range(50):
-            msg = MotorControlSetpoint(node_name="umbrella", voltage=12)
+            msg = MotorControlSetpoint(node_name="umbrella", voltage=12,
+                    mode = MotorControlSetpoint.MODE_CONTROL_VOLTAGE)
             self.umbrella_pub.publish(msg)
             rate.sleep()
 
-        msg = MotorControlSetpoint(node_name="umbrella", voltage=0)
+        msg = MotorControlSetpoint(node_name="umbrella", voltage=0,
+                mode = MotorControlSetpoint.MODE_CONTROL_VOLTAGE)
         self.umbrella_pub.publish(msg)
 
         rospy.loginfo("Umbrella openend")
