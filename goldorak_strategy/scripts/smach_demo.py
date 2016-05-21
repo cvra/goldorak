@@ -52,16 +52,18 @@ class WaitStartState(State):
         self.abort_navigation_pub.publish(GoalID())
 
         # Opens umbrella
-        msg = MotorControlSetpoint(node_name="umbrella", voltage=12)
-        self.umbrella_pub.publish(msg)
+        rospy.loginfo("Opening umbrella")
+        rate = rospy.Rate(10) # 10hz
 
-        time.sleep(5)
+        for i in range(50):
+            msg = MotorControlSetpoint(node_name="umbrella", voltage=12)
+            self.umbrella_pub.publish(msg)
+            rate.sleep()
 
         msg = MotorControlSetpoint(node_name="umbrella", voltage=0)
         self.umbrella_pub.publish(msg)
 
-
-        rospy.loginfo("Opening parasol")
+        rospy.loginfo("Umbrella openend")
 
     def execute(self, userdata):
         rospy.loginfo('Waiting for start')
