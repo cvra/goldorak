@@ -1,0 +1,14 @@
+motor_control_config:
+    enable:
+        enable: true
+    parameters:
+        mode: 0 # open loop mode
+        low_batt_th: 5.
+    stream:
+        motor_encoder: 0
+        motor_position: 0
+        motor_torque: 0
+        index: 0
+        current_pid: 0
+        velocity_pid: 0
+        position_pid: 0
