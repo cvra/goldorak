@@ -1,0 +1,23 @@
+motor_control_config:
+    enable:
+        enable: true
+    parameters:
+        mode: 0 # open loop mode
+        motor_encoder_steps_per_revolution: 0
+        second_encoder_steps_per_revolution: 0
+        transmission_ratio_p: 1
+        transmission_ratio_q: 1
+        low_batt_th: 5.
+        acceleration_limit: 100.
+        velocity_limit: 50.
+        torque_limit: 14.
+        torque_constant: 1.
+        max_temperature: 100.
+    stream:
+        motor_encoder: 0
+        motor_position: 0
+        motor_torque: 0
+        index: 0
+        current_pid: 0
+        velocity_pid: 0
+        position_pid: 0

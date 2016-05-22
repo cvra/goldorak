@@ -10,3 +10,6 @@
 [submodule "proximity-beacon-firmware"]
 	path = proximity-beacon-firmware
 	url = https://github.com/cvra/proximity-beacon-firmware.git
+[submodule "motor-control-firmware"]
+	path = motor-control-firmware
+	url = https://github.com/cvra/motor-control-firmware

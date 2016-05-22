@@ -3,3 +3,6 @@ uavcan_nodes:
     right_wheel: 50
     beacon: 54
     umbrella: 62
+    fishing_y_axis: 59
+    fishing_z_axis: 60
+    fishing_impeller: 61
