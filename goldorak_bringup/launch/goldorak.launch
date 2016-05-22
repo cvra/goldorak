@@ -3,20 +3,12 @@
     <arg name="dynamic_motor_config" default="false"/>
     <arg name="map_file" default="$(find goldorak_navigation)/map/eurobot.yaml"/>
 
-    <rosparam command="load" file="$(find goldorak_bringup)/param/uavcan_nodes.yaml"/>
-    <rosparam command="load" file="$(find goldorak_bringup)/param/robot.yaml"/>
     <param name="use_sim_time" value="false"/>
-
-    <arg name="model" default="$(find goldorak_description)/urdf/goldorak.xacro"/>
-    <param name="robot_description" command="$(find xacro)/xacro.py $(arg model)" />
 
     <!-- Map setup -->
     <include file="$(find goldorak_navigation)/launch/map.launch">
         <arg name="map_file" value="$(arg map_file)"/>
     </include>
-
-    <!-- TF setup -->
-    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
 
     <!-- Robot base controller -->
     <include file="$(find goldorak_base)/launch/base.launch">

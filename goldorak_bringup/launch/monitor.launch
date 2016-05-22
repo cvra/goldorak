@@ -1,5 +1,16 @@
 <launch>
-  <arg name="rvizconfig" default="$(find goldorak_bringup)/rviz/monitor.rviz" />
+    <arg name="rvizconfig" default="$(find goldorak_bringup)/rviz/monitor.rviz" />
+    <arg name="model" default="$(find goldorak_description)/urdf/goldorak.xacro"/>
 
-  <node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true" />
+    <param name="robot_description" command="$(find xacro)/xacro.py $(arg model)" />
+
+    <!-- TF setup -->
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
+    <!-- Joint state publisher nodelet -->
+    <node pkg="nodelet" type="nodelet" name="joint_state_publisher_node"
+        args="standalone goldorak_base/joint_state_publisher_nodelet"
+        output="screen">
+    </node>
+
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true" />
 </launch>

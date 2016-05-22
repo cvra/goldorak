@@ -2,7 +2,7 @@
   <arg name="simulated_can" default="false"/>
 
   <rosparam file="$(find goldorak_bringup)/param/uavcan_nodes.yaml"/>
-  <rosparam file="$(find goldorak_base)/param/base.yaml"/>
+  <rosparam file="$(find goldorak_bringup)/param/robot.yaml"/>
 
   <!-- Uavcan bridge -->
   <group unless="$(arg simulated_can)">
@@ -17,13 +17,6 @@
         args="manager"
         output="screen">
     <param name="num_worker_threads" value="8"/>
-  </node>
-
-
-  <!-- Joint state publisher nodelet -->
-  <node pkg="nodelet" type="nodelet" name="joint_state_publisher_nodelet"
-        args="load goldorak_base/joint_state_publisher_nodelet base_nodelet_manager"
-        output="screen">
   </node>
 
   <!-- Odometry nodelet -->
