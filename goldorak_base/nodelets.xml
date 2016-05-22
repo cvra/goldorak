@@ -27,3 +27,13 @@
     </description>
   </class>
 </library>
+
+<library path="lib/libfishing_nodelet">
+  <class name="goldorak_base/fishing_nodelet"
+         type="goldorak_base::fishing_nodelet"
+         base_class_type="nodelet::Nodelet">
+    <description>
+      Goldorak's fishing system controller
+    </description>
+  </class>
+</library>

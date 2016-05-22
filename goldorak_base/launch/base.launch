@@ -34,4 +34,10 @@
         args="load goldorak_base/controller_nodelet base_nodelet_manager"
         output="screen">
   </node>
+
+  <!-- Fishing module controller nodelet -->
+  <node pkg="nodelet" type="nodelet" name="fishing_nodelet"
+        args="load goldorak_base/fishing_nodelet base_nodelet_manager"
+        output="screen">
+  </node>
 </launch>

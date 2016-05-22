@@ -17,3 +17,14 @@ diffbase:
     left_wheel:
         radius: 0.016
         direction: 1
+
+fishing:
+    y_axis:
+        range: 12
+        direction: 1
+    z_axis:
+        range: 10
+        direction: -1
+    impeller:
+        speed: 6
+        direction: 1
