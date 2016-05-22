@@ -16,6 +16,9 @@ namespace goldorak_base
     {
         y_index = 0;
         y_pos = 0;
+
+        z_index = 0;
+        z_pos = 0;
     }
 
     void fishing_nodelet::onInit()
@@ -27,11 +30,20 @@ namespace goldorak_base
         node.param<float>("fishing/y_axis/range", y_range, 1);
         node.param<int>("fishing/y_axis/direction", y_direction, 1);
 
+        node.param<float>("fishing/z_axis/range", z_range, 1);
+        node.param<int>("fishing/z_axis/direction", z_direction, 1);
+
         y_index_sub = node.subscribe("fishing_y_axis/feedback/index", 1,
             &goldorak_base::fishing_nodelet::y_index_cb, this);
         y_position_pub = node.advertise<cvra_msgs::MotorControlSetpoint>("fishing_y_axis/setpoint", 1);
         y_axis_server = node.advertiseService("fishing_y_axis_control",
             &goldorak_base::fishing_nodelet::y_control_cb, this);
+
+        z_index_sub = node.subscribe("fishing_z_axis/feedback/index", 1,
+            &goldorak_base::fishing_nodelet::z_index_cb, this);
+        z_position_pub = node.advertise<cvra_msgs::MotorControlSetpoint>("fishing_z_axis/setpoint", 1);
+        z_axis_server = node.advertiseService("fishing_z_axis_control",
+            &goldorak_base::fishing_nodelet::z_control_cb, this);
 
         timer = node.createTimer(ros::Duration(0.1),
             &goldorak_base::fishing_nodelet::timer_cb, this);
@@ -61,14 +73,42 @@ namespace goldorak_base
         return true;
     }
 
+    void fishing_nodelet::z_index_cb(const std_msgs::Float32ConstPtr& msg)
+    {
+        z_index = msg->data;
+        NODELET_DEBUG("Got z-axis index %f", z_index);
+    }
+
+    bool fishing_nodelet::z_control_cb(
+        goldorak_base::FishingAxisControl::Request  &req,
+        goldorak_base::FishingAxisControl::Response &res)
+    {
+        NODELET_DEBUG("Running z-axis control service call");
+
+        if (req.state == "on") {
+            z_pos = z_index + z_range * z_direction;
+        } else {
+            z_pos = z_index;
+        }
+
+        res.ok = true;
+        return true;
+    }
+
     void fishing_nodelet::timer_cb(const ros::TimerEvent&)
     {
         NODELET_DEBUG("Sending setpoints to fishing module motor boards");
 
-        cvra_msgs::MotorControlSetpoint y_setpoint;
+        cvra_msgs::MotorControlSetpoint y_setpoint, z_setpoint;
+
         y_setpoint.mode = cvra_msgs::MotorControlSetpoint::MODE_CONTROL_POSITION;
         y_setpoint.node_name = "fishing_y_axis";
         y_setpoint.position = y_pos;
         y_position_pub.publish(y_setpoint);
+
+        z_setpoint.mode = cvra_msgs::MotorControlSetpoint::MODE_CONTROL_POSITION;
+        z_setpoint.node_name = "fishing_z_axis";
+        z_setpoint.position = z_pos;
+        z_position_pub.publish(z_setpoint);
     }
 }
