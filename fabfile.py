@@ -76,6 +76,34 @@ def strat_view():
         local('source ~/catkin_ws/devel/setup.bash && \
                rosrun smach_viewer smach_viewer.py', shell='/bin/bash')
 
+def setpoint():
+    """
+    Send setpoint
+    """
+    if len(env.hosts) > 0:
+        robot_ip = env.hosts[-1]
+        local_ip = '192.168.8.1'
+    else:
+        robot_ip = '127.0.0.1'
+        local_ip = '127.0.0.1'
+
+    with shell_env(ROS_IP=local_ip, ROS_MASTER_URI='http://{}:11311'.format(robot_ip)):
+        local('source ~/catkin_ws/devel/setup.bash && \
+               python ~/catkin_ws/src/goldorak/setpoint.py', shell='/bin/bash')
+
+def tune_pid():
+    """
+    Launch robot's full ROS stack
+    """
+    if len(env.hosts) > 0:
+        ip = env.hosts[-1]
+    else:
+        ip = '127.0.0.1'
+
+    with shell_env(ROS_IP=ip, ROS_MASTER_URI='http://{}:11311'.format(ip)):
+        _bash_run('source ~/catkin_ws/devel/setup.bash && \
+                   roslaunch goldorak_bringup test_motor.launch')
+
 def monitor():
     """
     Monitor robot using Rviz
