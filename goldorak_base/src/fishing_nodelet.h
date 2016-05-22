@@ -15,12 +15,13 @@ namespace goldorak_base
             virtual void onInit();
 
         private:
-            float y_range, y_index, y_pos, z_range, z_index, z_pos;
-            int y_direction, z_direction;
+            float y_range, y_index, y_pos, z_range, z_index, z_pos,
+                impeller_speed, impeller_speed_range;
+            int y_direction, z_direction, impeller_direction;
 
             ros::Subscriber y_index_sub, z_index_sub;
-            ros::Publisher y_position_pub, z_position_pub;
-            ros::ServiceServer y_axis_server, z_axis_server;
+            ros::Publisher y_position_pub, z_position_pub, impeller_speed_pub;
+            ros::ServiceServer y_axis_server, z_axis_server, impeller_server;
 
             ros::Timer timer;
 
@@ -31,6 +32,10 @@ namespace goldorak_base
 
             void z_index_cb(const std_msgs::Float32ConstPtr& msg);
             bool z_control_cb(
+                goldorak_base::FishingAxisControl::Request  &req,
+                goldorak_base::FishingAxisControl::Response &res);
+
+            bool impeller_control_cb(
                 goldorak_base::FishingAxisControl::Request  &req,
                 goldorak_base::FishingAxisControl::Response &res);
 
