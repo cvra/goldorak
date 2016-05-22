@@ -1,0 +1,40 @@
+<launch>
+  <arg name="simulated_can" default="false"/>
+
+  <rosparam file="$(find goldorak_bringup)/param/uavcan_nodes.yaml"/>
+  <rosparam file="$(find goldorak_base)/param/base.yaml"/>
+
+  <!-- Uavcan bridge -->
+  <group unless="$(arg simulated_can)">
+    <node pkg="goldorak_base" type="uavcan_bridge" name="uavcan_bridge"
+          args="10"
+          output="screen">
+    </node>
+  </group>
+
+  <!-- Nodelet manager -->
+  <node pkg="nodelet" type="nodelet" name="base_nodelet_manager"
+        args="manager"
+        output="screen">
+    <param name="num_worker_threads" value="8"/>
+  </node>
+
+
+  <!-- Joint state publisher nodelet -->
+  <node pkg="nodelet" type="nodelet" name="joint_state_publisher_nodelet"
+        args="load goldorak_base/joint_state_publisher_nodelet base_nodelet_manager"
+        output="screen">
+  </node>
+
+  <!-- Odometry nodelet -->
+  <node pkg="nodelet" type="nodelet" name="odometry_nodelet"
+        args="load goldorak_base/odometry_nodelet base_nodelet_manager"
+        output="screen">
+  </node>
+
+  <!-- Wheelbase controller nodelet -->
+  <node pkg="nodelet" type="nodelet" name="controller_nodelet"
+        args="load goldorak_base/controller_nodelet base_nodelet_manager"
+        output="screen">
+  </node>
+</launch>

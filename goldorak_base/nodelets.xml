@@ -1,0 +1,29 @@
+<library path="lib/libjoint_state_publisher_nodelet">
+  <class name="goldorak_base/joint_state_publisher_nodelet"
+         type="goldorak_base::joint_state_publisher_nodelet"
+         base_class_type="nodelet::Nodelet">
+    <description>
+      Goldorak joint state publisher
+    </description>
+  </class>
+</library>
+
+<library path="lib/libodometry_nodelet">
+  <class name="goldorak_base/odometry_nodelet"
+         type="goldorak_base::odometry_nodelet"
+         base_class_type="nodelet::Nodelet">
+    <description>
+      Goldorak's differential wheelbase odometry
+    </description>
+  </class>
+</library>
+
+<library path="lib/libcontroller_nodelet">
+  <class name="goldorak_base/controller_nodelet"
+         type="goldorak_base::controller_nodelet"
+         base_class_type="nodelet::Nodelet">
+    <description>
+      Goldorak's differential wheelbase controller
+    </description>
+  </class>
+</library>

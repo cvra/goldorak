@@ -30,6 +30,8 @@ public:
     UavcanRosProximityBeaconDriver(Node& uavcan_node, ros::NodeHandle& ros_node):
         UavcanProximityBeaconDriver(uavcan_node)
     {
+        ROS_DEBUG("Starting proximity beacon driver");
+
         /* Get beacon ID */
         ros_node.getParam("/uavcan_nodes/beacon", beacon_node_id);
         ros_node.param<float>("reflector_diameter", reflector_diameter, 0.080f);
@@ -40,6 +42,8 @@ public:
             &UavcanRosProximityBeaconDriver::setting_cb, this);
         distance_pub = ros_node.advertise<std_msgs::Float32>("beacon/distance", 10);
         angle_pub = ros_node.advertise<std_msgs::Float32>("beacon/angle", 10);
+
+        ROS_DEBUG("Proximity beacon driver is ready");
     }
 
     void setting_cb(const std_msgs::Float32::ConstPtr& msg)

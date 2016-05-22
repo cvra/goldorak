@@ -1,8 +1,8 @@
 <launch>
-    <rosparam command="load" file="$(find uavcan_core)/tests/test_config.yaml" />
+    <rosparam command="load" file="$(find goldorak_base)/tests/test_config.yaml" />
 
     <test test-name="motor_param_test"
-          pkg="uavcan_core"
+          pkg="goldorak_base"
           type="motor_param_test"
           ns="robot/motor" />
 </launch>

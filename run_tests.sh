@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
-
 source /opt/ros/indigo/setup.bash
-
-pushd uavcan_core
 
 # Build UAVCAN
 mkdir uavcan/libuavcan/build
@@ -20,9 +17,7 @@ pushd uavcan/libuavcan/dsdl_compiler
 ./libuavcan_dsdlc ../../../../cvra_msgs/uavcan/cvra/
 popd
 
-popd # exit uavcan_core
-
 pushd ../..
-catkin run_tests cvra_msgs uavcan_core goldorak_diffbase goldorak_bringup
+catkin run_tests cvra_msgs goldorak_base goldorak_diffbase goldorak_bringup
 catkin_test_results build
 popd

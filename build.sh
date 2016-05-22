@@ -3,9 +3,10 @@
 source /opt/ros/indigo/setup.bash
 source ~/catkin_ws/devel/setup.bash
 
-pushd uavcan_core
-
 # Build UAVCAN
+export CXXFLAGS="$CXXFLAGS -fPIC"
+export CFLAGS="$CFLAGS -fPIC"
+
 mkdir -p uavcan/libuavcan/build
 pushd uavcan/libuavcan/build
 cmake ..
@@ -18,14 +19,12 @@ export UAVCAN_LIB=$(pwd)/uavcan/libuavcan/build/libuavcan.a
 pushd uavcan/libuavcan/dsdl_compiler
 ./setup.py build
 ./libuavcan_dsdlc ../../dsdl/uavcan/
-./libuavcan_dsdlc ../../../../cvra_msgs/uavcan/cvra/
+./libuavcan_dsdlc ../../../cvra_msgs/uavcan/cvra/
 popd
-
-popd # exit uavcan_core
 
 pushd ../..
 catkin build cvra_msgs
 source devel/setup.bash
-catkin build uavcan_core goldorak_diffbase goldorak_bringup goldorak_state_publisher goldorak_description goldorak_navigation goldorak_strategy
+catkin build goldorak_base goldorak_bringup goldorak_description goldorak_navigation goldorak_strategy
 source devel/setup.bash
 popd

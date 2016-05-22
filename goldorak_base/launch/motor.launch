@@ -3,7 +3,7 @@
     <arg name="node_uavcan_id" default="10" />
     <arg name="motor_uavcan_id" default="50" />
     <arg name="dynamic_motor_config" default="false"/>
-    <arg name="default_params" default="$(find uavcan_core)/param/motor.yaml"/>
+    <arg name="default_params" value="$(find goldorak_bringup)/param/$(arg motor_ns).yaml"/>
 
     <!-- Load parameters into Parameter server -->
     <rosparam command="load" file="$(arg default_params)" ns="$(arg motor_ns)" />
@@ -11,7 +11,7 @@
     <!-- Start configuration node if we want dynamic configuration ... -->
     <group if="$(arg dynamic_motor_config)">
       <node name="motor_control_config"
-            pkg="uavcan_core"
+            pkg="goldorak_base"
             type="motor_config_server"
             respawn="true"
             ns="$(arg motor_ns)"
@@ -22,7 +22,7 @@
 
     <group unless="$(arg dynamic_motor_config)">
       <node name="motor_control_config"
-            pkg="uavcan_core"
+            pkg="goldorak_base"
             type="motor_config_send_once"
             respawn="false"
             ns="$(arg motor_ns)"

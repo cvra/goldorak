@@ -9,8 +9,8 @@
   <license>MIT</license>
 
   <buildtool_depend>catkin</buildtool_depend>
-  <build_depend>uavcan_core</build_depend>
-  <run_depend>uavcan_core</run_depend>
+  <build_depend>goldorak_base</build_depend>
+  <run_depend>goldorak_base</run_depend>
 
   <export>
   </export>

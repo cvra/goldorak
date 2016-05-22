@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <package>
-  <name>goldorak_diffbase</name>
+  <name>goldorak_base</name>
   <version>0.1.0</version>
-  <description>The goldorak_diffbase package</description>
+  <description>UAVCAN-ROS bridge package</description>
 
-  <maintainer email="missrisalaheddine@gmail.com">Salah-Eddine Missr</maintainer>
+  <maintainer email="missrisalaheddine@gmail.com">Salah-Eddine Missri</maintainer>
 
   <license>MIT</license>
 
@@ -12,15 +12,25 @@
 
   <build_depend>cvra_msgs</build_depend>
   <build_depend>roscpp</build_depend>
+  <build_depend>rospy</build_depend>
   <build_depend>std_msgs</build_depend>
+  <build_depend>sensor_msgs</build_depend>
   <build_depend>nav_msgs</build_depend>
+  <build_depend>geometry_msgs</build_depend>
   <build_depend>tf</build_depend>
+  <build_depend>nodelet</build_depend>
+
   <run_depend>cvra_msgs</run_depend>
   <run_depend>roscpp</run_depend>
+  <run_depend>rospy</run_depend>
   <run_depend>std_msgs</run_depend>
+  <run_depend>sensor_msgs</run_depend>
   <run_depend>nav_msgs</run_depend>
+  <run_depend>geometry_msgs</run_depend>
   <run_depend>tf</run_depend>
+  <run_depend>nodelet</run_depend>
 
   <export>
+    <nodelet plugin="${prefix}/nodelets.xml" />
   </export>
 </package>
