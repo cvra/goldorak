@@ -5,7 +5,7 @@
 
 #include <std_msgs/Float32.h>
 #include <cvra_msgs/MotorControlSetpoint.h>
-#include <goldorak_base/FishingYAxisControl.h>
+#include <goldorak_base/FishingAxisControl.h>
 
 
 PLUGINLIB_EXPORT_CLASS(goldorak_base::fishing_nodelet, nodelet::Nodelet);
@@ -46,8 +46,8 @@ namespace goldorak_base
     }
 
     bool fishing_nodelet::y_control_cb(
-        goldorak_base::FishingYAxisControl::Request  &req,
-        goldorak_base::FishingYAxisControl::Response &res)
+        goldorak_base::FishingAxisControl::Request  &req,
+        goldorak_base::FishingAxisControl::Response &res)
     {
         NODELET_DEBUG("Running y-axis control service call");
 

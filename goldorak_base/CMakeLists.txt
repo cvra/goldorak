@@ -33,7 +33,7 @@ find_package(catkin REQUIRED COMPONENTS
 # Generate service messages in 'srv' folder
 add_service_files(
     FILES
-    FishingYAxisControl.srv
+    FishingAxisControl.srv
 )
 generate_messages(
     DEPENDENCIES

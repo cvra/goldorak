@@ -4,7 +4,7 @@
 #include <nodelet/nodelet.h>
 
 #include <std_msgs/Float32.h>
-#include <goldorak_base/FishingYAxisControl.h>
+#include <goldorak_base/FishingAxisControl.h>
 
 namespace goldorak_base
 {
@@ -26,8 +26,8 @@ namespace goldorak_base
 
             void y_index_cb(const std_msgs::Float32ConstPtr& msg);
             bool y_control_cb(
-                goldorak_base::FishingYAxisControl::Request  &req,
-                goldorak_base::FishingYAxisControl::Response &res);
+                goldorak_base::FishingAxisControl::Request  &req,
+                goldorak_base::FishingAxisControl::Response &res);
 
             void timer_cb(const ros::TimerEvent&);
     };
