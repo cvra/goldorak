@@ -59,14 +59,6 @@
             <arg name="dynamic_motor_config" value="$(arg dynamic_motor_config)"/>
         </include>
 
-        <!-- Fishing module y axis config server and parameters -->
-        <include file="$(find uavcan_core)/launch/motor.launch">
-            <arg name="motor_ns" value="fishing_y_axis" />
-            <arg name="node_uavcan_id" value="13" />
-            <arg name="motor_uavcan_id" value="59" />
-            <arg name="dynamic_motor_config" value="$(arg dynamic_motor_config)"/>
-            <arg name="default_params" value="$(find goldorak_bringup)/param/fishing_y_axis.yaml" />
-
         <!-- Umbrella config server and parameters -->
         <include file="$(find uavcan_core)/launch/motor.launch">
             <arg name="motor_ns" value="umbrella" />
@@ -74,6 +66,15 @@
             <arg name="motor_uavcan_id" value="62" />
             <arg name="dynamic_motor_config" value="$(arg dynamic_motor_config)"/>
             <arg name="default_params" value="$(find goldorak_bringup)/param/umbrella.yaml" />
+        </include>
+
+        <!-- Fishing module y axis config server and parameters -->
+        <include file="$(find uavcan_core)/launch/motor.launch">
+            <arg name="motor_ns" value="fishing_y_axis" />
+            <arg name="node_uavcan_id" value="13" />
+            <arg name="motor_uavcan_id" value="59" />
+            <arg name="dynamic_motor_config" value="$(arg dynamic_motor_config)"/>
+            <arg name="default_params" value="$(find goldorak_bringup)/param/fishing_y_axis.yaml" />
         </include>
         <!-- Fishing module z axis config server and parameters -->
         <include file="$(find uavcan_core)/launch/motor.launch">
