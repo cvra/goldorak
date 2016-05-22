@@ -62,6 +62,16 @@
             <arg name="dynamic_motor_config" value="$(arg dynamic_motor_config)"/>
             <arg name="default_params" value="$(find goldorak_bringup)/param/beacon.yaml" />
         </include>
+
+        <!-- Umbrella config server and parameters -->
+        <include file="$(find uavcan_core)/launch/motor.launch">
+            <arg name="motor_ns" value="umbrella" />
+            <arg name="node_uavcan_id" value="16" />
+            <arg name="motor_uavcan_id" value="62" />
+            <arg name="dynamic_motor_config" value="$(arg dynamic_motor_config)"/>
+            <arg name="default_params" value="$(find goldorak_bringup)/param/umbrella.yaml" />
+        </include>
+
     </group>
 
     <!-- Differential base controller and odometry -->

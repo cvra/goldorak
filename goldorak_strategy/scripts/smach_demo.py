@@ -7,6 +7,7 @@ from math import radians
 import rospy
 import roslib
 import actionlib
+from cvra_msgs.msg import MotorControlSetpoint
 from move_base_msgs.msg import MoveBaseGoal, MoveBaseAction
 from actionlib_msgs.msg import GoalID
 
@@ -38,16 +39,33 @@ def mirror_point(x, y):
     raise ValueError("Unknown team")
 
 
+
 class WaitStartState(State):
     def __init__(self):
         State.__init__(self, outcomes=[Transitions.SUCCESS])
         self.abort_navigation_pub = rospy.Publisher('move_base/cancel', GoalID, queue_size=1)
+        self.umbrella_pub = rospy.Publisher('/umbrella/setpoint', MotorControlSetpoint, queue_size=1)
 
     def end_of_game_cb(self, event):
         rospy.loginfo("End of game")
         rospy.loginfo("Cancelling move_base actions")
         self.abort_navigation_pub.publish(GoalID())
-        rospy.loginfo("Opening parasol")
+
+        # Opens umbrella
+        rospy.loginfo("Opening umbrella")
+        rate = rospy.Rate(10) # 10hz
+
+        for i in range(50):
+            msg = MotorControlSetpoint(node_name="umbrella", voltage=12,
+                    mode = MotorControlSetpoint.MODE_CONTROL_VOLTAGE)
+            self.umbrella_pub.publish(msg)
+            rate.sleep()
+
+        msg = MotorControlSetpoint(node_name="umbrella", voltage=0,
+                mode = MotorControlSetpoint.MODE_CONTROL_VOLTAGE)
+        self.umbrella_pub.publish(msg)
+
+        rospy.loginfo("Umbrella openend")
 
     def execute(self, userdata):
         rospy.loginfo('Waiting for start')
