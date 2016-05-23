@@ -17,6 +17,11 @@ from smach_ros import SimpleActionState, IntrospectionServer
 
 from geometry_msgs.msg import PoseWithCovarianceStamped, Quaternion
 from tf.transformations import quaternion_from_euler
+from goldorak_base.srv import FishingAxisControl
+
+FISHING_Y_AXIS_SERVICE = 'fishing_y_axis_control'
+FISHING_Z_AXIS_SERVICE = 'fishing_z_axis_control'
+FISHING_IMPELLER_SERVICE = 'fishing_impeller_control'
 
 GAME_DURATION = 90
 
@@ -37,6 +42,19 @@ def mirror_point(x, y):
         return 3.0 - x, y
 
     raise ValueError("Unknown team")
+
+
+def fishing_y_axis_deploy(state):
+
+    if state:
+        state = "on"
+    else:
+        state = "off"
+
+    rospy.wait_for_service(FISHING_Y_AXIS_SERVICE)
+
+    f = rospy.ServiceProxy(FISHING_Y_AXIS_SERVICE, FishingAxisControl)
+    f(state)
 
 
 
@@ -102,21 +120,42 @@ def create_door_state_machine(door_x):
 
     return seq
 
+class FishingState(State):
+    def __init__(self):
+        State.__init__(self, outcomes=[Transitions.SUCCESS])
+
+    def execute(self, userdata):
+        rospy.wait_for_service(FISHING_Y_AXIS_SERVICE)
+        rospy.loginfo("Opening fishing module")
+        fishing_y_axis_deploy(True)
+        rospy.sleep(3)
+        rospy.loginfo("Closing fishing module")
+        fishing_y_axis_deploy(False)
+        rospy.sleep(3)
+
+        return Transitions.SUCCESS
+
+
 def create_fish_sequence():
     seq = Sequence(outcomes=[Transitions.SUCCESS, Transitions.FAILURE],
                    connector_outcome=Transitions.SUCCESS)
 
     margin = 0.13
-    waypoints = (
+    approach = (
         ('approach', mirror_point(0.73, 0.3), -90),
         ('close', mirror_point(0.73, margin), -90),
         ('orientation', mirror_point(0.73, margin), 0),
+    )
+
+    drop = (
         ('drop', mirror_point(1.5, margin), 0),
         ('drop2', mirror_point(1.5, margin), 0),
     )
 
     with seq:
-        add_waypoints(waypoints)
+        add_waypoints(approach)
+        Sequence.add('grab_fish', FishingState())
+        add_waypoints(drop)
 
     return seq
 
