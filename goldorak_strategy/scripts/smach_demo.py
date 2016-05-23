@@ -169,7 +169,7 @@ def main():
 
     msg = PoseWithCovarianceStamped()
     msg.header.stamp = rospy.get_rostime()
-    x, y = mirror_point(0.105, 0.900)
+    x, y = mirror_point(0.105, 0.900 + 0.21 / 2)
     msg.pose.pose.position.x = x
     msg.pose.pose.position.y = y
     msg.pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, 0))
