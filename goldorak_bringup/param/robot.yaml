@@ -1,5 +1,6 @@
 obstacle_avoidance:
-    braking_distance: 0.3 # distance below which any obstacle detected will make the robot brake
+    braking_distance: 0.5 # distance below which any obstacle detected will make the robot brake
+    vision_cone_angle: 1.0 # rad, vision cone in which obstacles detected are considered
 
 diffbase:
     # Distance between external encoder wheels
