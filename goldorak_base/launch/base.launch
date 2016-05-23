@@ -4,6 +4,10 @@
   <rosparam file="$(find goldorak_bringup)/param/uavcan_nodes.yaml"/>
   <rosparam file="$(find goldorak_bringup)/param/robot.yaml"/>
 
+  <group if="$(arg simulated_can)">
+    <rosparam file="$(find goldorak_bringup)/param/robot_simulated.yaml"/>
+  </group>
+
   <!-- Uavcan bridge -->
   <group unless="$(arg simulated_can)">
     <node pkg="goldorak_base" type="uavcan_bridge" name="uavcan_bridge"
