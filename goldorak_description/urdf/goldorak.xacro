@@ -1,15 +1,16 @@
 <?xml version="1.0"?>
 <robot name="goldorak" xmlns:xacro="http://ros.org/wiki/xacro">
 
-  <xacro:property name="body_radius" value="0.12" />
-  <xacro:property name="body_height" value="0.4" />
+  <xacro:property name="body_radius" value="0.11" />
+  <xacro:property name="body_height" value="0.35" />
   <xacro:property name="wheelbase" value="0.194" />
   <xacro:property name="wheel_radius" value="0.029" />
   <xacro:property name="wheel_thickness" value="0.01" />
-  <xacro:property name="wheel_offset" value="-0.15" />
   <xacro:property name="casterbase" value="0.194" />
   <xacro:property name="caster_radius" value="0.01" />
-  <xacro:property name="caster_offset" value="-0.19" />
+  <xacro:property name="beacon_radius" value="0.04" />
+  <xacro:property name="beacon_height" value="0.08" />
+  <xacro:property name="beacon_offset" value="${body_height + beacon_height / 2}" />
   <xacro:property name="pi" value="3.1415" />
 
   <material name="blue">
@@ -36,19 +37,21 @@
   <!-- Base link -->
   <link name="base_link">
     <visual>
+      <origin xyz="0 0 0.175" />
       <geometry>
         <cylinder radius="${body_radius}" length="${body_height}"/>
       </geometry>
       <material name="white"/>
     </visual>
     <collision>
+      <origin xyz="0 0 0.175" />
       <geometry>
         <cylinder radius="${body_radius}" length="${body_height}"/>
       </geometry>
     </collision>
     <inertial>
-      <mass value="2" />
-      <origin xyz="0 0 0.0" />
+      <mass value="4" />
+      <origin xyz="0 0 0" />
       <inertia ixx="0.01" ixy="0.0" ixz="0.0"
                iyy="0.01" iyz="0.0"
                izz="0.5" />
@@ -88,7 +91,7 @@
       <child link="${prefix}_wheel"/>
       <origin xyz="0
                    ${(wheelbase + wheel_thickness) * reflect / 2}
-                   ${wheel_offset - wheel_radius}"
+                   0"
               rpy="0 0 0"/>
     </joint>
 
@@ -151,7 +154,7 @@
       <child link="${prefix}_caster"/>
       <origin xyz="${(casterbase + caster_radius) * reflect / 2}
                    0
-                   ${caster_offset - caster_radius}"
+                   ${- caster_radius}"
               rpy="0 0 0"/>
     </joint>
 
@@ -170,26 +173,26 @@
   <xacro:caster prefix="front" reflect="1"/>
   <xacro:caster prefix="rear" reflect="-1"/>
 
-  <!-- Laser scanner 1D link -->
-  <joint name="laser_joint" type="fixed">
+  <!-- Beacon link -->
+  <joint name="beacon_joint" type="fixed">
     <axis xyz="0 1 0" />
-    <origin xyz="0 0 ${body_height / 2}" rpy="0 0 0"/>
+    <origin xyz="0 0 ${beacon_offset}" rpy="0 0 0"/>
     <parent link="base_link"/>
-    <child link="laser_link"/>
+    <child link="beacon_link"/>
   </joint>
 
-  <link name="laser_link">
+  <link name="beacon_link">
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <cylinder radius="0.02" length="0.02"/>
+        <cylinder radius="${beacon_radius}" length="${beacon_height}"/>
       </geometry>
     </collision>
 
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <cylinder radius="0.02" length="0.02"/>
+        <cylinder radius="${beacon_radius}" length="${beacon_height}"/>
       </geometry>
     </visual>
 
@@ -210,7 +213,7 @@
   </gazebo>
 
   <!-- Gazebo plugin for Laser scanner -->
-  <gazebo reference="laser_link">
+<!--   <gazebo reference="laser_link">
     <sensor type="ray" name="laser_sensor">
       <pose>0 0 0 0 0 0</pose>
       <visualize>true</visualize>
@@ -240,5 +243,5 @@
         <frameName>laser_link</frameName>
       </plugin>
     </sensor>
-  </gazebo>
+  </gazebo> -->
 </robot>
