@@ -24,10 +24,10 @@ motor_control_config:
         d: 0.
         i_limit: 1000.
     pid_position:
-        p: 0.03
-        i: 0.
+        p: 1.
+        i: 10.
         d: 0.
-        i_limit: 0.
+        i_limit: 50.
     stream:
         motor_encoder: 0
         motor_position: 10
