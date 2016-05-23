@@ -72,7 +72,7 @@ namespace goldorak_base
     {
         NODELET_DEBUG("Running y-axis control service call");
 
-        if (req.state == "on") {
+        if (req.state) {
             y_pos = y_index + y_range * y_direction;
         } else {
             y_pos = y_index;
@@ -94,7 +94,7 @@ namespace goldorak_base
     {
         NODELET_DEBUG("Running z-axis control service call");
 
-        if (req.state == "on") {
+        if (req.state) {
             z_pos = z_index + z_range * z_direction;
         } else {
             z_pos = z_index;
@@ -110,7 +110,7 @@ namespace goldorak_base
     {
         NODELET_DEBUG("Running impeller control service call");
 
-        if (req.state == "on") {
+        if (req.state) {
             impeller_speed = impeller_speed_range * impeller_direction;
         } else {
             impeller_speed = 0;
