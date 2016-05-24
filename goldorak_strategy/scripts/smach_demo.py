@@ -45,12 +45,6 @@ def mirror_point(x, y):
 
 
 def fishing_y_axis_deploy(state):
-
-    if state:
-        state = "on"
-    else:
-        state = "off"
-
     rospy.wait_for_service(FISHING_Y_AXIS_SERVICE)
 
     f = rospy.ServiceProxy(FISHING_Y_AXIS_SERVICE, FishingAxisControl)
