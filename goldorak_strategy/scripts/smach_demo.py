@@ -122,18 +122,43 @@ def create_door_state_machine(door_x):
 
     return seq
 
-class FishingState(State):
+class FishAndHoldState(State):
     def __init__(self):
         State.__init__(self, outcomes=[Transitions.SUCCESS])
 
     def execute(self, userdata):
         rospy.wait_for_service(FISHING_Y_AXIS_SERVICE)
+
         rospy.loginfo("Opening fishing module")
         fishing_y_axis_deploy(True)
-        rospy.sleep(3)
+        rospy.sleep(2)
+
+        rospy.loginfo("Fishing...")
+
+        rospy.loginfo("Holding fishing module")
+
+        return Transitions.SUCCESS
+
+class FishDropState(State):
+    def __init__(self):
+        State.__init__(self, outcomes=[Transitions.SUCCESS])
+
+    def execute(self, userdata):
+        rospy.loginfo("Dropping fish")
+
+        return Transitions.SUCCESS
+
+
+class FishCloseState(State):
+    def __init__(self):
+        State.__init__(self, outcomes=[Transitions.SUCCESS])
+
+    def execute(self, userdata):
+        rospy.wait_for_service(FISHING_Y_AXIS_SERVICE)
+
         rospy.loginfo("Closing fishing module")
         fishing_y_axis_deploy(False)
-        rospy.sleep(3)
+        rospy.sleep(1)
 
         return Transitions.SUCCESS
 
@@ -156,8 +181,10 @@ def create_fish_sequence():
 
     with seq:
         add_waypoints(approach)
-        Sequence.add('grab_fish', FishingState())
+        Sequence.add('grab_fish', FishAndHoldState())
         add_waypoints(drop)
+        Sequence.add('drop_fish', FishDropState())
+        Sequence.add('end_fishing', FishCloseState())
 
     return seq
 
