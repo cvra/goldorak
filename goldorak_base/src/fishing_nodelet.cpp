@@ -15,12 +15,12 @@ namespace goldorak_base
     fishing_nodelet::fishing_nodelet()
     {
         y_index = 0;
-        y_pos = 0;
+        y_on = false;
 
         z_index = 0;
-        z_pos = 0;
+        z_on = false;
 
-        impeller_speed = 0;
+        impeller_on = false;
     }
 
     void fishing_nodelet::onInit()
@@ -72,11 +72,7 @@ namespace goldorak_base
     {
         NODELET_DEBUG("Running y-axis control service call");
 
-        if (req.state) {
-            y_pos = y_index + y_range * y_direction;
-        } else {
-            y_pos = y_index;
-        }
+        y_on = req.state;
 
         res.ok = true;
         return true;
@@ -94,11 +90,7 @@ namespace goldorak_base
     {
         NODELET_DEBUG("Running z-axis control service call");
 
-        if (req.state) {
-            z_pos = z_index + z_range * z_direction;
-        } else {
-            z_pos = z_index;
-        }
+        z_on = req.state;
 
         res.ok = true;
         return true;
@@ -110,11 +102,7 @@ namespace goldorak_base
     {
         NODELET_DEBUG("Running impeller control service call");
 
-        if (req.state) {
-            impeller_speed = impeller_speed_range * impeller_direction;
-        } else {
-            impeller_speed = 0;
-        }
+        impeller_on = req.state;
 
         res.ok = true;
         return true;
@@ -128,17 +116,17 @@ namespace goldorak_base
 
         y_setpoint.mode = cvra_msgs::MotorControlSetpoint::MODE_CONTROL_POSITION;
         y_setpoint.node_name = "fishing_y_axis";
-        y_setpoint.position = y_pos;
+        y_setpoint.position = y_index + y_on * y_range * y_direction;
         y_position_pub.publish(y_setpoint);
 
         z_setpoint.mode = cvra_msgs::MotorControlSetpoint::MODE_CONTROL_POSITION;
         z_setpoint.node_name = "fishing_z_axis";
-        z_setpoint.position = z_pos;
+        z_setpoint.position = z_index + z_on * z_range * z_direction;
         z_position_pub.publish(z_setpoint);
 
         impeller_setpoint.mode = cvra_msgs::MotorControlSetpoint::MODE_CONTROL_VOLTAGE;
         impeller_setpoint.node_name = "fishing_impeller";
-        impeller_setpoint.voltage = impeller_speed;
+        impeller_setpoint.voltage = impeller_on * impeller_speed_range * impeller_direction;
         impeller_speed_pub.publish(impeller_setpoint);
     }
 }
