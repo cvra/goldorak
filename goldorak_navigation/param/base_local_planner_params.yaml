@@ -1,14 +1,14 @@
 DWAPlannerROS:
 
 # Robot Configuration Parameters
-    max_vel_x: 0.50
-    min_vel_x: -0.50
+    max_vel_x: 1.00
+    min_vel_x: -1.00
 
     max_vel_y: 0.00  # diff drive robot
     min_vel_y: 0.00  # diff drive robot
 
-    max_trans_vel: 0.45  # choose slightly less than the base's capability
-    min_trans_vel: 0.025 # this is the min trans velocity when there is negligible rotational velocity
+    max_trans_vel: 0.95  # choose slightly less than the base's capability
+    min_trans_vel: 0.01 # this is the min trans velocity when there is negligible rotational velocity
     trans_stopped_vel: 0.10
 
     # Warning!
@@ -16,10 +16,10 @@ DWAPlannerROS:
     # are non-negligible and small in place rotational velocities will be created.
 
     max_rot_vel: 2.0  # choose slightly less than the base's capability
-    min_rot_vel: 0.01  # this is the min angular velocity when there is negligible translational velocity
+    min_rot_vel: 0.05  # this is the min angular velocity when there is negligible translational velocity
     rot_stopped_vel: 0.10
 
-    acc_lim_x: 1.0
+    acc_lim_x: 2.0
     acc_lim_theta: 5.0
     acc_lim_y: 0.00  # diff drive robot
     acc_limit_trans: 1.0
@@ -35,7 +35,7 @@ DWAPlannerROS:
     vy_samples: 1       # diff drive robot, there is only one sample
     vth_samples: 3      # 20
 
-    angular_sim_granularity: 0.1
+    angular_sim_granularity: 0.2
     sim_granularity: 0.05
 
 # Trajectory Scoring Parameters
@@ -51,7 +51,7 @@ DWAPlannerROS:
 
 # Oscillation Prevention Parameters
     oscillation_reset_dist: 0.01  # 0.05   - how far to travel before resetting oscillation flags
-    oscillation_reset_angle: 0.02  # 0.2
+    oscillation_reset_angle: 0.1  # 0.2
 
 # Debugging
     publish_traj_pc : false
