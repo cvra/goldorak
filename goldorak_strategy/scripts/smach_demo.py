@@ -78,9 +78,18 @@ class WaitStartState(State):
 
         rospy.loginfo("Umbrella openend")
 
+    def wait_for_starter(self):
+        import starter
+
+        while starter.poll(): # activate at falling edge
+            rospy.sleep(0.1)
+
+
     def execute(self, userdata):
         rospy.loginfo('Waiting for start')
-        rospy.loginfo('starting')
+        self.wait_for_starter()
+
+        rospy.loginfo('Starting...')
 
         rospy.Timer(rospy.Duration(GAME_DURATION), self.end_of_game_cb, oneshot=True)
 
