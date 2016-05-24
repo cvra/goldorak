@@ -10,4 +10,4 @@ def poll():
         f = open(STARTER_GPIO_PATH, 'r')
         return bool(int(f.read(1)))
     except IOError:
-        return False
+        return True

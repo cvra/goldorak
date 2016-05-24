@@ -81,7 +81,7 @@ class WaitStartState(State):
     def wait_for_starter(self):
         import starter
 
-        while starter.poll(): # activate at falling edge
+        while not starter.poll(): # activate at falling edge
             rospy.sleep(0.1)
 
 
@@ -167,7 +167,7 @@ def create_fish_sequence():
     seq = Sequence(outcomes=[Transitions.SUCCESS, Transitions.FAILURE],
                    connector_outcome=Transitions.SUCCESS)
 
-    margin = 0.13
+    margin = 0.115
     approach = (
         ('approach', mirror_point(0.73, 0.3), -90),
         ('close', mirror_point(0.73, margin), -90),
@@ -182,9 +182,9 @@ def create_fish_sequence():
     with seq:
         add_waypoints(approach)
         Sequence.add('grab_fish', FishAndHoldState())
-        add_waypoints(drop)
-        Sequence.add('drop_fish', FishDropState())
-        Sequence.add('end_fishing', FishCloseState())
+        #add_waypoints(drop)
+        #Sequence.add('drop_fish', FishDropState())
+        #Sequence.add('end_fishing', FishCloseState())
 
     return seq
 
@@ -198,7 +198,7 @@ def main():
 
     msg = PoseWithCovarianceStamped()
     msg.header.stamp = rospy.get_rostime()
-    x, y = mirror_point(0.105, 0.900 + 0.21 / 2)
+    x, y = mirror_point(0.105, 0.850 + 0.21 / 2)
     msg.pose.pose.position.x = x
     msg.pose.pose.position.y = y
     msg.pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, 0))
@@ -211,8 +211,8 @@ def main():
     with sq:
         Sequence.add('waiting', WaitStartState())
         Sequence.add('fishing', create_fish_sequence())
-        Sequence.add('inner_door', create_door_state_machine(0.3))
-        Sequence.add('outer_door', create_door_state_machine(0.6))
+        # Sequence.add('inner_door', create_door_state_machine(0.3))
+        # Sequence.add('outer_door', create_door_state_machine(0.6))
 
     # Create and start the introspection server
     sis = IntrospectionServer('strat', sq, '/strat')
