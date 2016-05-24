@@ -14,9 +14,12 @@ from smach import StateMachine, State, Sequence
 
 from smach_ros import SimpleActionState, IntrospectionServer
 
-from geometry_msgs.msg import PoseWithCovarianceStamped, Quaternion
+from geometry_msgs.msg import Quaternion
 from tf.transformations import quaternion_from_euler
 from goldorak_base.srv import FishingAxisControl
+
+import reset_pose
+import starter
 
 FISHING_Y_AXIS_SERVICE = 'fishing_y_axis_control'
 FISHING_Z_AXIS_SERVICE = 'fishing_z_axis_control'
@@ -85,8 +88,6 @@ class WaitStartState(State):
         rospy.loginfo("Umbrella openend")
 
     def wait_for_starter(self):
-        import starter
-
         while not starter.poll(): # activate at falling edge
             rospy.sleep(0.1)
 
@@ -204,18 +205,8 @@ def main():
     rospy.init_node('smach_example_state_machine')
 
     # Initialise robot pose
-    pub = rospy.Publisher('initialpose', PoseWithCovarianceStamped, queue_size=1)
-    rospy.sleep(1)
-
-    msg = PoseWithCovarianceStamped()
-    msg.header.stamp = rospy.get_rostime()
     x, y = mirror_point(0.105, 0.900 + 0.21 / 2)
-    msg.pose.pose.position.x = x
-    msg.pose.pose.position.y = y
-    msg.pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, 0))
-
-    pub.publish(msg)
-
+    reset_pose.reset(x, y, 0)
 
     sq = Sequence(outcomes=[Transitions.SUCCESS, Transitions.FAILURE],
                   connector_outcome=Transitions.SUCCESS)
