@@ -60,7 +60,7 @@ public:
     {
         while (ros::ok()) {
             ros::spinOnce();
-            const int res = this->uavcan_node.spin(uavcan::MonotonicDuration::fromMSec(1));
+            const int res = this->uavcan_node.spin(uavcan::MonotonicDuration::fromMSec(10));
             if (res < 0) {
                 std::cerr << "Transient failure in UAVCAN bridge: " << res << std::endl;
             }
