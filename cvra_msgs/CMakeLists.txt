@@ -15,6 +15,7 @@ add_message_files(
     MotorControlSetpoint.msg
     MotorFeedbackPID.msg
     MotorEncoderStamped.msg
+    BeaconSignal.msg
 )
 generate_messages()
 

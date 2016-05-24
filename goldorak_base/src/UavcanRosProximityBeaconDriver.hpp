@@ -6,6 +6,7 @@
 #include <math.h>
 #include "ros/ros.h"
 #include "std_msgs/Float32.h"
+#include "cvra_msgs/BeaconSignal.h"
 
 
 void polar_to_cartesian(float distance, float angle, float *x, float *y)
@@ -23,9 +24,9 @@ public:
     int beacon_node_id;
     float reflector_diameter, index_offset;
     ros::Subscriber settings_sub;
-    ros::Publisher distance_pub, angle_pub;
+    ros::Publisher beacon_pub;
 
-    std_msgs::Float32 opponent_distance_msg, opponent_angle_msg;
+    cvra_msgs::BeaconSignal beacon_msg;
 
     UavcanRosProximityBeaconDriver(Node& uavcan_node, ros::NodeHandle& ros_node):
         UavcanProximityBeaconDriver(uavcan_node)
@@ -40,8 +41,7 @@ public:
         /* Initialise publishers / subscribers */
         settings_sub = ros_node.subscribe("beacon/speed", 10,
             &UavcanRosProximityBeaconDriver::setting_cb, this);
-        distance_pub = ros_node.advertise<std_msgs::Float32>("beacon/distance", 10);
-        angle_pub = ros_node.advertise<std_msgs::Float32>("beacon/angle", 10);
+        beacon_pub = ros_node.advertise<cvra_msgs::BeaconSignal>("beacon/detection", 10);
 
         ROS_DEBUG("Proximity beacon driver is ready");
     }
@@ -59,17 +59,13 @@ public:
 
         /* Check that the source node is expected beacon node */
         if (id == this->beacon_node_id) {
-            float distance = reflector_diameter / (2 * sinf(msg.length / 2.f));
-            float angle = M_2_PI - (msg.start_angle + msg.length / 2.f); // mirrored angle because
+            // Publish distance and angle to opponent
+            this->beacon_msg.distance = reflector_diameter / (2 * sinf(msg.length / 2.f));;
+            this->beacon_msg.angle = M_2_PI - (msg.start_angle + msg.length / 2.f);
+            this->beacon_pub.publish(this->beacon_msg);
 
             ROS_DEBUG("Beacon saw an opponent at [%.2f] m with offset [%.2f] rad",
-                distance, angle);
-
-            // Publish distance and angle to opponent
-            this->opponent_distance_msg.data = distance;
-            this->distance_pub.publish(this->opponent_distance_msg);
-            this->opponent_angle_msg.data = angle;
-            this->angle_pub.publish(this->opponent_angle_msg);
+                this->beacon_msg.distance, this->beacon_msg.angle);
         } else {
             ROS_WARN("Received signal from unregistered beacon ID");
         }
