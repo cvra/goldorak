@@ -1,13 +1,13 @@
 DWAPlannerROS:
 
 # Robot Configuration Parameters
-    max_vel_x: 1.00
-    min_vel_x: -1.00
+    max_vel_x: 0.50
+    min_vel_x: -0.50
 
     max_vel_y: 0.00  # diff drive robot
     min_vel_y: 0.00  # diff drive robot
 
-    max_trans_vel: 0.95  # choose slightly less than the base's capability
+    max_trans_vel: 0.45  # choose slightly less than the base's capability
     min_trans_vel: 0.025 # this is the min trans velocity when there is negligible rotational velocity
     trans_stopped_vel: 0.10
 
@@ -19,13 +19,13 @@ DWAPlannerROS:
     min_rot_vel: 0.01  # this is the min angular velocity when there is negligible translational velocity
     rot_stopped_vel: 0.10
 
-    acc_lim_x: 2.0
+    acc_lim_x: 1.0
     acc_lim_theta: 5.0
     acc_lim_y: 0.00  # diff drive robot
     acc_limit_trans: 1.0
 
 # Goal Tolerance Parameters
-    yaw_goal_tolerance: 0.20
+    yaw_goal_tolerance: 0.10
     xy_goal_tolerance: 0.05
     # latch_xy_goal_tolerance: false
 
@@ -54,8 +54,8 @@ DWAPlannerROS:
     oscillation_reset_angle: 0.02  # 0.2
 
 # Debugging
-    publish_traj_pc : true
-    publish_cost_grid_pc: true
+    publish_traj_pc : false
+    publish_cost_grid_pc: false
     global_frame_id: odom
 
 # Differential-drive robot configuration
