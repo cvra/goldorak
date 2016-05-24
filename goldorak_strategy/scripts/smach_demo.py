@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import time
 import argparse
 from math import radians
 
@@ -138,12 +137,12 @@ def create_fish_sequence():
     approach = (
         ('approach', mirror_point(0.73, 0.3), -90),
         ('close', mirror_point(0.73, margin), -90),
-        ('orientation', mirror_point(0.73, margin), 0),
+        ('orientation', mirror_point(0.73, margin), -180),
     )
 
     drop = (
-        ('drop', mirror_point(1.5, margin), 0),
-        ('drop2', mirror_point(1.5, margin), 0),
+        ('drop', mirror_point(1.5, margin), -180),
+        ('drop2', mirror_point(1.5, margin), -180),
     )
 
     with seq:
@@ -159,7 +158,7 @@ def main():
 
     # Initialise robot pose
     pub = rospy.Publisher('initialpose', PoseWithCovarianceStamped, queue_size=1)
-    time.sleep(1)
+    rospy.sleep(1)
 
     msg = PoseWithCovarianceStamped()
     msg.header.stamp = rospy.get_rostime()
