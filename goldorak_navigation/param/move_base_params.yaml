@@ -1,7 +1,7 @@
 # Move base node parameters. For full documentation of the parameters in this file
 shutdown_costmaps: false
 
-controller_frequency: 10.0
+controller_frequency: 5.0
 controller_patience: 2.0
 
 planner_frequency: 1.0

@@ -1,14 +1,14 @@
 DWAPlannerROS:
 
-# Robot Configuration Parameters - Kobuki
+# Robot Configuration Parameters
     max_vel_x: 1.00
     min_vel_x: -1.00
 
     max_vel_y: 0.00  # diff drive robot
     min_vel_y: 0.00  # diff drive robot
 
-    max_trans_vel: 0.95 # choose slightly less than the base's capability
-    min_trans_vel: 0.10 # this is the min trans velocity when there is negligible rotational velocity
+    max_trans_vel: 0.95  # choose slightly less than the base's capability
+    min_trans_vel: 0.025 # this is the min trans velocity when there is negligible rotational velocity
     trans_stopped_vel: 0.10
 
     # Warning!
@@ -16,7 +16,7 @@ DWAPlannerROS:
     # are non-negligible and small in place rotational velocities will be created.
 
     max_rot_vel: 12.0  # choose slightly less than the base's capability
-    min_rot_vel: 0.50  # this is the min angular velocity when there is negligible translational velocity
+    min_rot_vel: 0.01  # this is the min angular velocity when there is negligible translational velocity
     rot_stopped_vel: 0.10
 
     acc_lim_x: 2.40
@@ -25,15 +25,18 @@ DWAPlannerROS:
     acc_limit_trans: 1.0
 
 # Goal Tolerance Parameters
-    yaw_goal_tolerance: 0.50
-    xy_goal_tolerance: 0.1
+    yaw_goal_tolerance: 0.20
+    xy_goal_tolerance: 0.05
     # latch_xy_goal_tolerance: false
 
 # Forward Simulation Parameters
-    sim_time: 1.7       # 1.7
+    sim_time: 1.0       # 1.7
     vx_samples: 5       # 3
     vy_samples: 1       # diff drive robot, there is only one sample
-    vtheta_samples: 3   # 20
+    vth_samples: 3      # 20
+
+    angular_sim_granularity: 0.1
+    sim_granularity: 0.025
 
 # Trajectory Scoring Parameters
     penalize_negative_x: false
@@ -60,3 +63,6 @@ DWAPlannerROS:
 
 # Follow closest point of global plan instead of first one
     prune_plan: true
+
+    use_dwa: true
+    restore_defaults: false
