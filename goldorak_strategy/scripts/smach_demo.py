@@ -32,7 +32,7 @@ class Team:
     GREEN = 'green'
     VIOLET = 'violet'
 
-TEAM = Team.VIOLET
+TEAM = Team.GREEN
 
 def mirror_point(x, y):
     if TEAM == Team.VIOLET:
@@ -47,6 +47,12 @@ def fishing_y_axis_deploy(state):
     rospy.wait_for_service(FISHING_Y_AXIS_SERVICE)
 
     f = rospy.ServiceProxy(FISHING_Y_AXIS_SERVICE, FishingAxisControl)
+    f(state)
+
+def fishing_z_axis_deploy(state):
+    rospy.wait_for_service(FISHING_Z_AXIS_SERVICE)
+
+    f = rospy.ServiceProxy(FISHING_Z_AXIS_SERVICE, FishingAxisControl)
     f(state)
 
 
@@ -127,13 +133,16 @@ class FishAndHoldState(State):
         State.__init__(self, outcomes=[Transitions.SUCCESS])
 
     def execute(self, userdata):
-        rospy.wait_for_service(FISHING_Y_AXIS_SERVICE)
-
         rospy.loginfo("Opening fishing module")
         fishing_y_axis_deploy(True)
         rospy.sleep(2)
+        # fishing_z_axis_deploy(True)
+        # rospy.sleep(1)
 
         rospy.loginfo("Fishing...")
+
+        # fishing_z_axis_deploy(False)
+        # rospy.sleep(2)
 
         rospy.loginfo("Holding fishing module")
 
@@ -167,10 +176,12 @@ def create_fish_sequence():
     seq = Sequence(outcomes=[Transitions.SUCCESS, Transitions.FAILURE],
                    connector_outcome=Transitions.SUCCESS)
 
-    margin = 0.115
+    wall = 0.07
+    margin = 0.11
     approach = (
         ('approach', mirror_point(0.73, 0.3), -90),
-        ('close', mirror_point(0.73, margin), -90),
+        ('hit_wall', mirror_point(0.73, wall), -90),
+        ('hit_wall', mirror_point(0.73, margin), -90),
         ('orientation', mirror_point(0.73, margin), -180),
     )
 
@@ -184,7 +195,7 @@ def create_fish_sequence():
         Sequence.add('grab_fish', FishAndHoldState())
         #add_waypoints(drop)
         #Sequence.add('drop_fish', FishDropState())
-        #Sequence.add('end_fishing', FishCloseState())
+        Sequence.add('end_fishing', FishCloseState())
 
     return seq
 
@@ -198,7 +209,7 @@ def main():
 
     msg = PoseWithCovarianceStamped()
     msg.header.stamp = rospy.get_rostime()
-    x, y = mirror_point(0.105, 0.850 + 0.21 / 2)
+    x, y = mirror_point(0.105, 0.900 + 0.21 / 2)
     msg.pose.pose.position.x = x
     msg.pose.pose.position.y = y
     msg.pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, 0))

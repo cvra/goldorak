@@ -15,7 +15,7 @@ GlobalPlanner: # Also see: http://wiki.ros.org/global_planner
     publish_scale: 100  # Scale by which the published potential gets multiplied, default 100
     planner_costmap_publish_frequency: 0.0  # 0.0
 
-    lethal_cost: 250         # 253
+    lethal_cost: 253         # 253
 
     neutral_cost: 50         # 50
     cost_factor: 3.0         # Factor to multiply each cost from costmap by, default 3.0

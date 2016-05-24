@@ -23,7 +23,7 @@ fishing:
         range: 12
         direction: 1
     z_axis:
-        range: 9
+        range: 7
         direction: -1
     impeller:
         speed: 6
