@@ -189,13 +189,8 @@ class FishApproachState(State):
         State.__init__(self, outcomes=[Transitions.SUCCESS])
 
     def execute(self, userdata):
-        for i in range(10):
-            move_base_override.move(0.05)
-            rospy.sleep(0.1)
-
-        for i in range(10):
-            move_base_override.move(-0.02)
-            rospy.sleep(0.1)
+        move_base_override.move(0.05, duration=0.4)
+        move_base_override.move(-0.02, duration=0.2)
 
         return Transitions.SUCCESS
 
