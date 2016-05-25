@@ -13,3 +13,4 @@ local_costmap:
         - {name: static_layer,    type: "costmap_2d::StaticLayer"}
         - {name: obstacle_layer,  type: "costmap_2d::VoxelLayer"}
         - {name: inflation_layer, type: "costmap_2d::InflationLayer"}
+        - {name: robots_layer,    type: "social_navigation_layers::ProxemicLayer"}
