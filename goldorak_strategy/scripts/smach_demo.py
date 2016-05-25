@@ -58,6 +58,10 @@ def fishing_z_axis_deploy(state):
     f = rospy.ServiceProxy(FISHING_Z_AXIS_SERVICE, FishingAxisControl)
     f(state)
 
+def init_robot_pose():
+    # Initialise robot pose
+    x, y = mirror_point(0.105, 0.900 + 0.21 / 2)
+    reset_pose.reset(x, y, radians(-180))
 
 
 class WaitStartState(State):
@@ -96,9 +100,8 @@ class WaitStartState(State):
         rospy.loginfo('Waiting for start')
         self.wait_for_starter()
 
-        # Initialise robot pose
-        x, y = mirror_point(0.105, 0.900 + 0.21 / 2)
-        reset_pose.reset(x, y, -180)
+        # Reinitialise robot pose
+        init_robot_pose()
 
         rospy.loginfo('Starting...')
 
@@ -185,7 +188,6 @@ def create_fish_sequence():
     margin = 0.11
     approach = (
         ('approach', mirror_point(0.73, 0.3), -90),
-        ('hit_wall', mirror_point(0.73, wall), -90),
         ('back_off', mirror_point(0.73, margin), -90),
         ('orientation', mirror_point(0.73, margin), -180),
     )
@@ -208,7 +210,7 @@ def create_fish_sequence():
 def main():
     rospy.init_node('smach_example_state_machine')
 
-    reset_pose.init()
+    init_robot_pose()
 
     sq = Sequence(outcomes=[Transitions.SUCCESS, Transitions.FAILURE],
                   connector_outcome=Transitions.SUCCESS)
