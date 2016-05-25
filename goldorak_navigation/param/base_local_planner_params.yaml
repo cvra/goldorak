@@ -36,8 +36,8 @@ TrajectoryPlannerROS:
     sim_granularity: 0.05
     sim_time: 1.0
 
-    yaw_goal_tolerance: 0.05
-    xy_goal_tolerance: 0.10
+    yaw_goal_tolerance: 0.15
+    xy_goal_tolerance: 0.05
     latch_xy_goal_tolerance: false
     holonomic_robot: false
     global_frame_id: odom
