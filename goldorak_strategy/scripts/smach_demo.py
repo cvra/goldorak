@@ -96,6 +96,10 @@ class WaitStartState(State):
         rospy.loginfo('Waiting for start')
         self.wait_for_starter()
 
+        # Initialise robot pose
+        x, y = mirror_point(0.105, 0.900 + 0.21 / 2)
+        reset_pose.reset(x, y, 0)
+
         rospy.loginfo('Starting...')
 
         rospy.Timer(rospy.Duration(GAME_DURATION), self.end_of_game_cb, oneshot=True)
@@ -204,9 +208,7 @@ def create_fish_sequence():
 def main():
     rospy.init_node('smach_example_state_machine')
 
-    # Initialise robot pose
-    x, y = mirror_point(0.105, 0.900 + 0.21 / 2)
-    reset_pose.reset(x, y, 0)
+    reset_pose.init()
 
     sq = Sequence(outcomes=[Transitions.SUCCESS, Transitions.FAILURE],
                   connector_outcome=Transitions.SUCCESS)
