@@ -201,6 +201,7 @@ def create_fish_sequence():
     margin = 0.11
     approach = (
         ('approach', mirror_point(0.73, 0.3), -90),
+        ('approach2', mirror_point(0.73, 0.15), -90),
         # ('orientation', mirror_point(0.73, margin), -180),
     )
 
@@ -230,6 +231,7 @@ def main():
                   connector_outcome=Transitions.SUCCESS)
     with sq:
         Sequence.add('waiting', WaitStartState())
+        add_waypoints(('get_out', mirror_point(0.6, 1.0), -180))
         Sequence.add('fishing', create_fish_sequence())
         # Sequence.add('inner_door', create_door_state_machine(0.3))
         # Sequence.add('outer_door', create_door_state_machine(0.6))
