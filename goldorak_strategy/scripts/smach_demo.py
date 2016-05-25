@@ -98,7 +98,7 @@ class WaitStartState(State):
 
         # Initialise robot pose
         x, y = mirror_point(0.105, 0.900 + 0.21 / 2)
-        reset_pose.reset(x, y, 0)
+        reset_pose.reset(x, y, -180)
 
         rospy.loginfo('Starting...')
 
@@ -181,12 +181,12 @@ def create_fish_sequence():
     seq = Sequence(outcomes=[Transitions.SUCCESS, Transitions.FAILURE],
                    connector_outcome=Transitions.SUCCESS)
 
-    wall = 0.07
+    wall = 0.09
     margin = 0.11
     approach = (
         ('approach', mirror_point(0.73, 0.3), -90),
         ('hit_wall', mirror_point(0.73, wall), -90),
-        ('hit_wall', mirror_point(0.73, margin), -90),
+        ('back_off', mirror_point(0.73, margin), -90),
         ('orientation', mirror_point(0.73, margin), -180),
     )
 
