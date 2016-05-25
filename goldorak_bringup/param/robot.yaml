@@ -22,9 +22,11 @@ fishing:
     y_axis:
         range: 12
         direction: 1
+        index_offset: 0.3 # to compensate homing switch position
     z_axis:
         range: 7
         direction: -1
+        index_offset: 0.0
     impeller:
         speed: 6
         direction: 1

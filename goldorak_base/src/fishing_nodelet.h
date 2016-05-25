@@ -15,7 +15,7 @@ namespace goldorak_base
             virtual void onInit();
 
         private:
-            float y_range, y_index, z_range, z_index, impeller_speed_range;
+            float y_range, y_index, z_range, z_index, impeller_speed_range, y_offset, z_offset;
             int y_direction, z_direction, impeller_direction;
             bool y_on, z_on, impeller_on;
 

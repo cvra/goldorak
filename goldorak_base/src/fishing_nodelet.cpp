@@ -31,9 +31,11 @@ namespace goldorak_base
 
         node.param<float>("fishing/y_axis/range", y_range, 1);
         node.param<int>("fishing/y_axis/direction", y_direction, 1);
+        node.param<float>("fishing/y_axis/index_offset", y_offset, 1);
 
         node.param<float>("fishing/z_axis/range", z_range, 1);
         node.param<int>("fishing/z_axis/direction", z_direction, 1);
+        node.param<float>("fishing/z_axis/index_offset", z_offset, 1);
 
         node.param<float>("fishing/impeller/speed", impeller_speed_range, 1);
         node.param<int>("fishing/impeller/direction", impeller_direction, 1);
@@ -116,12 +118,12 @@ namespace goldorak_base
 
         y_setpoint.mode = cvra_msgs::MotorControlSetpoint::MODE_CONTROL_POSITION;
         y_setpoint.node_name = "fishing_y_axis";
-        y_setpoint.position = y_index + y_on * y_range * y_direction;
+        y_setpoint.position = y_index + y_offset + y_on * y_range * y_direction;
         y_position_pub.publish(y_setpoint);
 
         z_setpoint.mode = cvra_msgs::MotorControlSetpoint::MODE_CONTROL_POSITION;
         z_setpoint.node_name = "fishing_z_axis";
-        z_setpoint.position = z_index + z_on * z_range * z_direction;
+        z_setpoint.position = z_index + z_offset + z_on * z_range * z_direction;
         z_position_pub.publish(z_setpoint);
 
         impeller_setpoint.mode = cvra_msgs::MotorControlSetpoint::MODE_CONTROL_VOLTAGE;
