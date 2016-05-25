@@ -231,8 +231,8 @@ def create_fish_sequence():
         add_waypoints(approach)
         Sequence.add('calage', FishApproachState())
         Sequence.add('grab_fish', FishAndHoldState())
-        #add_waypoints(drop)
-        #Sequence.add('drop_fish', FishDropState())
+        # add_waypoints(drop)
+        # Sequence.add('drop_fish', FishDropState())
         Sequence.add('end_fishing', FishCloseState())
 
     return seq
