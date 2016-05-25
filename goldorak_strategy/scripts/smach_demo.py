@@ -62,7 +62,11 @@ def fishing_z_axis_deploy(state):
 def init_robot_pose():
     # Initialise robot pose
     x, y = mirror_point(0.105, 0.900 + 0.21 / 2)
-    reset_pose.reset(x, y, radians(-180))
+
+    if TEAM == Team.VIOLET:
+        reset_pose.reset(x, y, radians(0))
+    else:
+        reset_pose.reset(x, y, radians(-180))
 
 
 class WaitStartState(State):
