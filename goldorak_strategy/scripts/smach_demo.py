@@ -20,6 +20,7 @@ from goldorak_base.srv import FishingAxisControl
 
 import reset_pose
 import starter
+import move_base_override
 
 FISHING_Y_AXIS_SERVICE = 'fishing_y_axis_control'
 FISHING_Z_AXIS_SERVICE = 'fishing_z_axis_control'
@@ -179,17 +180,28 @@ class FishCloseState(State):
 
         return Transitions.SUCCESS
 
+class FishApproachState(State):
+    def __init__(self):
+        State.__init__(self, outcomes=[Transitions.SUCCESS])
+
+    def execute(self, userdata):
+        for i in range(10):
+            move_base_override.move(0.05)
+            rospy.sleep(0.1)
+
+        for i in range(10):
+            move_base_override.move(-0.02)
+            rospy.sleep(0.1)
+
 
 def create_fish_sequence():
     seq = Sequence(outcomes=[Transitions.SUCCESS, Transitions.FAILURE],
                    connector_outcome=Transitions.SUCCESS)
 
-    wall = 0.09
     margin = 0.11
     approach = (
         ('approach', mirror_point(0.73, 0.3), -90),
-        ('back_off', mirror_point(0.73, margin), -90),
-        ('orientation', mirror_point(0.73, margin), -180),
+        # ('orientation', mirror_point(0.73, margin), -180),
     )
 
     drop = (
@@ -199,6 +211,7 @@ def create_fish_sequence():
 
     with seq:
         add_waypoints(approach)
+        Sequence.add('calage', FishApproachState())
         Sequence.add('grab_fish', FishAndHoldState())
         #add_waypoints(drop)
         #Sequence.add('drop_fish', FishDropState())
@@ -211,6 +224,7 @@ def main():
     rospy.init_node('smach_example_state_machine')
 
     init_robot_pose()
+    move_base_override.init()
 
     sq = Sequence(outcomes=[Transitions.SUCCESS, Transitions.FAILURE],
                   connector_outcome=Transitions.SUCCESS)
