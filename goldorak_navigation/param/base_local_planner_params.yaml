@@ -1,6 +1,50 @@
-DWAPlannerROS:
+TrajectoryPlannerROS:
+    max_vel_theta: 2.0
+    max_vel_x: 0.55
+    min_in_place_vel_theta: 0.8
+    min_vel_theta: -2.0
+    min_vel_x: 0.0
 
-# Robot Configuration Parameters
+    acc_lim_theta: 20.0
+    acc_lim_x: 2.5
+    acc_lim_y: 0.0
+
+    escape_reset_dist: 0.1
+    escape_reset_theta: 1.57079632679
+    escape_vel: -0.1
+    heading_lookahead: 0.1
+    heading_scoring: false
+    heading_scoring_timestep: 0.1
+    oscillation_reset_dist: 0.05
+    restore_defaults: false
+    simple_attractor: true
+
+    vx_samples: 5
+    vtheta_samples: 5
+    y_vels: ''
+
+    gdist_scale: 0.8
+    pdist_scale: 0.6
+    occdist_scale: 0.01
+
+    dwa: false
+    meter_scoring: true
+    prune_plan: true
+
+    angular_sim_granularity: 0.1
+    sim_granularity: 0.05
+    sim_time: 1.0
+
+    yaw_goal_tolerance: 0.05
+    xy_goal_tolerance: 0.10
+    latch_xy_goal_tolerance: false
+    holonomic_robot: false
+    global_frame_id: odom
+
+    # Debug
+    publish_cost_grid_pc: false
+
+DWAPlannerROS:
     max_vel_x: 1.00
     min_vel_x: -1.00
 
