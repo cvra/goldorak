@@ -195,10 +195,7 @@ class FishApproachState(State):
         State.__init__(self, outcomes=[Transitions.SUCCESS])
 
     def execute(self, userdata):
-        move_base_override.move(0.05, duration=0.5)
-        move_base_override.move(0.05, duration=0.5)
-        move_base_override.move(0.05, duration=0.5)
-        move_base_override.move(0.05, duration=0.5)
+        move_base_override.move(0.2, duration=2.0)
         move_base_override.move(-0.02, duration=1.0)
 
         goal = MoveBaseGoal()

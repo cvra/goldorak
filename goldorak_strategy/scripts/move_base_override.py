@@ -42,8 +42,11 @@ def move(x, duration=0.5, rate=10):
     left_wheel_msg.node_name = 'left_wheel'
     left_wheel_msg.mode = MotorControlSetpoint.MODE_CONTROL_POSITION
 
-    new_right_wheel_pos = right_wheel_pos + external_to_internal_wheelbase_encoder_direction * right_wheel_direction * x / right_wheel_radius
-    new_left_wheel_pos = left_wheel_pos + external_to_internal_wheelbase_encoder_direction * left_wheel_direction * x / left_wheel_radius
+    right_wheel_msg.position = right_wheel_pos
+    left_wheel_msg.position = left_wheel_pos
+
+    right_increment = (external_to_internal_wheelbase_encoder_direction * right_wheel_direction * x / right_wheel_radius) / (duration * rate)
+    left_increment = (external_to_internal_wheelbase_encoder_direction * left_wheel_direction * x / left_wheel_radius) / (duration * rate)
 
     rate_ = rospy.Rate(rate)
 
@@ -51,10 +54,10 @@ def move(x, duration=0.5, rate=10):
         current_time = rospy.get_rostime()
 
         right_wheel_msg.timestamp = current_time
-        right_wheel_msg.position = new_right_wheel_pos
+        right_wheel_msg.position += right_increment
 
         left_wheel_msg.timestamp = current_time
-        left_wheel_msg.position = new_left_wheel_pos
+        left_wheel_msg.position += left_increment
 
         right_wheel_pub.publish(right_wheel_msg)
         left_wheel_pub.publish(left_wheel_msg)
