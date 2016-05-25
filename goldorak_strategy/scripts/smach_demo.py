@@ -9,13 +9,14 @@ import actionlib
 from cvra_msgs.msg import MotorControlSetpoint
 from move_base_msgs.msg import MoveBaseGoal, MoveBaseAction
 from actionlib_msgs.msg import GoalID
+from nav_msgs.msg import Odometry
 
 from smach import StateMachine, State, Sequence
 
 from smach_ros import SimpleActionState, IntrospectionServer
 
-from geometry_msgs.msg import Quaternion
-from tf.transformations import quaternion_from_euler
+from geometry_msgs.msg import Quaternion, Pose
+from tf.transformations import quaternion_from_euler, euler_from_quaternion
 from goldorak_base.srv import FishingAxisControl
 
 import reset_pose
@@ -36,7 +37,9 @@ class Team:
     GREEN = 'green'
     VIOLET = 'violet'
 
-TEAM = Team.GREEN
+TEAM = Team.VIOLET
+
+robot_pose = Pose()
 
 def mirror_point(x, y):
     if TEAM == Team.VIOLET:
@@ -68,6 +71,9 @@ def init_robot_pose():
     else:
         reset_pose.reset(x, y, radians(-180))
 
+def odometry_cb(data):
+    global robot_pose
+    robot_pose = data.pose.pose
 
 class WaitStartState(State):
     def __init__(self):
@@ -149,13 +155,13 @@ class FishAndHoldState(State):
         rospy.loginfo("Opening fishing module")
         fishing_y_axis_deploy(True)
         rospy.sleep(2)
-        # fishing_z_axis_deploy(True)
-        # rospy.sleep(1)
+        fishing_z_axis_deploy(True)
+        rospy.sleep(1)
 
         rospy.loginfo("Fishing...")
 
-        # fishing_z_axis_deploy(False)
-        # rospy.sleep(2)
+        fishing_z_axis_deploy(False)
+        rospy.sleep(2)
 
         rospy.loginfo("Holding fishing module")
 
@@ -189,8 +195,22 @@ class FishApproachState(State):
         State.__init__(self, outcomes=[Transitions.SUCCESS])
 
     def execute(self, userdata):
-        move_base_override.move(0.05, duration=0.4)
-        move_base_override.move(-0.02, duration=0.2)
+        move_base_override.move(0.05, duration=0.5)
+        move_base_override.move(0.05, duration=0.5)
+        move_base_override.move(0.05, duration=0.5)
+        move_base_override.move(0.05, duration=0.5)
+        move_base_override.move(-0.02, duration=1.0)
+
+        goal = MoveBaseGoal()
+        goal.target_pose.header.frame_id = 'odom'
+        goal.target_pose.header.stamp = rospy.get_rostime()
+        goal.target_pose.pose = robot_pose
+        goal.target_pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, radians(-180)))
+
+        client = actionlib.SimpleActionClient('move_base', MoveBaseAction)
+        client.wait_for_server()
+        client.send_goal(goal)
+        client.wait_for_result()
 
         return Transitions.SUCCESS
 
@@ -203,7 +223,6 @@ def create_fish_sequence():
     approach = (
         ('approach', mirror_point(0.73, 0.3), -90),
         ('approach2', mirror_point(0.73, 0.15), -90),
-        # ('orientation', mirror_point(0.73, margin), -180),
     )
 
     drop = (
@@ -228,11 +247,12 @@ def main():
     init_robot_pose()
     move_base_override.init()
 
+    odom_sub = rospy.Subscriber('/odom', Odometry, odometry_cb)
+
     sq = Sequence(outcomes=[Transitions.SUCCESS, Transitions.FAILURE],
                   connector_outcome=Transitions.SUCCESS)
     with sq:
         Sequence.add('waiting', WaitStartState())
-        add_waypoints(('get_out', mirror_point(0.6, 1.0), -180))
         Sequence.add('fishing', create_fish_sequence())
         # Sequence.add('inner_door', create_door_state_machine(0.3))
         # Sequence.add('outer_door', create_door_state_machine(0.6))
