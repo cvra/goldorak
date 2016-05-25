@@ -193,6 +193,8 @@ class FishApproachState(State):
             move_base_override.move(-0.02)
             rospy.sleep(0.1)
 
+        return Transitions.SUCCESS
+
 
 def create_fish_sequence():
     seq = Sequence(outcomes=[Transitions.SUCCESS, Transitions.FAILURE],
