@@ -37,7 +37,7 @@ class Team:
     GREEN = 'green'
     VIOLET = 'violet'
 
-TEAM = Team.VIOLET
+TEAM = Team.GREEN
 
 robot_pose = Pose()
 
@@ -60,6 +60,12 @@ def fishing_z_axis_deploy(state):
     rospy.wait_for_service(FISHING_Z_AXIS_SERVICE)
 
     f = rospy.ServiceProxy(FISHING_Z_AXIS_SERVICE, FishingAxisControl)
+    f(state)
+
+def fishing_impeller_deploy(state):
+    rospy.wait_for_service(FISHING_IMPELLER_SERVICE)
+
+    f = rospy.ServiceProxy(FISHING_IMPELLER_SERVICE, FishingAxisControl)
     f(state)
 
 def init_robot_pose():
@@ -157,11 +163,17 @@ class FishAndHoldState(State):
         rospy.sleep(2)
         fishing_z_axis_deploy(True)
         rospy.sleep(1)
+        fishing_impeller_deploy(True)
+        rospy.sleep(5)
+
+        move_base_override.move(0.05, duration=2.0)
 
         rospy.loginfo("Fishing...")
 
+        fishing_impeller_deploy(False)
+        rospy.sleep(1)
         fishing_z_axis_deploy(False)
-        rospy.sleep(2)
+        rospy.sleep(5)
 
         rospy.loginfo("Holding fishing module")
 
@@ -196,7 +208,8 @@ class FishApproachState(State):
 
     def execute(self, userdata):
         move_base_override.move(0.2, duration=2.0)
-        move_base_override.move(-0.02, duration=1.0)
+        rospy.sleep(0.3)
+        move_base_override.move(-0.02, duration=2.0, rate=20)
 
         goal = MoveBaseGoal()
         goal.target_pose.header.frame_id = 'odom'

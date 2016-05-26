@@ -24,9 +24,9 @@ fishing:
         direction: 1
         index_offset: 0.3 # to compensate homing switch position
     z_axis:
-        range: 7
+        range: 8.5
         direction: -1
-        index_offset: 0.0
+        index_offset: 1.0
     impeller:
-        speed: 6
-        direction: 1
+        speed: 1.5
+        direction: -1
