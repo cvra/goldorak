@@ -2,10 +2,13 @@
 
 import argparse
 from math import radians
+import subprocess
+import os.path
 
 import rospy
 import roslib
 import actionlib
+
 from cvra_msgs.msg import MotorControlSetpoint
 from move_base_msgs.msg import MoveBaseGoal, MoveBaseAction
 from actionlib_msgs.msg import GoalID
@@ -67,6 +70,18 @@ def fishing_impeller_deploy(state):
 
     f = rospy.ServiceProxy(FISHING_IMPELLER_SERVICE, FishingAxisControl)
     f(state)
+
+def set_fish_ejector(state):
+    if state:
+        value = 1.4 # ms
+    else:
+        value = 2.5 # ms
+
+    print("Setting fish ejector value to {}".format(value))
+    value = int(value * 1e6) # convert to ns
+
+    command = os.path.join(os.path.dirname(__file__), 'fish_eject_driver.sh')
+    subprocess.call("sudo {} {}".format(command, value).split())
 
 def init_robot_pose():
     # Initialise robot pose
@@ -159,8 +174,12 @@ class FishAndHoldState(State):
 
     def execute(self, userdata):
         rospy.loginfo("Opening fishing module")
+
         fishing_y_axis_deploy(True)
         rospy.sleep(2)
+
+        set_fish_ejector(False)
+
         fishing_z_axis_deploy(True)
         rospy.sleep(1)
         fishing_impeller_deploy(True)
@@ -185,6 +204,8 @@ class FishDropState(State):
 
     def execute(self, userdata):
         rospy.loginfo("Dropping fish")
+
+        set_fish_ejector(True)
 
         return Transitions.SUCCESS
 
