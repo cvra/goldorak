@@ -71,6 +71,12 @@ def fishing_impeller_deploy(state):
     f = rospy.ServiceProxy(FISHING_IMPELLER_SERVICE, FishingAxisControl)
     f(state)
 
+def disable_fish_ejector():
+    print("Disabling fish ejector")
+
+    command = os.path.join(os.path.dirname(__file__), 'fish_eject_driver.sh')
+    subprocess.call("sudo {} {}".format(command, 0).split())
+
 def set_fish_ejector(state):
     if state:
         value = 1.2 # ms
@@ -206,7 +212,8 @@ class FishDropState(State):
         rospy.loginfo("Dropping fish")
 
         set_fish_ejector(True)
-	rospy.sleep(1)
+        rospy.sleep(1)
+        disable_fish_ejector()
 
         return Transitions.SUCCESS
 
