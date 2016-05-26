@@ -191,7 +191,7 @@ class FishAndHoldState(State):
         fishing_impeller_deploy(True)
         rospy.sleep(5)
 
-        move_base_override.move(0.05, duration=2.0)
+        move_base_override.move(0.15, duration=3.0)
 
         rospy.loginfo("Fishing...")
 
@@ -260,8 +260,8 @@ def create_fish_sequence():
 
     margin = 0.11
     approach = (
-        ('approach', mirror_point(0.73, 0.3), -90),
-        ('approach2', mirror_point(0.73, 0.15), -90),
+        ('approach', mirror_point(0.6, 0.3), -90),
+        ('approach2', mirror_point(0.6, 0.15), -90),
     )
 
     drop = (
