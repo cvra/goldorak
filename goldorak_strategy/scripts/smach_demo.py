@@ -206,6 +206,7 @@ class FishDropState(State):
         rospy.loginfo("Dropping fish")
 
         set_fish_ejector(True)
+	rospy.sleep(1)
 
         return Transitions.SUCCESS
 
@@ -266,7 +267,7 @@ def create_fish_sequence():
         Sequence.add('calage', FishApproachState())
         Sequence.add('grab_fish', FishAndHoldState())
         # add_waypoints(drop)
-        # Sequence.add('drop_fish', FishDropState())
+        Sequence.add('drop_fish', FishDropState())
         Sequence.add('end_fishing', FishCloseState())
 
     return seq
