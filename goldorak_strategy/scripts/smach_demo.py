@@ -73,9 +73,9 @@ def fishing_impeller_deploy(state):
 
 def set_fish_ejector(state):
     if state:
-        value = 1.4 # ms
+        value = 1.2 # ms
     else:
-        value = 2.5 # ms
+        value = 2.0 # ms
 
     print("Setting fish ejector value to {}".format(value))
     value = int(value * 1e6) # convert to ns
