@@ -27,7 +27,7 @@ fishing:
         range: 9
         direction: -1
         index_offset: 1.0
-        torque_down: 0.2
+        torque_down: -0.2
     impeller:
         speed: 1.5
         direction: -1
