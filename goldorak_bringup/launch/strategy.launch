@@ -1,6 +1,6 @@
 <launch>
     <!-- Strategy -->
-    <node name="strategy" pkg="goldorak_strategy" type="smach_demo.py"/>
+    <node name="strategy" pkg="goldorak_strategy" type="smach_demo.py" output="screen"/>
 
     <!-- Obstacle avoidance -->
     <node name="obstacle_avoidance" pkg="goldorak_strategy" type="obstacle_avoidance.py"/>
