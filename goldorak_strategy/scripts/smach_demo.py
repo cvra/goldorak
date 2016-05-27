@@ -98,6 +98,12 @@ def init_robot_pose():
     else:
         reset_pose.reset(x, y, radians(-180))
 
+def reset_robot_actuators():
+    disable_fish_ejector()
+    fishing_impeller_deploy(False)
+    fishing_z_axis_deploy(False)
+    fishing_y_axis_deploy(False)
+
 def odometry_cb(data):
     global robot_pose
     robot_pose = data.pose.pose
@@ -285,6 +291,8 @@ def main():
 
     init_robot_pose()
     move_base_override.init()
+
+    reset_robot_actuators()
 
     odom_sub = rospy.Subscriber('/odom', Odometry, odometry_cb)
 
