@@ -174,7 +174,7 @@ def create_door_state_machine(door_x):
 
     waypoints = (
         ('approach', mirror_point(door_x, 1.5), 90),
-        ('close', mirror_point(door_x, 1.8), 90),
+        ('close', mirror_point(door_x, 1.86), 90),
         ('back_out', mirror_point(door_x, 1.5), 90),
     )
 
