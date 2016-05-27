@@ -33,7 +33,7 @@ move_slow_and_clear:
     limited_trans_speed: 0.10
     limited_rot_speed: 0.25
     limited_distance: 0.3
-    planner_namespace: "DWAPlannerROS"
+    planner_namespace: "TrajectoryPlannerROS"
 
 clearing_costmap:
     reset_distance: 0.3

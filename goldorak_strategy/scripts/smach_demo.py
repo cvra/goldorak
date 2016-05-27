@@ -272,7 +272,7 @@ def create_fish_sequence():
 
     drop = (
         ('get_out', mirror_point(0.85, 0.25), -180),
-        ('drop', mirror_point(1.2, 0.15), -180),
+        ('drop', mirror_point(1.2, 0.12), -180),
     )
 
     with seq:
