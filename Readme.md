@@ -1,5 +1,20 @@
 # Project Goldorak
 
+# Match checklist
+
+1. Boot system (switch on 1)
+2. SSH into the robot and start a tmux.
+3. `roslaunch goldorak_bringup goldorak.launch`
+4. Wait for `odom received`
+5. Plug starter
+6. Take reference by pushing on fishing module's Y and Z axis until you hear a click.
+7. Open a new tmux pane (Ctrl-B then C).
+8. Edit `smach_demo.py` to set team color.
+9. `roslaunch goldorak_bringup strategy.launch`.
+10. Wait for `waiting for starter` and then arm emergency stop.
+11. Detach tmux (Ctrl-B then D), then exit SSH.
+12. Pray and pull the starter when told to.
+
 ## Setup
 
 ### On your computer
