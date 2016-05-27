@@ -302,9 +302,11 @@ def main():
                   connector_outcome=Transitions.SUCCESS)
     with sq:
         Sequence.add('waiting', WaitStartState())
-        Sequence.add('fishing', create_fish_sequence())
-        # Sequence.add('inner_door', create_door_state_machine(0.3))
-        # Sequence.add('outer_door', create_door_state_machine(0.6))
+
+        for i in range(4):	
+            Sequence.add('fishing {}'.format(i), create_fish_sequence())
+        Sequence.add('inner_door', create_door_state_machine(0.3))
+        Sequence.add('outer_door', create_door_state_machine(0.6))
 
     # Create and start the introspection server
     sis = IntrospectionServer('strat', sq, '/strat')
