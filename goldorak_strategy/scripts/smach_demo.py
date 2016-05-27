@@ -79,9 +79,9 @@ def disable_fish_ejector():
 
 def set_fish_ejector(state):
     if state:
-        value = 1.2 # ms
+        value = 1.8 # ms
     else:
-        value = 2.0 # ms
+        value = 1.3 # ms
 
     print("Setting fish ejector value to {}".format(value))
     value = int(value * 1e6) # convert to ns
@@ -102,7 +102,7 @@ def init_robot_pose():
         reset_pose.reset(x, y, radians(-180))
 
 def reset_robot_actuators():
-    disable_fish_ejector()
+    set_fish_ejector(True)
     fishing_impeller_deploy(False)
     fishing_z_axis_deploy(False)
     fishing_y_axis_deploy(False)
@@ -191,24 +191,24 @@ class FishAndHoldState(State):
         rospy.loginfo("Opening fishing module")
 
         fishing_y_axis_deploy(True)
-        rospy.sleep(2)
+        rospy.sleep(0.5)
 
         set_fish_ejector(False)
 
         fishing_z_axis_deploy(True)
-        rospy.sleep(1)
+        rospy.sleep(0.5)
         fishing_impeller_deploy(True)
         rospy.sleep(5)
 
         move_base_override.move(0.15, duration=2.0)
-        move_base_override.move(-0.15, duration=2.0)
+        #move_base_override.move(-0.15, duration=2.0)
 
         rospy.loginfo("Fishing...")
 
         fishing_impeller_deploy(False)
-        rospy.sleep(1)
+        rospy.sleep(0.5)
         fishing_z_axis_deploy(False)
-        rospy.sleep(1)
+        rospy.sleep(0.5)
 
         rospy.loginfo("Holding fishing module")
 
@@ -308,8 +308,8 @@ def main():
 
         for i in range(4):	
             Sequence.add('fishing {}'.format(i), create_fish_sequence())
-        Sequence.add('inner_door', create_door_state_machine(0.3))
-        Sequence.add('outer_door', create_door_state_machine(0.6))
+#        Sequence.add('inner_door', create_door_state_machine(0.3))
+#        Sequence.add('outer_door', create_door_state_machine(0.6))
 
     # Create and start the introspection server
     sis = IntrospectionServer('strat', sq, '/strat')
