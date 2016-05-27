@@ -89,6 +89,9 @@ def set_fish_ejector(state):
     command = os.path.join(os.path.dirname(__file__), 'fish_eject_driver.sh')
     subprocess.call("sudo {} {}".format(command, value).split())
 
+    rospy.sleep(2)
+    disable_fish_ejector()
+
 def init_robot_pose():
     # Initialise robot pose
     x, y = mirror_point(0.105, 0.900 + 0.21 / 2)
@@ -205,7 +208,7 @@ class FishAndHoldState(State):
         fishing_impeller_deploy(False)
         rospy.sleep(1)
         fishing_z_axis_deploy(False)
-        rospy.sleep(5)
+        rospy.sleep(1)
 
         rospy.loginfo("Holding fishing module")
 
