@@ -298,22 +298,55 @@ def main():
 
     odom_sub = rospy.Subscriber('/odom', Odometry, odometry_cb)
 
-    sq = Sequence(outcomes=[Transitions.SUCCESS, Transitions.FAILURE],
-                  connector_outcome=Transitions.SUCCESS)
-    with sq:
-        Sequence.add('waiting', WaitStartState())
+    sm = StateMachine(outcomes=[Transitions.SUCCESS])
 
-        for i in range(4):	
-            Sequence.add('fishing {}'.format(i), create_fish_sequence())
-        Sequence.add('inner_door', create_door_state_machine(0.3))
-        Sequence.add('outer_door', create_door_state_machine(0.6))
+    ACTIONS = [('fishing{}'.format(i), create_fish_sequence()) for i in range(4)]
+    ACTIONS += [('inner_door', create_door_state_machine(0.3))]
+    ACTIONS += [('outer_door', create_door_state_machine(0.6))]
+
+    class ActionSuccessState(State):
+        def __init__(self):
+            outcomes = [name for name, _ in ACTIONS]
+            print(outcomes)
+            State.__init__(self, outcomes=outcomes)
+
+        def execute(self, userdata):
+            # Removes the action from the list of stuff to do
+            del ACTIONS[0]
+
+            return ACTIONS[0][0]
+
+    class ActionFailureState(State):
+        def __init__(self):
+            outcomes = [name for name, _ in ACTIONS]
+            State.__init__(self, outcomes=outcomes)
+
+        def execute(self, userdata):
+            # Place the failed action at the end of the queue
+            ACTIONS.append(ACTIONS.pop(0))
+
+            return ACTIONS[0][0]
+
+
+    with sm:
+        StateMachine.add('waiting', WaitStartState(), transitions={Transitions.SUCCESS: 'action_successful'})
+
+        transitions = {name: name for name, _ in ACTIONS}
+        StateMachine.add('action_successful', ActionSuccessState(), transitions=transitions)
+        StateMachine.add('action_failure', ActionFailureState(), transitions=transitions)
+
+        for name, state in ACTIONS:
+            StateMachine.add(name, state, transitions={
+                Transitions.SUCCESS: 'action_successful',
+                Transitions.FAILURE: 'action_failure',
+                })
 
     # Create and start the introspection server
-    sis = IntrospectionServer('strat', sq, '/strat')
+    sis = IntrospectionServer('strat', sm, '/strat')
     sis.start()
 
     # Execute the state machine
-    outcome = sq.execute()
+    outcome = sm.execute()
 
     # Wait for ctrl-c to stop the application
     rospy.spin()
