@@ -197,7 +197,8 @@ class FishAndHoldState(State):
         fishing_impeller_deploy(True)
         rospy.sleep(5)
 
-        move_base_override.move(0.15, duration=3.0)
+        move_base_override.move(0.15, duration=2.0)
+        move_base_override.move(-0.15, duration=2.0)
 
         rospy.loginfo("Fishing...")
 
@@ -244,7 +245,7 @@ class FishApproachState(State):
     def execute(self, userdata):
         move_base_override.move(0.2, duration=2.0)
         rospy.sleep(0.3)
-        move_base_override.move(-0.02, duration=2.0, rate=20)
+        move_base_override.move(-0.02, duration=2.0)
 
         goal = MoveBaseGoal()
         goal.target_pose.header.frame_id = 'odom'
@@ -264,22 +265,21 @@ def create_fish_sequence():
     seq = Sequence(outcomes=[Transitions.SUCCESS, Transitions.FAILURE],
                    connector_outcome=Transitions.SUCCESS)
 
-    margin = 0.11
     approach = (
         ('approach', mirror_point(0.6, 0.3), -90),
         ('approach2', mirror_point(0.6, 0.15), -90),
     )
 
     drop = (
-        ('drop', mirror_point(1.5, margin), -180),
-        ('drop2', mirror_point(1.5, margin), -180),
+        ('get_out', mirror_point(0.85, 0.25), -180),
+        ('drop', mirror_point(1.2, 0.15), -180),
     )
 
     with seq:
         add_waypoints(approach)
         Sequence.add('calage', FishApproachState())
         Sequence.add('grab_fish', FishAndHoldState())
-        # add_waypoints(drop)
+        add_waypoints(drop)
         Sequence.add('drop_fish', FishDropState())
         Sequence.add('end_fishing', FishCloseState())
 
