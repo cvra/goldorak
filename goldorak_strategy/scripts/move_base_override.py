@@ -31,6 +31,36 @@ def _left_wheel_pos_cb(data):
     global left_wheel_pos
     left_wheel_pos = data.data
 
+def move_speed(speed, duration, rate=10):
+    global right_wheel_pub, left_wheel_pub, right_wheel_radius, left_wheel_radius, right_wheel_direction, left_wheel_direction, external_to_internal_wheelbase_encoder_direction
+    right_speed = external_to_internal_wheelbase_encoder_direction * right_wheel_direction * speed / right_wheel_radius
+    left_speed = external_to_internal_wheelbase_encoder_direction * left_wheel_direction * speed / left_wheel_radius
+
+    right_wheel_msg = MotorControlSetpoint()
+    left_wheel_msg = MotorControlSetpoint()
+
+    right_wheel_msg.node_name = 'right_wheel'
+    right_wheel_msg.mode = MotorControlSetpoint.MODE_CONTROL_VELOCITY
+    left_wheel_msg.node_name = 'left_wheel'
+    left_wheel_msg.mode = MotorControlSetpoint.MODE_CONTROL_VELOCITY
+
+    rate_ = rospy.Rate(rate)
+
+    for i in range(int(duration * rate)):
+        current_time = rospy.get_rostime()
+
+        right_wheel_msg.timestamp = current_time
+        right_wheel_msg.velocity = right_speed
+
+        left_wheel_msg.timestamp = current_time
+        left_wheel_msg.velocity = left_speed
+
+        right_wheel_pub.publish(right_wheel_msg)
+        left_wheel_pub.publish(left_wheel_msg)
+
+        rate_.sleep()
+
+
 def move(x, duration=0.5, rate=10):
     global right_wheel_pos, left_wheel_pos, right_wheel_pub, left_wheel_pub, right_wheel_radius, left_wheel_radius, right_wheel_direction, left_wheel_direction, external_to_internal_wheelbase_encoder_direction
 

@@ -243,9 +243,11 @@ class FishApproachState(State):
         State.__init__(self, outcomes=[Transitions.SUCCESS])
 
     def execute(self, userdata):
-        move_base_override.move(0.2, duration=2.0)
+        move_base_override.move_speed(0.1, duration=2.0)
         rospy.sleep(0.3)
-        move_base_override.move(-0.02, duration=2.0)
+        reset_pose.reset(robot_pose.position.x, 0.08, radians(-90))
+        move_base_override.move(-0.02, duration=1.0)
+
 
         goal = MoveBaseGoal()
         goal.target_pose.header.frame_id = 'odom'
