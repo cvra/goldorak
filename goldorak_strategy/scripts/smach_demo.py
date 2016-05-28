@@ -319,7 +319,7 @@ def main():
     with sq:
         Sequence.add('waiting', WaitStartState())
 
-        for i in range(2):
+        for i in range(3):
             Sequence.add('fishing {}'.format(i), create_fish_sequence())
 #        Sequence.add('inner_door', create_door_state_machine(0.3))
 #        Sequence.add('outer_door', create_door_state_machine(0.6))
