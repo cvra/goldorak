@@ -40,7 +40,7 @@ class Team:
     GREEN = 'green'
     VIOLET = 'violet'
 
-TEAM = Team.VIOLET
+TEAM = Team.GREEN
 
 robot_pose = Pose()
 
@@ -289,7 +289,8 @@ def create_fish_sequence():
     )
 
     drop = (
-        ('drop', mirror_point(1.2, 0.12), -180),
+        ('get_out', mirror_point(0.85, 0.25), -180),
+        ('drop', mirror_point(1.22, 0.12), -180),
     )
 
     with seq:
