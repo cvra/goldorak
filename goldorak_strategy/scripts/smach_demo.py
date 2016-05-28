@@ -152,7 +152,6 @@ class WaitStartState(State):
         rospy.loginfo('Starting...')
 
         rospy.Timer(rospy.Duration(GAME_DURATION), self.end_of_game_cb, oneshot=True)
-        rospy.sleep(1)
 
         return Transitions.SUCCESS
 
