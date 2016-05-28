@@ -40,7 +40,7 @@ class Team:
     GREEN = 'green'
     VIOLET = 'violet'
 
-TEAM = Team.GREEN
+TEAM = Team.VIOLET
 
 robot_pose = Pose()
 
@@ -200,8 +200,10 @@ class FishAndHoldState(State):
         fishing_impeller_deploy(True)
         rospy.sleep(5)
 
-        move_base_override.move(0.15, duration=2.0)
-        #move_base_override.move(-0.15, duration=2.0)
+        if TEAM == Team.GREEN: 
+            move_base_override.move(0.15, duration=2.0)
+        else:
+            move_base_override.move(-0.15, duration=2.0)
 
         rospy.loginfo("Fishing...")
 
