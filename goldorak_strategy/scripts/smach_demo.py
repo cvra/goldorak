@@ -215,6 +215,11 @@ class FishAndHoldState(State):
         fishing_z_axis_deploy(False)
         rospy.sleep(0.5)
 
+        if TEAM == Team.GREEN: 
+            move_base_override.move(-0.10, duration=2.0)
+        else:
+            move_base_override.move(0.10, duration=2.0)
+
         rospy.loginfo("Holding fishing module")
 
         return Transitions.SUCCESS
@@ -255,7 +260,7 @@ class FishApproachState(State):
         rospy.sleep(0.3)
         reset_pose.reset(robot_pose.position.x, 0.08, radians(-90))
         rospy.sleep(0.2) # wait for reset pose
-        move_base_override.move(-0.02, duration=1.0)
+        move_base_override.move(-0.03, duration=1.0)
 
         goal = MoveBaseGoal()
         goal.target_pose.header.frame_id = 'odom'
@@ -286,7 +291,6 @@ def create_fish_sequence():
     )
 
     drop = (
-        ('get_out', mirror_point(0.85, 0.25), -180),
         ('drop', mirror_point(1.2, 0.12), -180),
     )
 
