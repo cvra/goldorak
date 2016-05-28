@@ -71,7 +71,7 @@ def fishing_impeller_deploy(state):
     f = rospy.ServiceProxy(FISHING_IMPELLER_SERVICE, FishingAxisControl)
     f(state)
 
-def disable_fish_ejector():
+def disable_fish_ejector(event=None):
     print("Disabling fish ejector")
 
     command = os.path.join(os.path.dirname(__file__), 'fish_eject_driver.sh')
@@ -89,8 +89,7 @@ def set_fish_ejector(state):
     command = os.path.join(os.path.dirname(__file__), 'fish_eject_driver.sh')
     subprocess.call("sudo {} {}".format(command, value).split())
 
-    rospy.sleep(2)
-    disable_fish_ejector()
+    rospy.Timer(rospy.Duration(2), disable_fish_ejector, oneshot=True)
 
 def init_robot_pose():
     # Initialise robot pose
@@ -201,7 +200,7 @@ class FishAndHoldState(State):
         fishing_impeller_deploy(True)
         rospy.sleep(5)
 
-        if TEAM == Team.GREEN: 
+        if TEAM == Team.GREEN:
             move_base_override.move(0.10, duration=2.0)
             move_base_override.move(-0.10, duration=2.0)
         else:
@@ -215,7 +214,7 @@ class FishAndHoldState(State):
         fishing_z_axis_deploy(False)
         rospy.sleep(0.5)
 
-        if TEAM == Team.GREEN: 
+        if TEAM == Team.GREEN:
             move_base_override.move(-0.10, duration=2.0)
         else:
             move_base_override.move(0.10, duration=2.0)
@@ -320,7 +319,7 @@ def main():
     with sq:
         Sequence.add('waiting', WaitStartState())
 
-        for i in range(2):	
+        for i in range(2):
             Sequence.add('fishing {}'.format(i), create_fish_sequence())
 #        Sequence.add('inner_door', create_door_state_machine(0.3))
 #        Sequence.add('outer_door', create_door_state_machine(0.6))
