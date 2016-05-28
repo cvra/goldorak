@@ -17,3 +17,17 @@ diffbase:
     left_wheel:
         radius: 0.016
         direction: 1
+
+fishing:
+    y_axis:
+        range: 12
+        direction: 1
+        index_offset: 0.3 # to compensate homing switch position
+    z_axis:
+        range: 9
+        direction: -1
+        index_offset: 0.5
+        torque_down: -0.2
+    impeller:
+        speed: 1.5
+        direction: -1

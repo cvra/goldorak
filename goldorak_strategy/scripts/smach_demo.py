@@ -1,22 +1,34 @@
 #!/usr/bin/env python
 
-import time
 import argparse
 from math import radians
+import subprocess
+import os.path
 
 import rospy
 import roslib
 import actionlib
+
 from cvra_msgs.msg import MotorControlSetpoint
 from move_base_msgs.msg import MoveBaseGoal, MoveBaseAction
 from actionlib_msgs.msg import GoalID
+from nav_msgs.msg import Odometry
 
 from smach import StateMachine, State, Sequence
 
 from smach_ros import SimpleActionState, IntrospectionServer
 
-from geometry_msgs.msg import PoseWithCovarianceStamped, Quaternion
-from tf.transformations import quaternion_from_euler
+from geometry_msgs.msg import Quaternion, Pose
+from tf.transformations import quaternion_from_euler, euler_from_quaternion
+from goldorak_base.srv import FishingAxisControl
+
+import reset_pose
+import starter
+import move_base_override
+
+FISHING_Y_AXIS_SERVICE = 'fishing_y_axis_control'
+FISHING_Z_AXIS_SERVICE = 'fishing_z_axis_control'
+FISHING_IMPELLER_SERVICE = 'fishing_impeller_control'
 
 GAME_DURATION = 90
 
@@ -28,7 +40,9 @@ class Team:
     GREEN = 'green'
     VIOLET = 'violet'
 
-TEAM = Team.VIOLET
+TEAM = Team.GREEN
+
+robot_pose = Pose()
 
 def mirror_point(x, y):
     if TEAM == Team.VIOLET:
@@ -39,6 +53,63 @@ def mirror_point(x, y):
     raise ValueError("Unknown team")
 
 
+def fishing_y_axis_deploy(state):
+    rospy.wait_for_service(FISHING_Y_AXIS_SERVICE)
+
+    f = rospy.ServiceProxy(FISHING_Y_AXIS_SERVICE, FishingAxisControl)
+    f(state)
+
+def fishing_z_axis_deploy(state):
+    rospy.wait_for_service(FISHING_Z_AXIS_SERVICE)
+
+    f = rospy.ServiceProxy(FISHING_Z_AXIS_SERVICE, FishingAxisControl)
+    f(state)
+
+def fishing_impeller_deploy(state):
+    rospy.wait_for_service(FISHING_IMPELLER_SERVICE)
+
+    f = rospy.ServiceProxy(FISHING_IMPELLER_SERVICE, FishingAxisControl)
+    f(state)
+
+def disable_fish_ejector():
+    print("Disabling fish ejector")
+
+    command = os.path.join(os.path.dirname(__file__), 'fish_eject_driver.sh')
+    subprocess.call("sudo {} {}".format(command, 0).split())
+
+def set_fish_ejector(state):
+    if state:
+        value = 1.8 # ms
+    else:
+        value = 1.3 # ms
+
+    print("Setting fish ejector value to {}".format(value))
+    value = int(value * 1e6) # convert to ns
+
+    command = os.path.join(os.path.dirname(__file__), 'fish_eject_driver.sh')
+    subprocess.call("sudo {} {}".format(command, value).split())
+
+    rospy.sleep(2)
+    disable_fish_ejector()
+
+def init_robot_pose():
+    # Initialise robot pose
+    x, y = mirror_point(0.105, 0.900 + 0.21 / 2)
+
+    if TEAM == Team.VIOLET:
+        reset_pose.reset(x, y, radians(0))
+    else:
+        reset_pose.reset(x, y, radians(-180))
+
+def reset_robot_actuators():
+    set_fish_ejector(True)
+    fishing_impeller_deploy(False)
+    fishing_z_axis_deploy(False)
+    fishing_y_axis_deploy(False)
+
+def odometry_cb(data):
+    global robot_pose
+    robot_pose = data.pose.pose
 
 class WaitStartState(State):
     def __init__(self):
@@ -67,9 +138,19 @@ class WaitStartState(State):
 
         rospy.loginfo("Umbrella openend")
 
+    def wait_for_starter(self):
+        while not starter.poll(): # activate at falling edge
+            rospy.sleep(0.1)
+
+
     def execute(self, userdata):
         rospy.loginfo('Waiting for start')
-        rospy.loginfo('starting')
+        self.wait_for_starter()
+
+        # Reinitialise robot pose
+        init_robot_pose()
+
+        rospy.loginfo('Starting...')
 
         rospy.Timer(rospy.Duration(GAME_DURATION), self.end_of_game_cb, oneshot=True)
 
@@ -93,7 +174,7 @@ def create_door_state_machine(door_x):
 
     waypoints = (
         ('approach', mirror_point(door_x, 1.5), 90),
-        ('close', mirror_point(door_x, 1.8), 90),
+        ('close', mirror_point(door_x, 1.86), 90),
         ('back_out', mirror_point(door_x, 1.5), 90),
     )
 
@@ -102,21 +183,110 @@ def create_door_state_machine(door_x):
 
     return seq
 
+class FishAndHoldState(State):
+    def __init__(self):
+        State.__init__(self, outcomes=[Transitions.SUCCESS])
+
+    def execute(self, userdata):
+        rospy.loginfo("Opening fishing module")
+
+        fishing_y_axis_deploy(True)
+        rospy.sleep(0.5)
+
+        set_fish_ejector(False)
+
+        fishing_z_axis_deploy(True)
+        rospy.sleep(0.5)
+        fishing_impeller_deploy(True)
+        rospy.sleep(5)
+
+        move_base_override.move(0.15, duration=2.0)
+        #move_base_override.move(-0.15, duration=2.0)
+
+        rospy.loginfo("Fishing...")
+
+        fishing_impeller_deploy(False)
+        rospy.sleep(0.5)
+        fishing_z_axis_deploy(False)
+        rospy.sleep(0.5)
+
+        rospy.loginfo("Holding fishing module")
+
+        return Transitions.SUCCESS
+
+class FishDropState(State):
+    def __init__(self):
+        State.__init__(self, outcomes=[Transitions.SUCCESS])
+
+    def execute(self, userdata):
+        rospy.loginfo("Dropping fish")
+
+        set_fish_ejector(True)
+        rospy.sleep(1)
+        disable_fish_ejector()
+
+        return Transitions.SUCCESS
+
+
+class FishCloseState(State):
+    def __init__(self):
+        State.__init__(self, outcomes=[Transitions.SUCCESS])
+
+    def execute(self, userdata):
+        rospy.wait_for_service(FISHING_Y_AXIS_SERVICE)
+
+        rospy.loginfo("Closing fishing module")
+        fishing_y_axis_deploy(False)
+        rospy.sleep(1)
+
+        return Transitions.SUCCESS
+
+class FishApproachState(State):
+    def __init__(self):
+        State.__init__(self, outcomes=[Transitions.SUCCESS])
+
+    def execute(self, userdata):
+        move_base_override.move_speed(0.1, duration=2.0)
+        rospy.sleep(0.3)
+        reset_pose.reset(robot_pose.position.x, 0.08, radians(-90))
+        move_base_override.move(-0.02, duration=1.0)
+
+
+        goal = MoveBaseGoal()
+        goal.target_pose.header.frame_id = 'odom'
+        goal.target_pose.header.stamp = rospy.get_rostime()
+        goal.target_pose.pose = robot_pose
+        goal.target_pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, radians(-180)))
+
+        client = actionlib.SimpleActionClient('move_base', MoveBaseAction)
+        client.wait_for_server()
+        client.send_goal(goal)
+        client.wait_for_result()
+
+        return Transitions.SUCCESS
+
+
 def create_fish_sequence():
     seq = Sequence(outcomes=[Transitions.SUCCESS, Transitions.FAILURE],
                    connector_outcome=Transitions.SUCCESS)
 
-    margin = 0.13
-    waypoints = (
-        ('approach', mirror_point(0.73, 0.3), -90),
-        ('close', mirror_point(0.73, margin), -90),
-        ('orientation', mirror_point(0.73, margin), 0),
-        ('drop', mirror_point(1.5, margin), 0),
-        ('drop2', mirror_point(1.5, margin), 0),
+    approach = (
+        ('approach', mirror_point(0.6, 0.3), -90),
+        ('approach2', mirror_point(0.6, 0.15), -90),
+    )
+
+    drop = (
+        ('get_out', mirror_point(0.85, 0.25), -180),
+        ('drop', mirror_point(1.2, 0.12), -180),
     )
 
     with seq:
-        add_waypoints(waypoints)
+        add_waypoints(approach)
+        Sequence.add('calage', FishApproachState())
+        Sequence.add('grab_fish', FishAndHoldState())
+        add_waypoints(drop)
+        Sequence.add('drop_fish', FishDropState())
+        Sequence.add('end_fishing', FishCloseState())
 
     return seq
 
@@ -124,27 +294,22 @@ def create_fish_sequence():
 def main():
     rospy.init_node('smach_example_state_machine')
 
-    # Initialise robot pose
-    pub = rospy.Publisher('initialpose', PoseWithCovarianceStamped, queue_size=1)
-    time.sleep(1)
+    init_robot_pose()
+    move_base_override.init()
 
-    msg = PoseWithCovarianceStamped()
-    msg.header.stamp = rospy.get_rostime()
-    x, y = mirror_point(0.105, 0.900)
-    msg.pose.pose.position.x = x
-    msg.pose.pose.position.y = y
-    msg.pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, 0))
+    reset_robot_actuators()
 
-    pub.publish(msg)
-
+    odom_sub = rospy.Subscriber('/odom', Odometry, odometry_cb)
 
     sq = Sequence(outcomes=[Transitions.SUCCESS, Transitions.FAILURE],
                   connector_outcome=Transitions.SUCCESS)
     with sq:
         Sequence.add('waiting', WaitStartState())
-        Sequence.add('fishing', create_fish_sequence())
-        Sequence.add('inner_door', create_door_state_machine(0.3))
-        Sequence.add('outer_door', create_door_state_machine(0.6))
+
+        for i in range(4):	
+            Sequence.add('fishing {}'.format(i), create_fish_sequence())
+#        Sequence.add('inner_door', create_door_state_machine(0.3))
+#        Sequence.add('outer_door', create_door_state_machine(0.6))
 
     # Create and start the introspection server
     sis = IntrospectionServer('strat', sq, '/strat')

@@ -12,6 +12,7 @@
   <group unless="$(arg simulated_can)">
     <node pkg="goldorak_base" type="uavcan_bridge" name="uavcan_bridge"
           args="10"
+          launch-prefix="nice -n -6"
           output="screen">
     </node>
   </group>
@@ -20,18 +21,26 @@
   <node pkg="nodelet" type="nodelet" name="base_nodelet_manager"
         args="manager"
         output="screen">
-    <param name="num_worker_threads" value="8"/>
+    <param name="num_worker_threads" value="4"/>
   </node>
 
   <!-- Odometry nodelet -->
   <node pkg="nodelet" type="nodelet" name="odometry_nodelet"
         args="load goldorak_base/odometry_nodelet base_nodelet_manager"
+        launch-prefix="nice -n -4"
         output="screen">
   </node>
 
   <!-- Wheelbase controller nodelet -->
   <node pkg="nodelet" type="nodelet" name="controller_nodelet"
         args="load goldorak_base/controller_nodelet base_nodelet_manager"
+        launch-prefix="nice -n -7"
+        output="screen">
+  </node>
+
+  <!-- Fishing module controller nodelet -->
+  <node pkg="nodelet" type="nodelet" name="fishing_nodelet"
+        args="load goldorak_base/fishing_nodelet base_nodelet_manager"
         output="screen">
   </node>
 </launch>

@@ -2,7 +2,7 @@ motor_control_config:
     enable:
         enable: true
     parameters:
-        mode: 2
+        mode: 3
         motor_encoder_steps_per_revolution: 4096
         second_encoder_steps_per_revolution: 16384
         transmission_ratio_p: 49

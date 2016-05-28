@@ -27,6 +27,17 @@ find_package(catkin REQUIRED COMPONENTS
     geometry_msgs
     tf
     nodelet
+    message_generation
+)
+
+# Generate service messages in 'srv' folder
+add_service_files(
+    FILES
+    FishingAxisControl.srv
+)
+generate_messages(
+    DEPENDENCIES
+    std_msgs
 )
 
 generate_dynamic_reconfigure_options(
@@ -111,11 +122,24 @@ if(catkin_EXPORTED_LIBRARIES)
     add_dependencies(controller_nodelet ${catkin_EXPORTED_LIBRARIES})
 endif()
 
+## Create the fishing module controller nodelet library
+add_library(
+    fishing_nodelet
+    ${SRC}/fishing_nodelet.cpp
+)
+target_link_libraries(fishing_nodelet rt ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+if(catkin_EXPORTED_LIBRARIES)
+    add_dependencies(fishing_nodelet goldorak_base_generate_messages_cpp ${catkin_EXPORTED_LIBRARIES})
+else()
+    add_dependencies(fishing_nodelet goldorak_base_generate_messages_cpp)
+endif()
+
 ## Mark the nodelet library for installations
 install(TARGETS
     joint_state_publisher_nodelet
     odometry_nodelet
     controller_nodelet
+    fishing_nodelet
     ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
